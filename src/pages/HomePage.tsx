@@ -1,7 +1,13 @@
 export function HomePage() {
   return (
-    <div className="flex flex-col gap-4 items-center justify-center h-full">
-      <h1 className="text-xl">Vite Flash Template ⚡️</h1>
+    <div className="w-full flex flex-col gap-y-8">
+      <div>
+        <h2 className="text-lg font-medium">Your Positions</h2>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-medium">Available Markets</h2>
+      </div>
     </div>
   )
 }
