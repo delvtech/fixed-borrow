@@ -1,4 +1,5 @@
 /* eslint-disable */
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core"
 export type Maybe<T> = T | null
 export type InputMaybe<T> = Maybe<T>
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -1794,3 +1795,172 @@ export enum WarningLevel {
   Red = "RED",
   Yellow = "YELLOW",
 }
+
+export type AllMarketsQueryVariables = Exact<{ [key: string]: never }>
+
+export type AllMarketsQuery = {
+  __typename?: "Query"
+  markets: {
+    __typename?: "PaginatedMarkets"
+    items?: Array<{
+      __typename?: "Market"
+      uniqueKey: any
+      lltv: any
+      oracleAddress: any
+      irmAddress: any
+      loanAsset: {
+        __typename?: "Asset"
+        address: any
+        symbol: string
+        decimals: number
+      }
+      collateralAsset?: {
+        __typename?: "Asset"
+        address: any
+        symbol: string
+        decimals: number
+      } | null
+      state?: {
+        __typename?: "MarketState"
+        borrowApy: number
+        borrowAssets: any
+        borrowAssetsUsd?: number | null
+        supplyApy: number
+        supplyAssets: any
+        supplyAssetsUsd?: number | null
+        fee: number
+        utilization: number
+      } | null
+    }> | null
+  }
+}
+
+export const AllMarketsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "AllMarkets" },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "markets" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "items" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "uniqueKey" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "lltv" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "oracleAddress" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "irmAddress" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "loanAsset" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "address" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "symbol" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "decimals" },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "collateralAsset" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "address" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "symbol" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "decimals" },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "state" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "borrowApy" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "borrowAssets" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "borrowAssetsUsd" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "supplyApy" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "supplyAssets" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "supplyAssetsUsd" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "fee" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "utilization" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<AllMarketsQuery, AllMarketsQueryVariables>
