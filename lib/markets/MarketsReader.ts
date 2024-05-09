@@ -1,9 +1,22 @@
 import request from "graphql-request"
 import { MORPHO_GQL_URL } from "lib/morpho/constants"
-import { AllMarketsDocument } from "lib/morpho/gql/graphql"
+import { UserPositionsDocument } from "lib/morpho/gql/graphql"
+import { Address } from "viem"
 
-export async function getAllMarkets() {
-  const res = await request(MORPHO_GQL_URL, AllMarketsDocument)
+interface BorrowPosition {}
 
-  console.log(res)
+interface MarketReader {
+  getBorrowPositions: (account: Address) => Promise<BorrowPosition>
+}
+
+export const MorphoMarketReader: MarketReader = {
+  async getBorrowPositions(account) {
+    const res = await request(MORPHO_GQL_URL, UserPositionsDocument, {
+      address: account,
+    })
+
+    console.log(res)
+
+    return {}
+  },
 }

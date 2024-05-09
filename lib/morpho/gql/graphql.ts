@@ -1835,6 +1835,33 @@ export type AllMarketsQuery = {
   }
 }
 
+export type UserPositionsQueryVariables = Exact<{
+  address: Scalars["String"]["input"]
+}>
+
+export type UserPositionsQuery = {
+  __typename?: "Query"
+  userByAddress: {
+    __typename?: "User"
+    address: any
+    marketPositions: Array<{
+      __typename?: "MarketPosition"
+      borrowAssets: any
+      borrowAssetsUsd?: number | null
+      supplyAssets: any
+      supplyAssetsUsd?: number | null
+      market: { __typename?: "Market"; uniqueKey: any }
+    }>
+    vaultPositions: Array<{
+      __typename?: "VaultPosition"
+      assets: any
+      assetsUsd?: number | null
+      shares: any
+      vault: { __typename?: "Vault"; address: any; name: string }
+    }>
+  }
+}
+
 export const AllMarketsDocument = {
   kind: "Document",
   definitions: [
@@ -1964,3 +1991,130 @@ export const AllMarketsDocument = {
     },
   ],
 } as unknown as DocumentNode<AllMarketsQuery, AllMarketsQueryVariables>
+export const UserPositionsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "UserPositions" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "address" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "userByAddress" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "address" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "address" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "marketPositions" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "market" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "uniqueKey" },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "borrowAssets" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "borrowAssetsUsd" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "supplyAssets" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "supplyAssetsUsd" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "vaultPositions" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "vault" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "address" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "name" },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "assets" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "assetsUsd" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "shares" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UserPositionsQuery, UserPositionsQueryVariables>

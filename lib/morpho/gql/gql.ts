@@ -13,8 +13,10 @@ import * as types from "./graphql"
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-  "\n  query AllMarkets {\n    markets {\n      items {\n        uniqueKey\n        lltv\n        oracleAddress\n        irmAddress\n        loanAsset {\n          address\n          symbol\n          decimals\n        }\n        collateralAsset {\n          address\n          symbol\n          decimals\n        }\n        state {\n          borrowApy\n          borrowAssets\n          borrowAssetsUsd\n          supplyApy\n          supplyAssets\n          supplyAssetsUsd\n          fee\n          utilization\n        }\n      }\n    }\n  }\n":
+  "query AllMarkets {\n  markets {\n    items {\n      uniqueKey\n      lltv\n      oracleAddress\n      irmAddress\n      loanAsset {\n        address\n        symbol\n        decimals\n      }\n      collateralAsset {\n        address\n        symbol\n        decimals\n      }\n      state {\n        borrowApy\n        borrowAssets\n        borrowAssetsUsd\n        supplyApy\n        supplyAssets\n        supplyAssetsUsd\n        fee\n        utilization\n      }\n    }\n  }\n}":
     types.AllMarketsDocument,
+  "query UserPositions($address: String!) {\n  userByAddress(address: $address) {\n    address\n    marketPositions {\n      market {\n        uniqueKey\n      }\n      borrowAssets\n      borrowAssetsUsd\n      supplyAssets\n      supplyAssetsUsd\n    }\n    vaultPositions {\n      vault {\n        address\n        name\n      }\n      assets\n      assetsUsd\n      shares\n    }\n  }\n}":
+    types.UserPositionsDocument,
 }
 
 /**
@@ -35,8 +37,14 @@ export function graphql(source: string): unknown
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: "\n  query AllMarkets {\n    markets {\n      items {\n        uniqueKey\n        lltv\n        oracleAddress\n        irmAddress\n        loanAsset {\n          address\n          symbol\n          decimals\n        }\n        collateralAsset {\n          address\n          symbol\n          decimals\n        }\n        state {\n          borrowApy\n          borrowAssets\n          borrowAssetsUsd\n          supplyApy\n          supplyAssets\n          supplyAssetsUsd\n          fee\n          utilization\n        }\n      }\n    }\n  }\n"
-): (typeof documents)["\n  query AllMarkets {\n    markets {\n      items {\n        uniqueKey\n        lltv\n        oracleAddress\n        irmAddress\n        loanAsset {\n          address\n          symbol\n          decimals\n        }\n        collateralAsset {\n          address\n          symbol\n          decimals\n        }\n        state {\n          borrowApy\n          borrowAssets\n          borrowAssetsUsd\n          supplyApy\n          supplyAssets\n          supplyAssetsUsd\n          fee\n          utilization\n        }\n      }\n    }\n  }\n"]
+  source: "query AllMarkets {\n  markets {\n    items {\n      uniqueKey\n      lltv\n      oracleAddress\n      irmAddress\n      loanAsset {\n        address\n        symbol\n        decimals\n      }\n      collateralAsset {\n        address\n        symbol\n        decimals\n      }\n      state {\n        borrowApy\n        borrowAssets\n        borrowAssetsUsd\n        supplyApy\n        supplyAssets\n        supplyAssetsUsd\n        fee\n        utilization\n      }\n    }\n  }\n}"
+): (typeof documents)["query AllMarkets {\n  markets {\n    items {\n      uniqueKey\n      lltv\n      oracleAddress\n      irmAddress\n      loanAsset {\n        address\n        symbol\n        decimals\n      }\n      collateralAsset {\n        address\n        symbol\n        decimals\n      }\n      state {\n        borrowApy\n        borrowAssets\n        borrowAssetsUsd\n        supplyApy\n        supplyAssets\n        supplyAssetsUsd\n        fee\n        utilization\n      }\n    }\n  }\n}"]
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: "query UserPositions($address: String!) {\n  userByAddress(address: $address) {\n    address\n    marketPositions {\n      market {\n        uniqueKey\n      }\n      borrowAssets\n      borrowAssetsUsd\n      supplyAssets\n      supplyAssetsUsd\n    }\n    vaultPositions {\n      vault {\n        address\n        name\n      }\n      assets\n      assetsUsd\n      shares\n    }\n  }\n}"
+): (typeof documents)["query UserPositions($address: String!) {\n  userByAddress(address: $address) {\n    address\n    marketPositions {\n      market {\n        uniqueKey\n      }\n      borrowAssets\n      borrowAssetsUsd\n      supplyAssets\n      supplyAssetsUsd\n    }\n    vaultPositions {\n      vault {\n        address\n        name\n      }\n      assets\n      assetsUsd\n      shares\n    }\n  }\n}"]
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {}
