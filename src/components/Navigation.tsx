@@ -1,4 +1,4 @@
-import { Button } from "components/ui/button"
+import { ConnectButton } from "@rainbow-me/rainbowkit"
 
 export function Navbar() {
   return (
@@ -10,7 +10,7 @@ export function Navbar() {
       <div></div>
 
       <div className="justify-self-end">
-        <Button>Connect wallet</Button>
+        <ConnectButton />
       </div>
     </div>
   )

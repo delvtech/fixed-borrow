@@ -1,4 +1,6 @@
 export function HomePage() {
+  // getAllMarkets()
+
   return (
     <div className="w-full flex flex-col gap-y-8">
       <div>
