@@ -13,7 +13,7 @@ const queryClient = new QueryClient()
 
 const rainbowConfig = getDefaultConfig({
   appName: "Hyperdrive Borrow",
-  projectId: "XXXXXXX",
+  projectId: import.meta.env.VITE_WALLET_CONNECT_ID,
   chains: [mainnet, sepolia],
   ssr: false, // If your dApp uses server side rendering (SSR)
 })
