@@ -2,15 +2,15 @@ import { ConnectButton } from "@rainbow-me/rainbowkit"
 
 export function Navbar() {
   return (
-    <div className="grid grid-cols-3 py-2">
+    <div className="grid grid-cols-3 py-2 items-center">
       <div>
-        <span>fixed-borrow</span>
+        <span className="text-xl font-semibold">Hyperdrive Borrow</span>
       </div>
 
       <div></div>
 
       <div className="justify-self-end">
-        <ConnectButton />
+        <ConnectButton chainStatus="none" showBalance={false} />
       </div>
     </div>
   )
