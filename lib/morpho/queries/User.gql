@@ -1,0 +1,23 @@
+query UserPositions($address: String!) {
+  userByAddress(address: $address) {
+    address
+    marketPositions {
+      market {
+        uniqueKey
+      }
+      borrowAssets
+      borrowAssetsUsd
+      supplyAssets
+      supplyAssetsUsd
+    }
+    vaultPositions {
+      vault {
+        address
+        name
+      }
+      assets
+      assetsUsd
+      shares
+    }
+  }
+}
