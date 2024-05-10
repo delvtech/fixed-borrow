@@ -1,12 +1,15 @@
 import request from "graphql-request"
 import { MORPHO_GQL_URL } from "lib/morpho/constants"
-import { UserPositionsDocument } from "lib/morpho/gql/graphql"
+import {
+  UserPositionsDocument,
+  UserPositionsQuery,
+} from "lib/morpho/gql/graphql"
 import { Address } from "viem"
 
-interface BorrowPosition {}
-
 interface MarketReader {
-  getBorrowPositions: (account: Address) => Promise<BorrowPosition>
+  getBorrowPositions: (
+    account: Address
+  ) => Promise<UserPositionsQuery["userByAddress"]["marketPositions"]>
 }
 
 export const MorphoMarketReader: MarketReader = {
@@ -15,8 +18,8 @@ export const MorphoMarketReader: MarketReader = {
       address: account,
     })
 
-    console.log(res)
-
-    return {}
+    return res.userByAddress.marketPositions.filter(
+      (position) => BigInt(position.borrowAssets) > 0n
+    )
   },
 }

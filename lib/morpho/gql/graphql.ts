@@ -30,7 +30,7 @@ export type Scalars = {
   /** 42 character long hex address */
   Address: { input: any; output: any }
   /** The `BigInt` scalar type represents non-fractional signed whole numeric values. */
-  BigInt: { input: any; output: any }
+  BigInt: { input: string; output: string }
   /** Hexadecimal string */
   HexString: { input: any; output: any }
   /** 66 character long hexadecimal market ID */
@@ -1805,7 +1805,7 @@ export type AllMarketsQuery = {
     items?: Array<{
       __typename?: "Market"
       uniqueKey: any
-      lltv: any
+      lltv: string
       oracleAddress: any
       irmAddress: any
       loanAsset: {
@@ -1823,10 +1823,10 @@ export type AllMarketsQuery = {
       state?: {
         __typename?: "MarketState"
         borrowApy: number
-        borrowAssets: any
+        borrowAssets: string
         borrowAssetsUsd?: number | null
         supplyApy: number
-        supplyAssets: any
+        supplyAssets: string
         supplyAssetsUsd?: number | null
         fee: number
         utilization: number
@@ -1846,18 +1846,38 @@ export type UserPositionsQuery = {
     address: any
     marketPositions: Array<{
       __typename?: "MarketPosition"
-      borrowAssets: any
+      borrowAssets: string
+      borrowShares: string
       borrowAssetsUsd?: number | null
-      supplyAssets: any
-      supplyAssetsUsd?: number | null
-      market: { __typename?: "Market"; uniqueKey: any }
-    }>
-    vaultPositions: Array<{
-      __typename?: "VaultPosition"
-      assets: any
-      assetsUsd?: number | null
-      shares: any
-      vault: { __typename?: "Vault"; address: any; name: string }
+      collateral: string
+      collateralUsd?: number | null
+      healthFactor?: number | null
+      market: {
+        __typename?: "Market"
+        uniqueKey: any
+        loanAsset: {
+          __typename?: "Asset"
+          id: string
+          address: any
+          decimals: number
+          name: string
+          symbol: string
+        }
+        collateralAsset?: {
+          __typename?: "Asset"
+          id: string
+          address: any
+          decimals: number
+          name: string
+          symbol: string
+        } | null
+        state?: {
+          __typename?: "MarketState"
+          utilization: number
+          borrowApy: number
+          netBorrowApy?: number | null
+        } | null
+      }
     }>
   }
 }
@@ -2050,6 +2070,91 @@ export const UserPositionsDocument = {
                               kind: "Field",
                               name: { kind: "Name", value: "uniqueKey" },
                             },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "loanAsset" },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "id" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "address" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "decimals" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "name" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "symbol" },
+                                  },
+                                ],
+                              },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "collateralAsset" },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "id" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "address" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "decimals" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "name" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "symbol" },
+                                  },
+                                ],
+                              },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "state" },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
+                                  {
+                                    kind: "Field",
+                                    name: {
+                                      kind: "Name",
+                                      value: "utilization",
+                                    },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "borrowApy" },
+                                  },
+                                  {
+                                    kind: "Field",
+                                    name: {
+                                      kind: "Name",
+                                      value: "netBorrowApy",
+                                    },
+                                  },
+                                ],
+                              },
+                            },
                           ],
                         },
                       },
@@ -2059,53 +2164,23 @@ export const UserPositionsDocument = {
                       },
                       {
                         kind: "Field",
+                        name: { kind: "Name", value: "borrowShares" },
+                      },
+                      {
+                        kind: "Field",
                         name: { kind: "Name", value: "borrowAssetsUsd" },
                       },
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "supplyAssets" },
+                        name: { kind: "Name", value: "collateral" },
                       },
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "supplyAssetsUsd" },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: "Field",
-                  name: { kind: "Name", value: "vaultPositions" },
-                  selectionSet: {
-                    kind: "SelectionSet",
-                    selections: [
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "vault" },
-                        selectionSet: {
-                          kind: "SelectionSet",
-                          selections: [
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "address" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "name" },
-                            },
-                          ],
-                        },
+                        name: { kind: "Name", value: "collateralUsd" },
                       },
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "assets" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "assetsUsd" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "shares" },
+                        name: { kind: "Name", value: "healthFactor" },
                       },
                     ],
                   },

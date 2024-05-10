@@ -4,20 +4,33 @@ query UserPositions($address: String!) {
     marketPositions {
       market {
         uniqueKey
+        loanAsset {
+          id
+          address
+          decimals
+          name
+          symbol
+        }
+        collateralAsset {
+          id
+          address
+          decimals
+          name
+          symbol
+        }
+        state {
+          utilization
+          borrowApy
+          netBorrowApy
+        }
       }
+
       borrowAssets
+      borrowShares
       borrowAssetsUsd
-      supplyAssets
-      supplyAssetsUsd
-    }
-    vaultPositions {
-      vault {
-        address
-        name
-      }
-      assets
-      assetsUsd
-      shares
+      collateral
+      collateralUsd
+      healthFactor
     }
   }
 }

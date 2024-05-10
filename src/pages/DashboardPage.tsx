@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query"
 import {
   Card,
   CardContent,
@@ -10,16 +11,27 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "components/ui/table"
+import { MorphoMarketReader } from "lib/markets/MarketsReader"
+import { Address } from "viem"
+
+function useAllBorrowPositions(account?: Address) {
+  return useQuery({
+    queryKey: [""],
+    queryFn: async () => {
+      return await MorphoMarketReader.getBorrowPositions(account!)
+    },
+    enabled: !!account,
+  })
+}
 
 export function DashboardPage() {
-  //   const reader = MorphoMarketReader.getBorrowPositions(
-  //     "0x9e990c8dc9768f959b5abf7910f5fd3b965ccf24"
-  //   )
+  const { data: borrowPositions = [] } = useAllBorrowPositions(
+    "0x9e990c8dc9768f959b5abf7910f5fd3b965ccf24"
+  )
 
   return (
     <main className="h-40 w-full h-min-screen mt-8">
@@ -30,83 +42,38 @@ export function DashboardPage() {
         </CardHeader>
         <CardContent>
           <Table>
-            <TableCaption>A list of your recent invoices.</TableCaption>
+            <TableCaption>A list of your Morpho borrow positions.</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Invoice</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="w-[100px]">Loan</TableHead>
+                <TableHead>Borrow</TableHead>
+                <TableHead>Collateral</TableHead>
+                <TableHead className="text-right">Health Factor</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invoices.map((invoice) => (
-                <TableRow key={invoice.invoice}>
+              {borrowPositions.map((position) => (
+                <TableRow key={position.market.uniqueKey}>
                   <TableCell className="font-medium">
-                    {invoice.invoice}
+                    {position.market.loanAsset.symbol}
                   </TableCell>
-                  <TableCell>{invoice.paymentStatus}</TableCell>
-                  <TableCell>{invoice.paymentMethod}</TableCell>
+                  <TableCell>{position.borrowAssetsUsd}</TableCell>
+                  <TableCell>{position.collateralUsd}</TableCell>
                   <TableCell className="text-right">
-                    {invoice.totalAmount}
+                    {position.healthFactor}
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
-            <TableFooter>
+            {/* <TableFooter>
               <TableRow>
                 <TableCell colSpan={3}>Total</TableCell>
                 <TableCell className="text-right">$2,500.00</TableCell>
               </TableRow>
-            </TableFooter>
+            </TableFooter> */}
           </Table>
         </CardContent>
       </Card>
     </main>
   )
 }
-
-const invoices = [
-  {
-    invoice: "INV001",
-    paymentStatus: "Paid",
-    totalAmount: "$250.00",
-    paymentMethod: "Credit Card",
-  },
-  {
-    invoice: "INV002",
-    paymentStatus: "Pending",
-    totalAmount: "$150.00",
-    paymentMethod: "PayPal",
-  },
-  {
-    invoice: "INV003",
-    paymentStatus: "Unpaid",
-    totalAmount: "$350.00",
-    paymentMethod: "Bank Transfer",
-  },
-  {
-    invoice: "INV004",
-    paymentStatus: "Paid",
-    totalAmount: "$450.00",
-    paymentMethod: "Credit Card",
-  },
-  {
-    invoice: "INV005",
-    paymentStatus: "Paid",
-    totalAmount: "$550.00",
-    paymentMethod: "PayPal",
-  },
-  {
-    invoice: "INV006",
-    paymentStatus: "Pending",
-    totalAmount: "$200.00",
-    paymentMethod: "Bank Transfer",
-  },
-  {
-    invoice: "INV007",
-    paymentStatus: "Unpaid",
-    totalAmount: "$300.00",
-    paymentMethod: "Credit Card",
-  },
-]
