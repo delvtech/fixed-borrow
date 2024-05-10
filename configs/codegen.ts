@@ -7,6 +7,14 @@ const config: CodegenConfig = {
   generates: {
     "./lib/morpho/gql/": {
       preset: "client",
+      config: {
+        scalars: {
+          BigInt: {
+            input: "string",
+            output: "string",
+          },
+        },
+      },
     },
   },
 }
