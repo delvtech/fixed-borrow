@@ -3,26 +3,7 @@ query UserPositions($address: String!) {
     address
     marketPositions {
       market {
-        uniqueKey
-        loanAsset {
-          id
-          address
-          decimals
-          name
-          symbol
-        }
-        collateralAsset {
-          id
-          address
-          decimals
-          name
-          symbol
-        }
-        state {
-          utilization
-          borrowApy
-          netBorrowApy
-        }
+        ...MarketCore
       }
 
       borrowAssets
@@ -32,5 +13,28 @@ query UserPositions($address: String!) {
       collateralUsd
       healthFactor
     }
+  }
+}
+
+fragment MarketCore on Market {
+  uniqueKey
+  loanAsset {
+    id
+    address
+    decimals
+    name
+    symbol
+  }
+  collateralAsset {
+    id
+    address
+    decimals
+    name
+    symbol
+  }
+  state {
+    utilization
+    borrowApy
+    netBorrowApy
   }
 }

@@ -485,14 +485,18 @@ export type MarketOracleFeed = {
   __typename?: "MarketOracleFeed"
   baseFeedOneAddress: Scalars["Address"]["output"]
   baseFeedOneDescription?: Maybe<Scalars["String"]["output"]>
+  baseFeedOneVendor?: Maybe<Scalars["String"]["output"]>
   baseFeedTwoAddress: Scalars["Address"]["output"]
   baseFeedTwoDescription?: Maybe<Scalars["String"]["output"]>
+  baseFeedTwoVendor?: Maybe<Scalars["String"]["output"]>
   baseVault?: Maybe<Scalars["Address"]["output"]>
   baseVaultConversionSample?: Maybe<Scalars["BigInt"]["output"]>
   quoteFeedOneAddress: Scalars["Address"]["output"]
   quoteFeedOneDescription?: Maybe<Scalars["String"]["output"]>
+  quoteFeedOneVendor?: Maybe<Scalars["String"]["output"]>
   quoteFeedTwoAddress: Scalars["Address"]["output"]
   quoteFeedTwoDescription?: Maybe<Scalars["String"]["output"]>
+  quoteFeedTwoVendor?: Maybe<Scalars["String"]["output"]>
   quoteVault?: Maybe<Scalars["Address"]["output"]>
   quoteVaultConversionSample?: Maybe<Scalars["BigInt"]["output"]>
   scaleFactor?: Maybe<Scalars["BigInt"]["output"]>
@@ -1882,6 +1886,95 @@ export type UserPositionsQuery = {
   }
 }
 
+export type MarketCoreFragment = {
+  __typename?: "Market"
+  uniqueKey: any
+  loanAsset: {
+    __typename?: "Asset"
+    id: string
+    address: any
+    decimals: number
+    name: string
+    symbol: string
+  }
+  collateralAsset?: {
+    __typename?: "Asset"
+    id: string
+    address: any
+    decimals: number
+    name: string
+    symbol: string
+  } | null
+  state?: {
+    __typename?: "MarketState"
+    utilization: number
+    borrowApy: number
+    netBorrowApy?: number | null
+  } | null
+}
+
+export const MarketCoreFragmentDoc = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "MarketCore" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Market" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "uniqueKey" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "loanAsset" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+                { kind: "Field", name: { kind: "Name", value: "decimals" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "symbol" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "collateralAsset" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+                { kind: "Field", name: { kind: "Name", value: "decimals" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "symbol" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "state" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "utilization" } },
+                { kind: "Field", name: { kind: "Name", value: "borrowApy" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "netBorrowApy" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<MarketCoreFragment, unknown>
 export const AllMarketsDocument = {
   kind: "Document",
   definitions: [
@@ -2067,93 +2160,8 @@ export const UserPositionsDocument = {
                           kind: "SelectionSet",
                           selections: [
                             {
-                              kind: "Field",
-                              name: { kind: "Name", value: "uniqueKey" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "loanAsset" },
-                              selectionSet: {
-                                kind: "SelectionSet",
-                                selections: [
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "id" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "address" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "decimals" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "name" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "symbol" },
-                                  },
-                                ],
-                              },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "collateralAsset" },
-                              selectionSet: {
-                                kind: "SelectionSet",
-                                selections: [
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "id" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "address" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "decimals" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "name" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "symbol" },
-                                  },
-                                ],
-                              },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "state" },
-                              selectionSet: {
-                                kind: "SelectionSet",
-                                selections: [
-                                  {
-                                    kind: "Field",
-                                    name: {
-                                      kind: "Name",
-                                      value: "utilization",
-                                    },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "borrowApy" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: {
-                                      kind: "Name",
-                                      value: "netBorrowApy",
-                                    },
-                                  },
-                                ],
-                              },
+                              kind: "FragmentSpread",
+                              name: { kind: "Name", value: "MarketCore" },
                             },
                           ],
                         },
@@ -2184,6 +2192,63 @@ export const UserPositionsDocument = {
                       },
                     ],
                   },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: "FragmentDefinition",
+      name: { kind: "Name", value: "MarketCore" },
+      typeCondition: {
+        kind: "NamedType",
+        name: { kind: "Name", value: "Market" },
+      },
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          { kind: "Field", name: { kind: "Name", value: "uniqueKey" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "loanAsset" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+                { kind: "Field", name: { kind: "Name", value: "decimals" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "symbol" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "collateralAsset" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "address" } },
+                { kind: "Field", name: { kind: "Name", value: "decimals" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "symbol" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "state" },
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "utilization" } },
+                { kind: "Field", name: { kind: "Name", value: "borrowApy" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "netBorrowApy" },
                 },
               ],
             },
