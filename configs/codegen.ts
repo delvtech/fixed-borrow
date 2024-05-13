@@ -8,6 +8,7 @@ const config: CodegenConfig = {
     "./lib/morpho/gql/": {
       preset: "client",
       presetConfig: {
+        // https://github.com/dotansimha/graphql-code-generator/discussions/9271
         fragmentMasking: false,
       },
       config: {
