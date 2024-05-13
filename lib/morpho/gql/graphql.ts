@@ -1841,6 +1841,8 @@ export type AllMarketsQuery = {
 
 export type UserPositionsQueryVariables = Exact<{
   address: Scalars["String"]["input"]
+  startTimestamp: Scalars["Int"]["input"]
+  endTimestamp: Scalars["Int"]["input"]
 }>
 
 export type UserPositionsQuery = {
@@ -1859,6 +1861,14 @@ export type UserPositionsQuery = {
       market: {
         __typename?: "Market"
         uniqueKey: any
+        historicalState?: {
+          __typename?: "MarketHistory"
+          borrowApy?: Array<{
+            __typename?: "FloatDataPoint"
+            x: number
+            y?: number | null
+          }> | null
+        } | null
         loanAsset: {
           __typename?: "Asset"
           id: string
@@ -2126,6 +2136,28 @@ export const UserPositionsDocument = {
             },
           },
         },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "startTimestamp" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "endTimestamp" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: { kind: "NamedType", name: { kind: "Name", value: "Int" } },
+          },
+        },
       ],
       selectionSet: {
         kind: "SelectionSet",
@@ -2162,6 +2194,85 @@ export const UserPositionsDocument = {
                             {
                               kind: "FragmentSpread",
                               name: { kind: "Name", value: "MarketCore" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "historicalState" },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "borrowApy" },
+                                    arguments: [
+                                      {
+                                        kind: "Argument",
+                                        name: {
+                                          kind: "Name",
+                                          value: "options",
+                                        },
+                                        value: {
+                                          kind: "ObjectValue",
+                                          fields: [
+                                            {
+                                              kind: "ObjectField",
+                                              name: {
+                                                kind: "Name",
+                                                value: "startTimestamp",
+                                              },
+                                              value: {
+                                                kind: "Variable",
+                                                name: {
+                                                  kind: "Name",
+                                                  value: "startTimestamp",
+                                                },
+                                              },
+                                            },
+                                            {
+                                              kind: "ObjectField",
+                                              name: {
+                                                kind: "Name",
+                                                value: "endTimestamp",
+                                              },
+                                              value: {
+                                                kind: "Variable",
+                                                name: {
+                                                  kind: "Name",
+                                                  value: "endTimestamp",
+                                                },
+                                              },
+                                            },
+                                            {
+                                              kind: "ObjectField",
+                                              name: {
+                                                kind: "Name",
+                                                value: "interval",
+                                              },
+                                              value: {
+                                                kind: "EnumValue",
+                                                value: "DAY",
+                                              },
+                                            },
+                                          ],
+                                        },
+                                      },
+                                    ],
+                                    selectionSet: {
+                                      kind: "SelectionSet",
+                                      selections: [
+                                        {
+                                          kind: "Field",
+                                          name: { kind: "Name", value: "x" },
+                                        },
+                                        {
+                                          kind: "Field",
+                                          name: { kind: "Name", value: "y" },
+                                        },
+                                      ],
+                                    },
+                                  },
+                                ],
+                              },
                             },
                           ],
                         },

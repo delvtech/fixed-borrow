@@ -20,7 +20,7 @@ import { Address } from "viem"
 
 function useAllBorrowPositions(account?: Address) {
   return useQuery({
-    queryKey: [""],
+    queryKey: ["all-borrow-positions", account],
     queryFn: async () => {
       return await MorphoMarketReader.getBorrowPositions(account!)
     },

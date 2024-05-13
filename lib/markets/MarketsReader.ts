@@ -14,8 +14,11 @@ interface MarketReader {
 
 export const MorphoMarketReader: MarketReader = {
   async getBorrowPositions(account) {
+    const currentTimestamp = Math.round(Date.now() / 1000)
     const res = await request(MORPHO_GQL_URL, UserPositionsDocument, {
       address: account,
+      startTimestamp: currentTimestamp - 2592000,
+      endTimestamp: currentTimestamp,
     })
 
     return res.userByAddress.marketPositions.filter(
