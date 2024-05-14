@@ -22,7 +22,10 @@ export const MorphoMarketReader: MarketReader = {
     })
 
     return res.userByAddress.marketPositions.filter(
-      (position) => BigInt(position.borrowAssets) > 0n
+      (position) =>
+        BigInt(position.borrowAssets) > 0n &&
+        position.borrowAssetsUsd &&
+        position.borrowAssetsUsd > 10
     )
   },
 }
