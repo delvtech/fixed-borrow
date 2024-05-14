@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "components/ui/table"
+import * as dn from "dnum"
 import { MorphoMarketReader } from "lib/markets/MarketsReader"
 import { Address } from "viem"
 
@@ -45,22 +46,34 @@ export function DashboardPage() {
             <TableCaption>A list of your Morpho borrow positions.</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Loan</TableHead>
+                <TableHead>Loan</TableHead>
                 <TableHead>Borrow</TableHead>
                 <TableHead>Collateral</TableHead>
-                <TableHead className="text-right">Health Factor</TableHead>
+                <TableHead>Borrow Apy</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {borrowPositions.map((position) => (
                 <TableRow key={position.market.uniqueKey}>
                   <TableCell className="font-medium">
+                    {position.market.collateralAsset?.symbol} /{" "}
                     {position.market.loanAsset.symbol}
                   </TableCell>
-                  <TableCell>{position.borrowAssetsUsd}</TableCell>
-                  <TableCell>{position.collateralUsd}</TableCell>
-                  <TableCell className="text-right">
-                    {position.healthFactor}
+                  <TableCell>
+                    ${dn.format(dn.from(position.borrowAssetsUsd ?? 0), 2)}
+                  </TableCell>
+                  <TableCell>
+                    ${dn.format(dn.from(position.collateralUsd ?? 0), 2)}
+                  </TableCell>
+                  <TableCell>
+                    {dn.format(
+                      dn.from((position.market.state?.borrowApy ?? 0) * 100),
+                      {
+                        digits: 2,
+                        trailingZeros: true,
+                      }
+                    )}
+                    %
                   </TableCell>
                 </TableRow>
               ))}
