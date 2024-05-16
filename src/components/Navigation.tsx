@@ -4,7 +4,9 @@ export function Navbar() {
   return (
     <div className="grid grid-cols-3 py-2 items-center">
       <div>
-        <span className="text-xl font-semibold">Hyperdrive Borrow</span>
+        <span className="text-xl font-semibold font-chakra">
+          Hyperdrive Borrow
+        </span>
       </div>
 
       <div></div>

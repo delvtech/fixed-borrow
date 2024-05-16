@@ -6,16 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "components/ui/table"
-import * as dn from "dnum"
 import { MorphoMarketReader } from "lib/markets/MarketsReader"
 import { Address } from "viem"
 
@@ -29,6 +19,29 @@ function useAllBorrowPositions(account?: Address) {
   })
 }
 
+interface MarketCardProps {
+  marketTitle: string
+  marketDescription?: string
+}
+
+function MarketCard(props: MarketCardProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{props.marketTitle}</CardTitle>
+        <CardDescription>{props.marketDescription}</CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        <div className="flex flex-col">
+          <span className="font-semibold font-display">Total Col.</span>
+          <span>100,000</span>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export function DashboardPage() {
   const { data: borrowPositions = [] } = useAllBorrowPositions(
     "0x9e990c8dc9768f959b5abf7910f5fd3b965ccf24"
@@ -36,7 +49,15 @@ export function DashboardPage() {
 
   return (
     <main className="h-40 w-full h-min-screen mt-8">
-      <Card>
+      {borrowPositions.map((position) => {
+        return (
+          <MarketCard
+            marketTitle={position.market?.loanAsset?.symbol}
+            marketDescription={`${position.market.loanAsset.name}`}
+          />
+        )
+      })}
+      {/* <Card>
         <CardHeader>
           <CardTitle>Your Positions</CardTitle>
           <CardDescription>Open borrow positions on Morpho.</CardDescription>
@@ -78,15 +99,9 @@ export function DashboardPage() {
                 </TableRow>
               ))}
             </TableBody>
-            {/* <TableFooter>
-              <TableRow>
-                <TableCell colSpan={3}>Total</TableCell>
-                <TableCell className="text-right">$2,500.00</TableCell>
-              </TableRow>
-            </TableFooter> */}
           </Table>
         </CardContent>
-      </Card>
+      </Card> */}
     </main>
   )
 }
