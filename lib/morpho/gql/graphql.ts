@@ -56,6 +56,8 @@ export type Asset = {
   historicalSpotPriceEth?: Maybe<Array<FloatDataPoint>>
   id: Scalars["ID"]["output"]
   name: Scalars["String"]["output"]
+  /** Current oracle price in USD, for display purpose. */
+  oraclePriceUsd?: Maybe<Scalars["Float"]["output"]>
   /** Current price in USD, for display purpose. */
   priceUsd?: Maybe<Scalars["Float"]["output"]>
   /** Current spot price in ETH. */
@@ -78,7 +80,7 @@ export type AssetHistoricalSpotPriceEthArgs = {
 }
 
 /** Asset */
-export type AssetPriceUsdArgs = {
+export type AssetOraclePriceUsdArgs = {
   timestamp?: InputMaybe<Scalars["Float"]["input"]>
 }
 
@@ -189,15 +191,22 @@ export type Market = {
   oracleFeed?: Maybe<MarketOracleFeed>
   /** Market oracle information */
   oracleInfo?: Maybe<MarketOracleInfo>
+  /** Public allocator shared liquidity available reallocations */
+  publicAllocatorSharedLiquidity?: Maybe<Array<PublicAllocatorSharedLiquidity>>
   /** Market realized bad debt values */
   realizedBadDebt?: Maybe<MarketBadDebt>
+  /** Underlying amount of assets that can be reallocated to this market */
+  reallocatableLiquidityAssets?: Maybe<Scalars["BigInt"]["output"]>
   /** Current state */
   state?: Maybe<MarketState>
+  /** Vaults with the market in supply queue */
+  supplyingVaults?: Maybe<Array<Vault>>
   uniqueKey: Scalars["MarketId"]["output"]
   /** Market warnings */
   warnings?: Maybe<Array<MarketWarning>>
   /** Weekly market APYs */
   weeklyApys?: Maybe<MarketApyAggregates>
+  whitelisted: Scalars["Boolean"]["output"]
 }
 
 /** Morpho Blue market */
@@ -222,7 +231,7 @@ export type MarketApyAggregates = {
 export type MarketBadDebt = {
   __typename?: "MarketBadDebt"
   /** Amount of bad debt realized in the market in underlying units. */
-  underlying?: Maybe<Scalars["BigInt"]["output"]>
+  underlying: Scalars["BigInt"]["output"]
   /** Amount of bad debt realized in the market in USD. */
   usd?: Maybe<Scalars["Float"]["output"]>
 }
@@ -276,6 +285,7 @@ export type MarketFilters = {
   collateralAssetAddress_in?: InputMaybe<Array<Scalars["String"]["input"]>>
   /** Filter by collateral asset id */
   collateralAssetId_in?: InputMaybe<Array<Scalars["String"]["input"]>>
+  countryCode?: InputMaybe<Scalars["String"]["input"]>
   /** Filter by greater than or equal to given fee rate */
   fee_gte?: InputMaybe<Scalars["Float"]["input"]>
   /** Filter by lower than or equal to given fee rate */
@@ -329,6 +339,7 @@ export type MarketFilters = {
   utilization_gte?: InputMaybe<Scalars["Float"]["input"]>
   /** Filter by lower than or equal to given utilization rate */
   utilization_lte?: InputMaybe<Scalars["Float"]["input"]>
+  whitelisted?: InputMaybe<Scalars["Boolean"]["input"]>
 }
 
 /** Market state history */
@@ -491,6 +502,8 @@ export type MarketOracleFeed = {
   baseFeedTwoVendor?: Maybe<Scalars["String"]["output"]>
   baseVault?: Maybe<Scalars["Address"]["output"]>
   baseVaultConversionSample?: Maybe<Scalars["BigInt"]["output"]>
+  baseVaultDescription?: Maybe<Scalars["String"]["output"]>
+  baseVaultVendor?: Maybe<Scalars["String"]["output"]>
   quoteFeedOneAddress: Scalars["Address"]["output"]
   quoteFeedOneDescription?: Maybe<Scalars["String"]["output"]>
   quoteFeedOneVendor?: Maybe<Scalars["String"]["output"]>
@@ -499,6 +512,8 @@ export type MarketOracleFeed = {
   quoteFeedTwoVendor?: Maybe<Scalars["String"]["output"]>
   quoteVault?: Maybe<Scalars["Address"]["output"]>
   quoteVaultConversionSample?: Maybe<Scalars["BigInt"]["output"]>
+  quoteVaultDescription?: Maybe<Scalars["String"]["output"]>
+  quoteVaultVendor?: Maybe<Scalars["String"]["output"]>
   scaleFactor?: Maybe<Scalars["BigInt"]["output"]>
 }
 
@@ -637,10 +652,24 @@ export type MarketState = {
 /** Morpho Blue market state rewards */
 export type MarketStateReward = {
   __typename?: "MarketStateReward"
+  /** Amount of reward tokens per borrowed token (annualized). Scaled to reward asset decimals. */
+  amountPerBorrowedToken: Scalars["BigInt"]["output"]
+  /** Amount of reward tokens per supplied token (annualized). Scaled to reward asset decimals. */
+  amountPerSuppliedToken: Scalars["BigInt"]["output"]
   asset: Asset
-  /** Borrow rewards APY. */
+  /** Borrow rewards APR. */
+  borrowApr?: Maybe<Scalars["Float"]["output"]>
+  /**
+   * Borrow rewards APY.
+   * @deprecated Use `borrowApr` instead. This field will be removed in the future.
+   */
   borrowApy?: Maybe<Scalars["Float"]["output"]>
-  /** Supply rewards APY. */
+  /** Supply rewards APR. */
+  supplyApr?: Maybe<Scalars["Float"]["output"]>
+  /**
+   * Supply rewards APY.
+   * @deprecated Use `supplyApr` instead. This field will be removed in the future.
+   */
   supplyApy?: Maybe<Scalars["Float"]["output"]>
   /** Amount of reward tokens per year on the borrow side. Scaled to reward asset decimals. */
   yearlyBorrowTokens: Scalars["BigInt"]["output"]
@@ -932,12 +961,24 @@ export enum PublicAllocatorReallocateType {
   Withdraw = "Withdraw",
 }
 
+/** Public alllocator shared liquidity */
+export type PublicAllocatorSharedLiquidity = {
+  __typename?: "PublicAllocatorSharedLiquidity"
+  allocationMarket: Market
+  assets: Scalars["BigInt"]["output"]
+  id: Scalars["ID"]["output"]
+  market: Market
+  vault: Vault
+}
+
 /** Filtering options for public allocator reallocates. AND operator is used for multiple filters, while OR operator is used for multiple values in the same filter. */
 export type PublicallocatorReallocateFilters = {
   /** Filter by greater than or equal to given amount of market assets, in underlying token units */
   assets_gte?: InputMaybe<Scalars["BigInt"]["input"]>
   /** Filter by lower than or equal to given amount of market assets, in underlying token units */
   assets_lte?: InputMaybe<Scalars["BigInt"]["input"]>
+  /** Filter by chain id */
+  chainId_in?: InputMaybe<Array<Scalars["Int"]["input"]>>
   /** Filter by market id */
   marketId_in?: InputMaybe<Array<Scalars["String"]["input"]>>
   /** Filter by market unique key */
@@ -1103,6 +1144,7 @@ export type QueryPublicAllocatorsArgs = {
 }
 
 export type QuerySearchArgs = {
+  chainId_in?: InputMaybe<Array<Scalars["Int"]["input"]>>
   marketOrderBy?: InputMaybe<MarketOrderBy>
   numberOfResults?: InputMaybe<Scalars["Int"]["input"]>
   search: Scalars["String"]["input"]
@@ -1399,6 +1441,7 @@ export type Vault = {
   id: Scalars["ID"]["output"]
   /** Vault liquidity */
   liquidity?: Maybe<VaultLiquidity>
+  metadata?: Maybe<VaultMetadata>
   /**
    * Monthly vault APY
    * @deprecated Use monthlyApys instead.
@@ -1420,6 +1463,7 @@ export type Vault = {
   weeklyApy?: Maybe<Scalars["Float"]["output"]>
   /** Weekly vault APYs */
   weeklyApys?: Maybe<VaultApyAggregates>
+  whitelisted: Scalars["Boolean"]["output"]
 }
 
 /** MetaMorpho vault allocation */
@@ -1509,6 +1553,7 @@ export type VaultFilters = {
   assetSymbol_in?: InputMaybe<Array<Scalars["String"]["input"]>>
   /** Filter by chain id */
   chainId_in?: InputMaybe<Array<Scalars["Int"]["input"]>>
+  countryCode?: InputMaybe<Scalars["String"]["input"]>
   /** Filter by MetaMorpho creator address */
   creatorAddress_in?: InputMaybe<Array<Scalars["String"]["input"]>>
   /** Filter by greater than or equal to given fee rate. */
@@ -1538,6 +1583,7 @@ export type VaultFilters = {
   totalSupply_gte?: InputMaybe<Scalars["BigInt"]["input"]>
   /** Filter by lower than or equal to given amount of shares total supply. */
   totalSupply_lte?: InputMaybe<Scalars["BigInt"]["input"]>
+  whitelisted?: InputMaybe<Scalars["Boolean"]["input"]>
 }
 
 /** Meta-Morpho vault history */
@@ -1633,6 +1679,24 @@ export type VaultLiquidity = {
   usd: Scalars["Float"]["output"]
 }
 
+/** Vault metadata */
+export type VaultMetadata = {
+  __typename?: "VaultMetadata"
+  curators: Array<VaultMetadataCurator>
+  description: Scalars["String"]["output"]
+  forumLink?: Maybe<Scalars["String"]["output"]>
+  image: Scalars["String"]["output"]
+}
+
+/** Vault metadata curator */
+export type VaultMetadataCurator = {
+  __typename?: "VaultMetadataCurator"
+  image: Scalars["String"]["output"]
+  name: Scalars["String"]["output"]
+  url: Scalars["String"]["output"]
+  verified: Scalars["Boolean"]["output"]
+}
+
 export enum VaultOrderBy {
   Address = "Address",
   Apy = "Apy",
@@ -1702,6 +1766,8 @@ export type VaultReallocateFilters = {
   assets_gte?: InputMaybe<Scalars["BigInt"]["input"]>
   /** Filter by lower than or equal to given amount of market assets, in underlying token units */
   assets_lte?: InputMaybe<Scalars["BigInt"]["input"]>
+  /** Filter by chain id */
+  chainId_in?: InputMaybe<Array<Scalars["Int"]["input"]>>
   /** Filter by market id */
   marketId_in?: InputMaybe<Array<Scalars["String"]["input"]>>
   /** Filter by market unique key */
@@ -1861,6 +1927,7 @@ export type UserPositionsQuery = {
       market: {
         __typename?: "Market"
         uniqueKey: any
+        lltv: string
         historicalState?: {
           __typename?: "MarketHistory"
           borrowApy?: Array<{
@@ -1899,6 +1966,7 @@ export type UserPositionsQuery = {
 export type MarketCoreFragment = {
   __typename?: "Market"
   uniqueKey: any
+  lltv: string
   loanAsset: {
     __typename?: "Asset"
     id: string
@@ -1937,6 +2005,7 @@ export const MarketCoreFragmentDoc = {
         kind: "SelectionSet",
         selections: [
           { kind: "Field", name: { kind: "Name", value: "uniqueKey" } },
+          { kind: "Field", name: { kind: "Name", value: "lltv" } },
           {
             kind: "Field",
             name: { kind: "Name", value: "loanAsset" },
@@ -2321,6 +2390,7 @@ export const UserPositionsDocument = {
         kind: "SelectionSet",
         selections: [
           { kind: "Field", name: { kind: "Name", value: "uniqueKey" } },
+          { kind: "Field", name: { kind: "Name", value: "lltv" } },
           {
             kind: "Field",
             name: { kind: "Name", value: "loanAsset" },
