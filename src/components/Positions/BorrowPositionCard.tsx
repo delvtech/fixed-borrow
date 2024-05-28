@@ -1,3 +1,4 @@
+import { Badge } from "components/ui/badge"
 import { Button } from "components/ui/button"
 import {
   Card,
@@ -11,6 +12,9 @@ import * as dnum from "dnum"
 import { BorrowPosition } from "lib/markets/constants"
 
 export function BorrowPositionCard(props: BorrowPosition) {
+  const borrowRateDelta =
+    (props.currentBorrowApy - props.averageBorrowApy) * 100
+
   return (
     <Card className="min-w-[1200px]">
       <CardHeader>
@@ -33,7 +37,7 @@ export function BorrowPositionCard(props: BorrowPosition) {
                   ],
                   2
                 )}{" "}
-                {props.loanToken.symbol}
+                {props.collateralToken.symbol}
               </div>
               <div className="text-sm text-gray-600">
                 ${dnum.format(dnum.from(props.totalCollateralUsd), 2)}
@@ -93,10 +97,16 @@ export function BorrowPositionCard(props: BorrowPosition) {
         <div className="grid grid-cols-1 grid-rows-2 gap-4 grow">
           <div className="flex flex-col">
             <span className="text-sm text-gray-600">Current Borrow APY</span>
-            <div className="font-medium font-display leading-5 text-lg">
+            <div className="font-medium font-display leading-5 text-lg flex items-center">
               {dnum.format(dnum.from(props.currentBorrowApy * 100), 2)}%
+              <Badge
+                className="text-xs w-fit ml-2 text-gray-600"
+                variant="secondary"
+              >
+                {borrowRateDelta > 0 ? "+" : ""}
+                {dnum.format(dnum.from(borrowRateDelta), 2)}% (30d)
+              </Badge>
             </div>
-            <div className="text-sm text-gray-600">+2.00% (7d)</div>
           </div>
 
           <div className="flex flex-col">
@@ -104,7 +114,7 @@ export function BorrowPositionCard(props: BorrowPosition) {
             <div className="font-medium font-display leading-5 text-lg">
               {dnum.format(dnum.from(props.averageBorrowApy * 100), 2)}%
             </div>
-            <div className="text-sm text-gray-600">+1.52% (7d)</div>
+            {/* <div className="text-sm text-gray-600">+1.52% (7d)</div> */}
           </div>
         </div>
 
