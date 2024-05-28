@@ -28,8 +28,10 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
   return (
     <Card className="min-w-[1200px]">
       <CardHeader>
-        <CardTitle>{props.loanTokenSymbol}</CardTitle>
-        <CardDescription>{props.loanTokenName}</CardDescription>
+        <CardTitle>{props.loanTokenSymbol} </CardTitle>
+        <CardDescription>
+          {props.loanTokenSymbol} / {props.collateralTokenSymbol}{" "}
+        </CardDescription>
       </CardHeader>
 
       <CardContent className="flex flex-row gap-x-12">
