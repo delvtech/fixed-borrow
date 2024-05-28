@@ -8,29 +8,15 @@ import {
 } from "components/ui/card"
 import { Separator } from "components/ui/separator"
 import * as dnum from "dnum"
+import { BorrowPosition } from "lib/markets/constants"
 
-interface BorrowPositionCardProps {
-  loanTokenSymbol: string
-  loanTokenName: string
-  collateralTokenSymbol: string
-  collateralTokenName: string
-  totalCollateral: string
-  totalCollateralUsd: string
-  totalDebt: string
-  totalDebtUsd: string
-  ltv: number
-  marketMaxLtv: string
-  currentBorrowApy: number
-  averageBorrowApy: number
-}
-
-export function BorrowPositionCard(props: BorrowPositionCardProps) {
+export function BorrowPositionCard(props: BorrowPosition) {
   return (
     <Card className="min-w-[1200px]">
       <CardHeader>
-        <CardTitle>{props.loanTokenSymbol} </CardTitle>
+        <CardTitle>{props.loanToken.symbol} </CardTitle>
         <CardDescription>
-          {props.loanTokenSymbol} / {props.collateralTokenSymbol}{" "}
+          {props.loanToken.symbol} / {props.collateralToken.symbol}{" "}
         </CardDescription>
       </CardHeader>
 
@@ -40,8 +26,14 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
             <span className="text-sm text-gray-600">Total Col.</span>
             <div>
               <div className="font-medium font-display leading-5 text-lg">
-                {dnum.format([BigInt(props.totalCollateral), 18], 2)}{" "}
-                {props.loanTokenSymbol}
+                {dnum.format(
+                  [
+                    BigInt(props.totalCollateral),
+                    props.collateralToken.decimals,
+                  ],
+                  2
+                )}{" "}
+                {props.loanToken.symbol}
               </div>
               <div className="text-sm text-gray-600">
                 ${dnum.format(dnum.from(props.totalCollateralUsd), 2)}
@@ -53,8 +45,11 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
             <span className="text-sm text-gray-600">Debt</span>
             <div>
               <div className="font-medium font-display leading-5 text-lg">
-                {dnum.format([BigInt(props.totalDebt), 18], 2)}{" "}
-                {props.loanTokenSymbol}
+                {dnum.format(
+                  [BigInt(props.totalDebt), props.loanToken.decimals],
+                  2
+                )}{" "}
+                {props.loanToken.symbol}
               </div>
               <div className="text-sm text-gray-600">
                 ${dnum.format(dnum.from(props.totalDebtUsd), 2)}

@@ -53,10 +53,16 @@ export const MorphoMarketReader: MarketReader = {
       }
 
       return {
-        loanTokenSymbol: position.market.loanAsset.symbol,
-        loanTokenName: position.market.loanAsset.symbol,
-        collateralTokenSymbol: collateralAsset.symbol,
-        collateralTokenName: collateralAsset.name,
+        loanToken: {
+          symbol: position.market.loanAsset.symbol,
+          name: position.market.loanAsset.name,
+          decimals: position.market.loanAsset.decimals,
+        },
+        collateralToken: {
+          symbol: collateralAsset.symbol,
+          name: collateralAsset.name,
+          decimals: collateralAsset.decimals,
+        },
         totalCollateral: position.collateral,
         totalCollateralUsd: collateralUsd.toString(),
         totalDebt: position.borrowAssets,

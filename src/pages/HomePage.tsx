@@ -17,35 +17,32 @@ function useAllBorrowPositions(account?: Address) {
 
 export function HomePage() {
   const { data: borrowPositions = [] } = useAllBorrowPositions(
-    "0x9e990c8dc9768f959b5abf7910f5fd3b965ccf24"
+    "0xecded8b1c603cf21299835f1dfbe37f10f2a29af"
   )
 
   return (
-    <main className="h-min-screen mt-16 flex flex-col gap-y-12">
-      <div>
-        <div className="flex flex-col items-center gap-y-4">
-          <h1 className="text-2xl font-bold">Fix Your Borrow</h1>
-          <span className="text-sm text-gray-500">
-            Keep all the best parts of your Borrow position, but have peace of
-            mind with a predictable interest rate.
-          </span>
+    <main className="my-16 flex flex-col gap-y-12">
+      <div className="flex flex-col items-center gap-y-4">
+        <h1 className="text-2xl font-bold">Fix Your Borrow</h1>
+        <span className="text-sm text-gray-500">
+          Keep all the best parts of your Borrow position, but have peace of
+          mind with a predictable interest rate.
+        </span>
 
-          <div>
-            <Badge className="text-xs" variant="secondary">
-              <Check size={16} className="mr-1" /> Protect against high future
-              rates
-            </Badge>
+        <div>
+          <Badge className="text-xs" variant="secondary">
+            <Check size={16} className="mr-1" /> Protect against high future
+            rates
+          </Badge>
 
-            <Badge className="text-xs" variant="secondary">
-              <Check size={16} className="mr-1" /> Core position remains
-              unchanged
-            </Badge>
+          <Badge className="text-xs" variant="secondary">
+            <Check size={16} className="mr-1" /> Core position remains unchanged
+          </Badge>
 
-            <Badge className="text-xs" variant="secondary">
-              <Check size={16} className="mr-1" /> Keep using automations or
-              other tools
-            </Badge>
-          </div>
+          <Badge className="text-xs" variant="secondary">
+            <Check size={16} className="mr-1" /> Keep using automations or other
+            tools
+          </Badge>
         </div>
       </div>
       <div className="flex flex-col gap-y-12 items-center">

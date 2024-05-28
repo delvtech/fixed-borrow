@@ -27,7 +27,7 @@ function App() {
     <WagmiProvider config={rainbowConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider theme={midnightTheme()}>
-          <div className="h-screen">
+          <div className="min-h-screen">
             <Navbar />
             <Switch>
               <Route path="/" component={HomePage} />

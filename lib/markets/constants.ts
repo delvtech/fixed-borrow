@@ -2,18 +2,18 @@ export enum MarketType {
   Morpho = "Morpho",
 }
 
+export interface Token {
+  symbol: string
+  name: string
+  decimals: number
+}
+
 export interface BorrowPosition {
-  /** Loan token symbol ex. DAI */
-  loanTokenSymbol: string
+  /** Loan token */
+  loanToken: Token
 
-  /** Long form loan token name. */
-  loanTokenName: string
-
-  /** Collateral token symbol ex. DAI */
-  collateralTokenSymbol: string
-
-  /** Long form collateral token name. */
-  collateralTokenName: string
+  /** Collateral token*/
+  collateralToken: Token
 
   /** Total collateral in 18 decimals. */
   totalCollateral: string
