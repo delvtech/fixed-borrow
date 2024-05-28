@@ -10,7 +10,6 @@ import {
   midnightTheme,
 } from "@rainbow-me/rainbowkit"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { DashboardPage } from "pages/DashboardPage"
 import { WagmiProvider } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
 
@@ -28,11 +27,10 @@ function App() {
     <WagmiProvider config={rainbowConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider theme={midnightTheme()}>
-          <div className="h-screen px-4">
+          <div className="h-screen">
             <Navbar />
             <Switch>
               <Route path="/" component={HomePage} />
-              <Route path="/dashboard" component={DashboardPage} />
 
               {/* Default route in a switch */}
               <Route>404: No such page!</Route>
