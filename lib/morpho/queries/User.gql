@@ -34,6 +34,7 @@ query UserPositions(
 
 fragment MarketCore on Market {
   uniqueKey
+  lltv
   loanAsset {
     id
     address
