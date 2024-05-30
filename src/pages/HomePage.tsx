@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
 import { BorrowPositionCard } from "components/Positions/BorrowPositionCard"
 import { Badge } from "components/ui/badge"
+import { Skeleton } from "components/ui/skeleton"
 import { MorphoMarketReader } from "lib/markets/MarketsReader"
 import { Check } from "lucide-react"
+import { match } from "ts-pattern"
 import { Address } from "viem"
 
 function useAllBorrowPositions(account?: Address) {
@@ -16,9 +18,8 @@ function useAllBorrowPositions(account?: Address) {
 }
 
 export function HomePage() {
-  const { data: borrowPositions = [] } = useAllBorrowPositions(
-    "0xecded8b1c603cf21299835f1dfbe37f10f2a29af"
-  )
+  const { data: borrowPositions, status: allBorrowPositionsQueryStatus } =
+    useAllBorrowPositions("0xecded8b1c603cf21299835f1dfbe37f10f2a29af")
 
   return (
     <main className="my-16 flex flex-col gap-y-12">
@@ -46,9 +47,24 @@ export function HomePage() {
         </div>
       </div>
       <div className="flex flex-col gap-y-12 items-center">
-        {borrowPositions.map((position) => {
-          return <BorrowPositionCard {...position} />
-        })}
+        {match(allBorrowPositionsQueryStatus)
+          .with("success", () => {
+            return borrowPositions!.map((position) => (
+              <BorrowPositionCard {...position} />
+            ))
+          })
+          .with("pending", () => {
+            return Array.from({ length: 5 }, (_, index) => (
+              <Skeleton
+                key={index}
+                className="h-[224px] w-[1200px] rounded-xl"
+              />
+            ))
+          })
+          .with("error", () => {
+            return "error"
+          })
+          .exhaustive()}
       </div>
     </main>
   )
