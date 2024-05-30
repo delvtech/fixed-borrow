@@ -3,7 +3,7 @@ import { BorrowPositionCard } from "components/Positions/BorrowPositionCard"
 import { Badge } from "components/ui/badge"
 import { Skeleton } from "components/ui/skeleton"
 import { MorphoMarketReader } from "lib/markets/MarketsReader"
-import { Check } from "lucide-react"
+import { Check, CircleSlash } from "lucide-react"
 import { match } from "ts-pattern"
 import { Address } from "viem"
 
@@ -62,7 +62,17 @@ export function HomePage() {
             ))
           })
           .with("error", () => {
-            return "error"
+            return (
+              <div className="flex flex-col items-center">
+                <div className="text-3xl font-bold flex items-center gap-x-2">
+                  Error <CircleSlash size={24} className="inline" />
+                </div>
+                <div>
+                  Unable to load borrow positions. Please contact our support
+                  service.
+                </div>
+              </div>
+            )
           })
           .exhaustive()}
       </div>
