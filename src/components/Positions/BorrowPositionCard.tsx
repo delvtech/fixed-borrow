@@ -12,6 +12,7 @@ import * as dnum from "dnum"
 import { BorrowPosition } from "lib/markets/constants"
 
 export function BorrowPositionCard(props: BorrowPosition) {
+  console.log(props)
   const borrowRateDelta =
     (props.currentBorrowApy - props.averageBorrowApy) * 100
 
@@ -75,12 +76,12 @@ export function BorrowPositionCard(props: BorrowPosition) {
             <span className="text-sm text-gray-600">LTV</span>
             <div>
               <div className="font-medium font-display leading-5 text-lg">
-                {dnum.format(
+                {/* {dnum.format(
                   dnum.from(
                     (+props.totalDebtUsd / +props.totalCollateralUsd) * 100
                   ),
                   2
-                )}
+                )} */}
                 %
               </div>
               <div className="text-sm text-gray-600">

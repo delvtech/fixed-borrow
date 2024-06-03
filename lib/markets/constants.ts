@@ -1,3 +1,5 @@
+import { Address } from "viem"
+
 export enum MarketType {
   Morpho = "Morpho",
 }
@@ -6,6 +8,7 @@ export interface Token {
   symbol: string
   name: string
   decimals: number
+  address: Address
 }
 
 export interface BorrowPosition {

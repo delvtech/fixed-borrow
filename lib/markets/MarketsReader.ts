@@ -3,6 +3,12 @@ import { AdaptiveCurveIrmAbi } from "lib/morpho/abi/AdaptiveCurveIrmAbi"
 import { MorphoBlueAbi } from "lib/morpho/abi/MorphoBlueAbi"
 import { MORPHO_GQL_URL } from "lib/morpho/constants"
 import { UserPositionsDocument } from "lib/morpho/gql/graphql"
+import {
+  SECONDS_PER_YEAR,
+  toAssetsDown,
+  toAssetsUp,
+  wTaylorCompounded,
+} from "lib/morpho/utils"
 import { Address, Chain, PublicClient } from "viem"
 import { mainnet, sepolia } from "viem/chains"
 import { BorrowPosition } from "./constants"
@@ -30,7 +36,9 @@ const morphoAddressesByChain: Record<
 const whitelistedMetaMorphoMarketsByChain: Record<SupportedChainId, string[]> =
   {
     [mainnet.id]: [],
-    [sepolia.id]: [],
+    [sepolia.id]: [
+      "0xdac958d8b0bb0272be51fb3e204ac384d5b463c10b141a3ffb68777857ac2e10",
+    ],
   }
 
 interface MarketReader {
@@ -48,7 +56,8 @@ export const MorphoMarketReader: MarketReader = {
     chainId = mainnet.id
   ): Promise<BorrowPosition[]> {
     if (chainId === sepolia.id) {
-      const accountBorrowPositions = await Promise.all(
+      console.log("here")
+      const accountBorrowPositions: BorrowPosition[] = await Promise.all(
         whitelistedMetaMorphoMarketsByChain[sepolia.id].map(async (market) => {
           // fetch position shares
           const [supplyShares, borrowShares, collateral] =
@@ -58,6 +67,12 @@ export const MorphoMarketReader: MarketReader = {
               functionName: "position",
               args: [market as Address, account],
             })
+
+          console.log(client.chain?.id, [
+            supplyShares,
+            borrowShares,
+            collateral,
+          ])
 
           // fetch market state
 
@@ -107,12 +122,52 @@ export const MorphoMarketReader: MarketReader = {
               },
             ],
           })
+
+          const borrowAssetsUser = toAssetsUp(
+            borrowShares,
+            totalBorrowAssets,
+            totalBorrowShares
+          )
+
+          const supplyAssetsUser = toAssetsDown(
+            supplyShares,
+            totalSupplyAssets,
+            totalSupplyShares
+          )
+
+          const borrowAPY = wTaylorCompounded(
+            borrowRate,
+            BigInt(SECONDS_PER_YEAR)
+          )
+
+          return {
+            loanToken: {
+              symbol: "",
+              name: "",
+              decimals: 18,
+              address: loanToken,
+            },
+            collateralToken: {
+              symbol: "",
+              name: "",
+              decimals: 18,
+              address: collateralToken,
+            },
+            totalCollateral: "0",
+            totalCollateralUsd: "0",
+            totalDebt: borrowAssetsUser.toString(),
+            totalDebtUsd: borrowAssetsUser.toString(),
+            ltv: 0,
+            marketMaxLtv: lltv.toString(),
+            currentBorrowApy: 0,
+            averageBorrowApy: 0,
+          } as BorrowPosition
         })
       )
 
       // returns (supplyShares, borrowShares, collateral)
 
-      return []
+      return accountBorrowPositions
     }
 
     const currentTimestamp = Math.round(Date.now() / 1000)
@@ -162,11 +217,13 @@ export const MorphoMarketReader: MarketReader = {
           symbol: position.market.loanAsset.symbol,
           name: position.market.loanAsset.name,
           decimals: position.market.loanAsset.decimals,
+          address: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb" as Address, // todo
         },
         collateralToken: {
           symbol: collateralAsset.symbol,
           name: collateralAsset.name,
           decimals: collateralAsset.decimals,
+          address: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb" as Address, // todo
         },
         totalCollateral: position.collateral,
         totalCollateralUsd: collateralUsd.toString(),

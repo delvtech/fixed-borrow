@@ -6,20 +6,29 @@ import { MorphoMarketReader } from "lib/markets/MarketsReader"
 import { Check, CircleSlash } from "lucide-react"
 import { match } from "ts-pattern"
 import { Address } from "viem"
+import { useAccount, useChainId, usePublicClient } from "wagmi"
 
 function useAllBorrowPositions(account?: Address) {
+  const chainId = useChainId()
+  const client = usePublicClient()
   return useQuery({
     queryKey: ["all-borrow-positions", account],
     queryFn: async () => {
-      return await MorphoMarketReader.getBorrowPositions(account!)
+      return await MorphoMarketReader.getBorrowPositions(
+        client!,
+        account!,
+        chainId
+      )
     },
-    enabled: !!account,
+    enabled: !!account && !!client,
   })
 }
 
 export function HomePage() {
+  const { address: account } = useAccount()
+
   const { data: borrowPositions, status: allBorrowPositionsQueryStatus } =
-    useAllBorrowPositions("0xecded8b1c603cf21299835f1dfbe37f10f2a29af")
+    useAllBorrowPositions(account)
 
   return (
     <main className="my-16 flex flex-col gap-y-12">
