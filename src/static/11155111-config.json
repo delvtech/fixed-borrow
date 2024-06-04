@@ -1,0 +1,21 @@
+{
+  "morphoMarkets": [
+    {
+      "loanToken": {
+        "address": "0x552ceaDf3B47609897279F42D3B3309B604896f3",
+        "symbol": "DAI",
+        "name": "DAI",
+        "decimals": 18
+      },
+      "collateralToken": {
+        "address": "0xECa45b0391E81c311F1b390808a3BA3214d35eAA",
+        "symbol": "SDAI",
+        "name": "sDAI",
+        "decimals": 18
+      },
+      "oracle": "0x23F3A48121861b78f66BbE3DF60AD24A21c4DDad",
+      "irm": "0x0fB591F09ab2eB967c0EFB9eE0EF6642c2abe6Ab",
+      "lltv": "980000000000000000"
+    }
+  ]
+}
