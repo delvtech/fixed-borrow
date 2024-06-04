@@ -12,7 +12,7 @@ function useAllBorrowPositions(account?: Address) {
   const chainId = useChainId()
   const client = usePublicClient()
   return useQuery({
-    queryKey: ["all-borrow-positions", account],
+    queryKey: ["all-borrow-positions", account, chainId],
     queryFn: async () => {
       return await MorphoMarketReader.getBorrowPositions(
         client!,

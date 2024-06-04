@@ -56,7 +56,6 @@ export const MorphoMarketReader: MarketReader = {
     chainId = mainnet.id
   ): Promise<BorrowPosition[]> {
     if (chainId === sepolia.id) {
-      console.log("here")
       const accountBorrowPositions: BorrowPosition[] = await Promise.all(
         whitelistedMetaMorphoMarketsByChain[sepolia.id].map(async (market) => {
           // fetch position shares
@@ -67,12 +66,6 @@ export const MorphoMarketReader: MarketReader = {
               functionName: "position",
               args: [market as Address, account],
             })
-
-          console.log(client.chain?.id, [
-            supplyShares,
-            borrowShares,
-            collateral,
-          ])
 
           // fetch market state
 
