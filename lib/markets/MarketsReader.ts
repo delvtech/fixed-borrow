@@ -10,14 +10,13 @@ import {
 } from "lib/morpho/utils"
 import { Address, PublicClient, formatUnits } from "viem"
 import { mainnet, sepolia } from "viem/chains"
-import { getToken } from "wagmi/actions"
-import { rainbowConfig } from "../../src/App"
 import {
   SupportedChainId,
   morphoAddressesByChain,
   whitelistedMetaMorphoMarketsByChain,
 } from "../../src/constants"
 import { BorrowPosition } from "../../src/types"
+import { getAppConfig } from "../../src/utils/getAppConfig"
 
 interface MarketReader {
   getBorrowPositions: (
@@ -37,17 +36,13 @@ export const MorphoMarketReader: MarketReader = {
       const accountBorrowPositions: BorrowPosition[] = await Promise.all(
         whitelistedMetaMorphoMarketsByChain[sepolia.id].map(async (market) => {
           // fetch position shares
-          const [supplyShares, borrowShares, collateral] =
-            await client.readContract({
-              abi: MorphoBlueAbi,
-              address: morphoAddressesByChain[sepolia.id].blue,
-              functionName: "position",
-              args: [market as Address, account],
-            })
+          const [, borrowShares, collateral] = await client.readContract({
+            abi: MorphoBlueAbi,
+            address: morphoAddressesByChain[sepolia.id].blue,
+            functionName: "position",
+            args: [market as Address, account],
+          })
 
-          // fetch market state
-
-          // returns  totalSupplyAssets uint128, totalSupplyShares uint128, totalBorrowAssets uint128, totalBorrowShares uint128, lastUpdate uint128, fee uint128
           const [
             totalSupplyAssets,
             totalSupplyShares,
@@ -62,7 +57,14 @@ export const MorphoMarketReader: MarketReader = {
             args: [market as Address],
           })
 
-          //loanToken address, collateralToken address, oracle address, irm address, lltv uint256
+          const morphoMarketParams = getAppConfig(chainId).morphoMarkets.find(
+            (market) => market.id
+          )
+
+          if (!morphoMarketParams) {
+            throw new Error()
+          }
+
           const [loanToken, collateralToken, oracle, irm, lltv] =
             await client.readContract({
               abi: MorphoBlueAbi,
@@ -70,13 +72,6 @@ export const MorphoMarketReader: MarketReader = {
               functionName: "idToMarketParams",
               args: [market as Address],
             })
-
-          const loanTokenData = await getToken(rainbowConfig, {
-            address: loanToken,
-          })
-          const collateralTokenData = await getToken(rainbowConfig, {
-            address: collateralToken,
-          })
 
           const borrowRate = await client.readContract({
             abi: AdaptiveCurveIrmAbi,
@@ -115,18 +110,7 @@ export const MorphoMarketReader: MarketReader = {
           console.log(formatUnits(borrowAPY, 18))
 
           return {
-            loanToken: {
-              symbol: loanTokenData.symbol,
-              name: loanTokenData.name,
-              decimals: loanTokenData.decimals,
-              address: loanToken,
-            },
-            collateralToken: {
-              symbol: collateralTokenData.symbol,
-              name: collateralTokenData.name,
-              decimals: collateralTokenData.decimals,
-              address: collateralToken,
-            },
+            ...morphoMarketParams,
             totalCollateral: collateral.toString(),
             totalDebt: borrowAssetsUser.toString(),
             ltv: 0,
