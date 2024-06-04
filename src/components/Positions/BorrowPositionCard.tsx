@@ -9,7 +9,7 @@ import {
 } from "components/ui/card"
 import { Separator } from "components/ui/separator"
 import * as dnum from "dnum"
-import { BorrowPosition } from "lib/markets/constants"
+import { BorrowPosition } from "../../types"
 
 export function BorrowPositionCard(props: BorrowPosition) {
   console.log(props)
@@ -40,9 +40,11 @@ export function BorrowPositionCard(props: BorrowPosition) {
                 )}{" "}
                 {props.collateralToken.symbol}
               </div>
-              <div className="text-sm text-gray-600">
-                ${dnum.format(dnum.from(props.totalCollateralUsd), 2)}
-              </div>
+              {props.totalCollateralUsd && (
+                <div className="text-sm text-gray-600">
+                  ${dnum.format(dnum.from(props.totalCollateralUsd), 2)}
+                </div>
+              )}
             </div>
           </div>
 
@@ -56,9 +58,11 @@ export function BorrowPositionCard(props: BorrowPosition) {
                 )}{" "}
                 {props.loanToken.symbol}
               </div>
-              <div className="text-sm text-gray-600">
-                ${dnum.format(dnum.from(props.totalDebtUsd), 2)}
-              </div>
+              {props.totalDebtUsd && (
+                <div className="text-sm text-gray-600">
+                  ${dnum.format(dnum.from(props.totalDebtUsd), 2)}
+                </div>
+              )}
             </div>
           </div>
 
