@@ -101,6 +101,7 @@ supportedChainIds.forEach(async (chainId) => {
       //   })
 
       return {
+        id: marketId,
         loanToken: {
           address: loanToken,
           symbol: loanTokenSymbol,

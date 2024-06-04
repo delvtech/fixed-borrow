@@ -1,6 +1,7 @@
 {
   "morphoMarkets": [
     {
+      "id": "0xdac958d8b0bb0272be51fb3e204ac384d5b463c10b141a3ffb68777857ac2e10",
       "loanToken": {
         "address": "0x552ceaDf3B47609897279F42D3B3309B604896f3",
         "symbol": "DAI",
