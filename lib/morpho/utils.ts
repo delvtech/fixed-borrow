@@ -1,12 +1,12 @@
 const pow10 = (exponant: bigint | number) => 10n ** BigInt(exponant)
-const ORACLE_PRICE_SCALE = pow10(36)
+// const ORACLE_PRICE_SCALE = pow10(36)
 const WAD = pow10(18)
 export const SECONDS_PER_YEAR = 3600 * 24 * 365
 export const VIRTUAL_ASSETS = 1n
 export const VIRTUAL_SHARES = 10n ** 6n
-const MAX_UINT256 = BigInt(
-  "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
-)
+// const MAX_UINT256 = BigInt(
+//   "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+// )
 
 /// -----------------------------------------------
 /// -------------------- UTILS --------------------

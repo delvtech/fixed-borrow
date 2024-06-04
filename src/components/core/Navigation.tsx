@@ -1,5 +1,5 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { Button } from "components/ui/button"
+import { Button } from "components/base/button"
 
 export function Navbar() {
   return (

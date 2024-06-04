@@ -1,4 +1,4 @@
-import { Navbar } from "components/Navigation"
+import { Navbar } from "components/core/Navigation"
 import { HomePage } from "pages/HomePage"
 import { Route, Switch } from "wouter"
 
