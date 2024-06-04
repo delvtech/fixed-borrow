@@ -86,7 +86,7 @@ export function BorrowPositionCard(props: BorrowPosition) {
                   ),
                   2
                 )} */}
-                %
+                {props.ltv * 100}%
               </div>
               <div className="text-sm text-gray-600">
                 {dnum.format([BigInt(props.marketMaxLtv), 16])}% Max LTV

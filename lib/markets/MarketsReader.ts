@@ -1,11 +1,16 @@
+import * as dn from "dnum"
 import request from "graphql-request"
 import { AdaptiveCurveIrmAbi } from "lib/morpho/abi/AdaptiveCurveIrmAbi"
 import { MorphoBlueAbi } from "lib/morpho/abi/MorphoBlueAbi"
+import { OracleAbi } from "lib/morpho/abi/OracleAbi"
 import { MORPHO_GQL_URL } from "lib/morpho/constants"
 import { UserPositionsDocument } from "lib/morpho/gql/graphql"
 import {
+  ORACLE_PRICE_SCALE,
   SECONDS_PER_YEAR,
+  mulDivDown,
   toAssetsUp,
+  wDivDown,
   wTaylorCompounded,
 } from "lib/morpho/utils"
 import { Address, PublicClient, formatUnits } from "viem"
@@ -107,16 +112,25 @@ export const MorphoMarketReader: MarketReader = {
             BigInt(SECONDS_PER_YEAR)
           )
 
-          console.log(formatUnits(borrowAPY, 18))
+          const oraclePrice = await client.readContract({
+            abi: OracleAbi,
+            address: oracle,
+            functionName: "price",
+          })
+
+          const ltv = wDivDown(
+            borrowAssetsUser,
+            mulDivDown(collateral, oraclePrice, ORACLE_PRICE_SCALE)
+          )
 
           return {
             ...morphoMarketParams,
             totalCollateral: collateral.toString(),
             totalDebt: borrowAssetsUser.toString(),
-            ltv: 0,
             marketMaxLtv: lltv.toString(),
             currentBorrowApy: Number(formatUnits(borrowAPY, 18)),
             averageBorrowApy: 0,
+            ltv: Number(dn.format([ltv, 18], 2)),
           } as BorrowPosition
         })
       )
