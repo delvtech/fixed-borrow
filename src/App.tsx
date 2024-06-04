@@ -4,23 +4,12 @@ import { Route, Switch } from "wouter"
 
 import "@rainbow-me/rainbowkit/styles.css"
 
-import {
-  RainbowKitProvider,
-  getDefaultConfig,
-  midnightTheme,
-} from "@rainbow-me/rainbowkit"
+import { RainbowKitProvider, midnightTheme } from "@rainbow-me/rainbowkit"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { WagmiProvider } from "wagmi"
-import { mainnet, sepolia } from "wagmi/chains"
+import { rainbowConfig } from "./client/rainbowClient"
 
 const queryClient = new QueryClient()
-
-const rainbowConfig = getDefaultConfig({
-  appName: "Hyperdrive Borrow",
-  projectId: import.meta.env.VITE_WALLET_CONNECT_ID,
-  chains: [mainnet, sepolia],
-  ssr: false, // If your dApp uses server side rendering (SSR)
-})
 
 function App() {
   return (
