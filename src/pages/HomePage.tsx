@@ -59,7 +59,10 @@ export function HomePage() {
         {match(allBorrowPositionsQueryStatus)
           .with("success", () => {
             return borrowPositions!.map((position) => (
-              <BorrowPositionCard {...position} />
+              <BorrowPositionCard
+                key={`${position.loanToken}${position.collateralToken}`}
+                {...position}
+              />
             ))
           })
           .with("pending", () => {
