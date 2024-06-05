@@ -33,8 +33,11 @@ export interface BorrowPosition {
   /** Total debt priced in USD. */
   totalDebtUsd?: string
 
-  /** TODO */
+  /** Loan to value. */
   ltv: number
+
+  /** Price of one unit of collateral in which a liquidation will be triggered. */
+  liquidationPrice?: string
 
   /** Market maximum loan to value as a decimal ex. 0.90 */
   marketMaxLtv: string
@@ -43,5 +46,5 @@ export interface BorrowPosition {
   currentBorrowApy: number
 
   /** Average borrow APY as a decimal ex .12 = 12% */
-  averageBorrowApy: number
+  averageBorrowApy?: number
 }

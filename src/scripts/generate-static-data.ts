@@ -48,7 +48,6 @@ supportedChainIds.forEach(async (chainId) => {
   // loanToken address, collateralToken address, oracle address, irm address, lltv uint256
   const morphoMarkets = await Promise.all(
     morphoMarketIds.map(async (marketId) => {
-      console.log(marketId)
       const [loanToken, collateralToken, oracle, irm, lltv] =
         await client.readContract({
           abi: MorphoBlueAbi,

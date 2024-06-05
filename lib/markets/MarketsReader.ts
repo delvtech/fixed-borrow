@@ -11,6 +11,7 @@ import {
   mulDivDown,
   toAssetsUp,
   wDivDown,
+  wMulDown,
   wTaylorCompounded,
 } from "lib/morpho/utils"
 import { Address, PublicClient, formatUnits } from "viem"
@@ -22,6 +23,7 @@ import {
 } from "../../src/constants"
 import { BorrowPosition } from "../../src/types"
 import { getAppConfig } from "../../src/utils/getAppConfig"
+import { getTokenUsdPrice } from "../../src/utils/getTokenUsdPrice"
 
 interface MarketReader {
   getBorrowPositions: (
@@ -123,19 +125,67 @@ export const MorphoMarketReader: MarketReader = {
             mulDivDown(collateral, oraclePrice, ORACLE_PRICE_SCALE)
           )
 
+          const collateralPrice = mulDivDown(
+            collateral,
+            oraclePrice,
+            ORACLE_PRICE_SCALE
+          )
+
+          const liqPrice = wDivDown(
+            borrowAssetsUser,
+            wMulDown(lltv, collateralPrice)
+          )
+
+          const collateralTokenPriceUsd = await getTokenUsdPrice(
+            chainId,
+            morphoMarketParams.collateralToken.address as Address
+          )
+
+          const loanTokenPriceUsd = await getTokenUsdPrice(
+            chainId,
+            morphoMarketParams.loanToken.address as Address
+          )
+
+          collateralTokenPriceUsd && console.log()
+
           return {
             ...morphoMarketParams,
             totalCollateral: collateral.toString(),
+            totalCollateralUsd: collateralTokenPriceUsd
+              ? dn.format(
+                  [
+                    wMulDown(collateralTokenPriceUsd, collateral),
+                    morphoMarketParams.collateralToken.decimals,
+                  ],
+                  {
+                    digits: 2,
+                    trailingZeros: true,
+                  }
+                )
+              : undefined,
             totalDebt: borrowAssetsUser.toString(),
+            totalDebtUsd: loanTokenPriceUsd
+              ? dn.format(
+                  [
+                    wMulDown(loanTokenPriceUsd, borrowAssetsUser),
+                    morphoMarketParams.loanToken.decimals,
+                  ],
+                  {
+                    digits: 2,
+                    trailingZeros: true,
+                  }
+                )
+              : undefined,
             marketMaxLtv: lltv.toString(),
             currentBorrowApy: Number(formatUnits(borrowAPY, 18)),
-            averageBorrowApy: 0,
             ltv: Number(dn.format([ltv, 18], 2)),
+            liquidationPrice: dn.format(
+              [liqPrice, morphoMarketParams.collateralToken.decimals],
+              2
+            ),
           } as BorrowPosition
         })
       )
-
-      // returns (supplyShares, borrowShares, collateral)
 
       return accountBorrowPositions
     }
