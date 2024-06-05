@@ -39,7 +39,7 @@ export function HomePage() {
           mind with a predictable interest rate.
         </span>
 
-        <div>
+        <div className="flex gap-x-2">
           <Badge className="text-xs" variant="secondary">
             <Check size={16} className="mr-1" /> Protect against high future
             rates

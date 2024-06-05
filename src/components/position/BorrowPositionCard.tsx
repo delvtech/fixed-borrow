@@ -16,10 +16,15 @@ export function BorrowPositionCard(props: BorrowPosition) {
     ? (props.currentBorrowApy - props.averageBorrowApy) * 100
     : null
 
+  console.log(props, props.loanToken.iconUrl)
+
   return (
     <Card className="min-w-[1200px]">
       <CardHeader>
-        <CardTitle>{props.loanToken.symbol} </CardTitle>
+        <CardTitle className="flex items-center gap-x-2">
+          <img src={props.loanToken.iconUrl} className="h-5 w-5" />
+          {props.loanToken.symbol}{" "}
+        </CardTitle>
         <CardDescription>
           {props.collateralToken.symbol} / {props.loanToken.symbol}{" "}
         </CardDescription>

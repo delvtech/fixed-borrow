@@ -5,6 +5,7 @@ import { MorphoBlueAbi } from "../../lib/morpho/abi/MorphoBlueAbi.js"
 import {
   morphoAddressesByChain,
   supportedChainIds,
+  tokenIconBySymbol,
   whitelistedMetaMorphoMarketsByChain,
 } from "../constants.js"
 import { Token } from "../types.js"
@@ -107,6 +108,7 @@ supportedChainIds.forEach(async (chainId) => {
         symbol: loanTokenSymbol,
         name: loanTokenName,
         decimals: loanTokenDecimals,
+        iconUrl: tokenIconBySymbol[loanTokenSymbol],
       }
 
       const collateralToken = {
@@ -114,6 +116,7 @@ supportedChainIds.forEach(async (chainId) => {
         symbol: collateralTokenSymbol,
         name: collateralTokenName,
         decimals: collateralTokenDecimals,
+        iconUrl: tokenIconBySymbol[collateralTokenSymbol],
       }
 
       !tokens.some((token) => token.address === loanTokenAddress) &&

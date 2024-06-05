@@ -12,6 +12,7 @@ export interface Token {
   name: string
   decimals: number
   address: Address
+  iconUrl?: string
 }
 
 export interface BorrowPosition {

@@ -4,13 +4,15 @@
       "address": "0x552ceaDf3B47609897279F42D3B3309B604896f3",
       "symbol": "DAI",
       "name": "DAI",
-      "decimals": 18
+      "decimals": 18,
+      "iconUrl": "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.svg?v=032"
     },
     {
       "address": "0xECa45b0391E81c311F1b390808a3BA3214d35eAA",
       "symbol": "SDAI",
       "name": "sDAI",
-      "decimals": 18
+      "decimals": 18,
+      "iconUrl": "https://1827921443-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FjvdfbhgN5UCpMtP1l8r5%2Fuploads%2Fgit-blob-9873db4416f6c6f7f29d9be3ead28f5317f3dfa3%2FBadge_Dai%202.svg?alt=media"
     }
   ],
   "morphoMarkets": [
@@ -20,13 +22,15 @@
         "address": "0x552ceaDf3B47609897279F42D3B3309B604896f3",
         "symbol": "DAI",
         "name": "DAI",
-        "decimals": 18
+        "decimals": 18,
+        "iconUrl": "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.svg?v=032"
       },
       "collateralToken": {
         "address": "0xECa45b0391E81c311F1b390808a3BA3214d35eAA",
         "symbol": "SDAI",
         "name": "sDAI",
-        "decimals": 18
+        "decimals": 18,
+        "iconUrl": "https://1827921443-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FjvdfbhgN5UCpMtP1l8r5%2Fuploads%2Fgit-blob-9873db4416f6c6f7f29d9be3ead28f5317f3dfa3%2FBadge_Dai%202.svg?alt=media"
       },
       "oracle": "0x23F3A48121861b78f66BbE3DF60AD24A21c4DDad",
       "irm": "0x0fB591F09ab2eB967c0EFB9eE0EF6642c2abe6Ab",
