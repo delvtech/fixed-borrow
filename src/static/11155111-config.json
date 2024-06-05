@@ -1,4 +1,18 @@
 {
+  "tokens": [
+    {
+      "address": "0x552ceaDf3B47609897279F42D3B3309B604896f3",
+      "symbol": "DAI",
+      "name": "DAI",
+      "decimals": 18
+    },
+    {
+      "address": "0xECa45b0391E81c311F1b390808a3BA3214d35eAA",
+      "symbol": "SDAI",
+      "name": "sDAI",
+      "decimals": 18
+    }
+  ],
   "morphoMarkets": [
     {
       "id": "0xdac958d8b0bb0272be51fb3e204ac384d5b463c10b141a3ffb68777857ac2e10",

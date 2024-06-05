@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": "18"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -10,7 +13,8 @@
     "format": "prettier --write '**/*.{gql,graphql,js,jsx,ts,tsx,json,md,yaml,yml}'",
     "format:check": "prettier --check '**/*.{gql,graphql,js,jsx,ts,tsx,json,md}'",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "codegen": "graphql-codegen -c configs/codegen.ts && yarn format"
+    "codegen-graphql": "graphql-codegen -c configs/codegen.ts && yarn format",
+    "codegen-static": "yarn ts-node --esm src/scripts/generate-static-data.ts && yarn format"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",

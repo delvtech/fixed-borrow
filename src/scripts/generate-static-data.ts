@@ -7,6 +7,7 @@ import {
   supportedChainIds,
   whitelistedMetaMorphoMarketsByChain,
 } from "../constants.js"
+import { Token } from "../types.js"
 
 const mainnetPublicClient = createPublicClient({
   chain: mainnet,
@@ -45,10 +46,12 @@ supportedChainIds.forEach(async (chainId) => {
   const morphoMarketIds = whitelistedMetaMorphoMarketsByChain[chainId]
   const morphoBlueAddress = morphoAddressesByChain[chainId].blue
 
+  const tokens: Array<Token> = []
+
   // loanToken address, collateralToken address, oracle address, irm address, lltv uint256
   const morphoMarkets = await Promise.all(
     morphoMarketIds.map(async (marketId) => {
-      const [loanToken, collateralToken, oracle, irm, lltv] =
+      const [loanTokenAddress, collateralTokenAddress, oracle, irm, lltv] =
         await client.readContract({
           abi: MorphoBlueAbi,
           address: morphoBlueAddress,
@@ -58,33 +61,33 @@ supportedChainIds.forEach(async (chainId) => {
 
       const loanTokenSymbol = await client.readContract({
         abi: ERC20Abi,
-        address: loanToken,
+        address: loanTokenAddress,
         functionName: "symbol",
       })
       const loanTokenName = await client.readContract({
         abi: ERC20Abi,
-        address: loanToken,
+        address: loanTokenAddress,
         functionName: "name",
       })
       const loanTokenDecimals = await client.readContract({
         abi: ERC20Abi,
-        address: loanToken,
+        address: loanTokenAddress,
         functionName: "decimals",
       })
 
       const collateralTokenSymbol = await client.readContract({
         abi: ERC20Abi,
-        address: collateralToken,
+        address: collateralTokenAddress,
         functionName: "symbol",
       })
       const collateralTokenName = await client.readContract({
         abi: ERC20Abi,
-        address: collateralToken,
+        address: collateralTokenAddress,
         functionName: "name",
       })
       const collateralTokenDecimals = await client.readContract({
         abi: ERC20Abi,
-        address: collateralToken,
+        address: collateralTokenAddress,
         functionName: "decimals",
       })
 
@@ -99,20 +102,29 @@ supportedChainIds.forEach(async (chainId) => {
       //     chainId,
       //   })
 
+      const loanToken = {
+        address: loanTokenAddress,
+        symbol: loanTokenSymbol,
+        name: loanTokenName,
+        decimals: loanTokenDecimals,
+      }
+
+      const collateralToken = {
+        address: collateralTokenAddress,
+        symbol: collateralTokenSymbol,
+        name: collateralTokenName,
+        decimals: collateralTokenDecimals,
+      }
+
+      !tokens.some((token) => token.address === loanTokenAddress) &&
+        tokens.push(loanToken)
+      !tokens.some((token) => token.address === collateralTokenAddress) &&
+        tokens.push(collateralToken)
+
       return {
         id: marketId,
-        loanToken: {
-          address: loanToken,
-          symbol: loanTokenSymbol,
-          name: loanTokenName,
-          decimals: loanTokenDecimals,
-        },
-        collateralToken: {
-          address: collateralToken,
-          symbol: collateralTokenSymbol,
-          name: collateralTokenName,
-          decimals: collateralTokenDecimals,
-        },
+        loanToken,
+        collateralToken,
         oracle,
         irm,
         lltv: lltv.toString(),
@@ -123,6 +135,7 @@ supportedChainIds.forEach(async (chainId) => {
   fs.writeFileSync(
     `src/static/${chainId}-config.json`,
     JSON.stringify({
+      tokens,
       morphoMarkets,
     })
   )
