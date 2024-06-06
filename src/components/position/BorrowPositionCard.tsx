@@ -1,12 +1,6 @@
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "components/base/card"
+import { Card, CardContent, CardHeader, CardTitle } from "components/base/card"
 import { Separator } from "components/base/separator"
 import * as dnum from "dnum"
 import { BorrowPosition } from "../../types"
@@ -23,15 +17,12 @@ export function BorrowPositionCard(props: BorrowPosition) {
       <CardHeader>
         <CardTitle className="flex items-center gap-x-2">
           <img src={props.loanToken.iconUrl} className="h-5 w-5" />
-          {props.loanToken.symbol}{" "}
+          {props.collateralToken.symbol} / {props.loanToken.symbol}
         </CardTitle>
-        <CardDescription>
-          {props.collateralToken.symbol} / {props.loanToken.symbol}{" "}
-        </CardDescription>
       </CardHeader>
 
       <CardContent className="flex flex-row gap-x-12">
-        <div className="grid grid-cols-2 grid-rows-2 gap-4 grow grid-col">
+        <div className="grid grid-cols-2 grid-rows-2 gap-8 grow grid-col">
           <div className="flex gap-x-2 items-start">
             <span className="text-sm text-gray-600">Total Col.</span>
             <div>
