@@ -15,7 +15,11 @@ function App() {
   return (
     <WagmiProvider config={rainbowConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={midnightTheme()}>
+        <RainbowKitProvider
+          theme={midnightTheme({
+            borderRadius: "small",
+          })}
+        >
           <div className="min-h-screen">
             <Navbar />
             <Switch>
