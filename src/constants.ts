@@ -30,11 +30,15 @@ export const morphoAddressesByChain: Record<
 
 export const whitelistedMetaMorphoMarketsByChain: Record<
   SupportedChainId,
-  string[]
+  { morphoId: string; hyperdrive: Address }[]
 > = {
   [mainnet.id]: [],
   [sepolia.id]: [
-    "0xdac958d8b0bb0272be51fb3e204ac384d5b463c10b141a3ffb68777857ac2e10",
+    {
+      morphoId:
+        "0xdac958d8b0bb0272be51fb3e204ac384d5b463c10b141a3ffb68777857ac2e10",
+      hyperdrive: "0x2F8702a0f20Bd6C152381D59a39DBe8cA87db9c2",
+    },
   ],
 }
 

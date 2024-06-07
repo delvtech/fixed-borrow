@@ -3,8 +3,14 @@ import { Address } from "viem"
 export interface Market {
   loanToken: Token
   collateralToken: Token
+  hyperdrive: Address
+}
 
-  hyperdriveAddress: Address
+export interface MorphoMarket extends Market {
+  id: string
+  oracle: string
+  irm: string
+  lltv: string
 }
 
 export interface Token {

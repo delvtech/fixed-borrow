@@ -1,3 +1,4 @@
+import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import * as dn from "dnum"
 import request from "graphql-request"
 import { AdaptiveCurveIrmAbi } from "lib/morpho/abi/AdaptiveCurveIrmAbi"
@@ -21,7 +22,7 @@ import {
   morphoAddressesByChain,
   whitelistedMetaMorphoMarketsByChain,
 } from "../../src/constants"
-import { BorrowPosition } from "../../src/types"
+import { BorrowPosition, Market } from "../../src/types"
 import { getAppConfig } from "../../src/utils/getAppConfig"
 import { getTokenUsdPrice } from "../../src/utils/getTokenUsdPrice"
 
@@ -31,9 +32,96 @@ interface MarketReader {
     account: Address,
     chainId: SupportedChainId
   ) => Promise<BorrowPosition[]>
+
+  getAllMarketsInfo: (
+    client: PublicClient,
+    chainId: SupportedChainId
+  ) => Promise<
+    {
+      market: Market
+      liquidity: bigint
+      fixedRate: bigint
+      borrowRate: bigint
+    }[]
+  >
 }
 
 export const MorphoMarketReader: MarketReader = {
+  //@ts-ignore
+  async getAllMarketsInfo(client, chainId = mainnet.id) {
+    const appConfig = getAppConfig(chainId)
+
+    const markets = appConfig.morphoMarkets
+
+    return Promise.all(
+      markets.map(async (market) => {
+        const hyperdrive = new ReadHyperdrive({
+          address: market.hyperdrive as Address, // hyperdrive contract address
+          publicClient: client,
+        })
+
+        const [
+          totalSupplyAssets,
+          totalSupplyShares,
+          totalBorrowAssets,
+          totalBorrowShares,
+          lastUpdate,
+          fee,
+        ] = await client.readContract({
+          abi: MorphoBlueAbi,
+          address: morphoAddressesByChain[sepolia.id].blue,
+          functionName: "market",
+          args: [market.id as Address],
+        })
+
+        const morphoMarketParams = getAppConfig(chainId).morphoMarkets.find(
+          (market) => market.id
+        )
+
+        if (!morphoMarketParams) {
+          throw new Error()
+        }
+
+        const borrowRate = await client.readContract({
+          abi: AdaptiveCurveIrmAbi,
+          address: morphoAddressesByChain[sepolia.id].irm,
+          functionName: "borrowRateView",
+          args: [
+            {
+              loanToken: morphoMarketParams.loanToken.address as Address,
+              collateralToken: morphoMarketParams.collateralToken
+                .address as Address,
+              oracle: morphoMarketParams.oracle as Address,
+              irm: morphoMarketParams.irm as Address,
+              lltv: BigInt(morphoMarketParams.lltv),
+            },
+            {
+              totalSupplyShares,
+              totalSupplyAssets,
+              totalBorrowAssets,
+              totalBorrowShares,
+              lastUpdate,
+              fee,
+            },
+          ],
+        })
+
+        const borrowAPY = wTaylorCompounded(
+          borrowRate,
+          BigInt(SECONDS_PER_YEAR)
+        )
+
+        const liquidity = await hyperdrive.getPresentValue()
+        const fixedRate = await hyperdrive.getFixedApr()
+        return {
+          market,
+          liquidity,
+          fixedRate,
+          borrowRate: borrowAPY,
+        }
+      })
+    )
+  },
   async getBorrowPositions(
     client,
     account,
@@ -47,7 +135,7 @@ export const MorphoMarketReader: MarketReader = {
             abi: MorphoBlueAbi,
             address: morphoAddressesByChain[sepolia.id].blue,
             functionName: "position",
-            args: [market as Address, account],
+            args: [market.morphoId as Address, account],
           })
 
           const [
@@ -61,7 +149,7 @@ export const MorphoMarketReader: MarketReader = {
             abi: MorphoBlueAbi,
             address: morphoAddressesByChain[sepolia.id].blue,
             functionName: "market",
-            args: [market as Address],
+            args: [market.morphoId as Address],
           })
 
           const morphoMarketParams = getAppConfig(chainId).morphoMarkets.find(
@@ -77,7 +165,7 @@ export const MorphoMarketReader: MarketReader = {
               abi: MorphoBlueAbi,
               address: morphoAddressesByChain[sepolia.id].blue,
               functionName: "idToMarketParams",
-              args: [market as Address],
+              args: [market.morphoId as Address],
             })
 
           const borrowRate = await client.readContract({
