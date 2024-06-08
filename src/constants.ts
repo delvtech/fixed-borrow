@@ -9,7 +9,8 @@ export const supportedChainIds: Chain["id"][] = [
   mainnet.id,
   sepolia.id,
 ] as const
-export type SupportedChainId = (typeof supportedChainIds)[number]
+
+export type SupportedChainId = 1 | 11155111
 
 export const morphoAddressesByChain: Record<
   SupportedChainId,

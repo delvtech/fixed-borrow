@@ -8,6 +8,7 @@ import { Check, CircleSlash } from "lucide-react"
 import { match } from "ts-pattern"
 import { Address } from "viem"
 import { useAccount, useChainId, usePublicClient } from "wagmi"
+import { SupportedChainId } from "../constants"
 
 function useAllBorrowPositions(account?: Address) {
   const chainId = useChainId()
@@ -15,11 +16,11 @@ function useAllBorrowPositions(account?: Address) {
   return useQuery({
     queryKey: ["all-borrow-positions", account, chainId],
     queryFn: async () => {
-      return await MorphoMarketReader.getBorrowPositions(
+      const reader = new MorphoMarketReader(
         client!,
-        account!,
-        chainId
+        chainId as SupportedChainId
       )
+      return await reader.getBorrowPositions(account!)
     },
     enabled: !!account && !!client,
   })

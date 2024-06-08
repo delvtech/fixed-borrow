@@ -34,6 +34,7 @@ import {
 import { MorphoMarketReader } from "lib/markets/MarketsReader"
 import { formatUnits } from "viem"
 import { useChainId, usePublicClient } from "wagmi"
+import { SupportedChainId } from "../../constants"
 
 export type MarketRowData = {
   loanCollateralTag: string
@@ -136,10 +137,11 @@ function useAllMarkets() {
   return useQuery({
     queryKey: ["all-markets", chainId],
     queryFn: async (): Promise<MarketRowData[]> => {
-      const allMarkets = await MorphoMarketReader.getAllMarketsInfo(
+      const reader = new MorphoMarketReader(
         client!,
-        chainId
+        chainId as SupportedChainId
       )
+      const allMarkets = await reader.getAllMarketsInfo()
       return allMarkets?.map((marketData) => ({
         loanCollateralTag: `${marketData.market.collateralToken.symbol}/${marketData.market.loanToken.symbol}`,
         liquidity: "100_000",
