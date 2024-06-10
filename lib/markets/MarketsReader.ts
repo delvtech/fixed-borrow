@@ -19,11 +19,7 @@ import {
   formatUnits,
 } from "viem"
 import { sepolia } from "viem/chains"
-import {
-  SupportedChainId,
-  morphoAddressesByChain,
-  whitelistedMetaMorphoMarketsByChain,
-} from "../../src/constants"
+import { SupportedChainId, morphoAddressesByChain } from "../../src/constants"
 import { BorrowPosition, Market } from "../../src/types"
 import { getAppConfig } from "../../src/utils/getAppConfig"
 import { getTokenUsdPrice } from "../../src/utils/getTokenUsdPrice"
@@ -60,8 +56,13 @@ abstract class MarketReader {
 }
 
 export class MorphoMarketReader extends MarketReader {
+  protected morphoBlueAddress: Address
+  protected irmAddress: Address
+
   constructor(client: PublicClient, chainId: SupportedChainId) {
     super(client, chainId)
+    this.morphoBlueAddress = morphoAddressesByChain[chainId].blue
+    this.irmAddress = morphoAddressesByChain[chainId].irm
   }
 
   async getMarketStateBatch(
@@ -107,14 +108,16 @@ export class MorphoMarketReader extends MarketReader {
   }
 
   public async getBorrowPositions(account: Address) {
+    const markets = getAppConfig(this.chainId).morphoMarkets
+
     const accountBorrowPositions: BorrowPosition[] = await Promise.all(
-      whitelistedMetaMorphoMarketsByChain[sepolia.id].map(async (market) => {
+      markets.map(async (market) => {
         // fetch position shares
         const [, borrowShares, collateral] = await this.client.readContract({
           abi: MorphoBlueAbi,
           address: morphoAddressesByChain[sepolia.id].blue,
           functionName: "position",
-          args: [market.morphoId as Address, account],
+          args: [market.id as Address, account],
         })
 
         const [
@@ -128,7 +131,7 @@ export class MorphoMarketReader extends MarketReader {
           abi: MorphoBlueAbi,
           address: morphoAddressesByChain[sepolia.id].blue,
           functionName: "market",
-          args: [market.morphoId as Address],
+          args: [market.id as Address],
         })
 
         const morphoMarketParams = getAppConfig(
@@ -144,7 +147,7 @@ export class MorphoMarketReader extends MarketReader {
             abi: MorphoBlueAbi,
             address: morphoAddressesByChain[sepolia.id].blue,
             functionName: "idToMarketParams",
-            args: [market.morphoId as Address],
+            args: [market.id as Address],
           })
 
         const borrowRate = await this.client.readContract({
@@ -267,58 +270,70 @@ export class MorphoMarketReader extends MarketReader {
       morphoAddressesByChain[this.chainId].blue
     )
 
+    const makeCall = (
+      params: {
+        loanToken: Address
+        collateralToken: Address
+        oracle: Address
+        irm: Address
+        lltv: bigint
+      },
+      state: MorphoMarketState
+    ): ContractFunctionParameters<
+      typeof AdaptiveCurveIrmAbi,
+      "view",
+      "borrowRateView"
+    > => {
+      return {
+        abi: AdaptiveCurveIrmAbi,
+        address: this.irmAddress,
+        functionName: "borrowRateView",
+        args: [params, state],
+      }
+    }
+
+    const marketParams = markets.map((market) => ({
+      loanToken: market.loanToken.address as Address,
+      collateralToken: market.collateralToken.address as Address,
+      oracle: market.oracle as Address,
+      irm: market.irm as Address,
+      lltv: BigInt(market.lltv),
+    }))
+
+    const morphoMarketBorrowRates = (
+      await this.client.multicall({
+        contracts: morphoMarketStates.map((state, i) =>
+          makeCall(marketParams[i], state)
+        ),
+        allowFailure: false,
+      })
+    ).map((rate) => wTaylorCompounded(rate, BigInt(SECONDS_PER_YEAR)))
+
+    // ensure all data is same length
+
     return Promise.all(
-      morphoMarketStates.map(async (state) => {
-        const { id, ...marketState } = state
-
-        const morphoMarketParams = appConfig.morphoMarkets.find(
-          (market) => market.id === state.id
-        )
-
-        if (!morphoMarketParams) {
-          throw new Error()
-        }
-
+      markets.map(async (market, i) => {
         const hyperdrive = new ReadHyperdrive({
-          address: morphoMarketParams.hyperdrive as Address, // hyperdrive contract address
+          address: market.hyperdrive as Address,
           publicClient: this.client,
         })
-
-        let borrowRate = await this.client.readContract({
-          abi: AdaptiveCurveIrmAbi,
-          address: morphoAddressesByChain[this.chainId].irm,
-          functionName: "borrowRateView",
-          args: [
-            {
-              loanToken: morphoMarketParams.loanToken.address as Address,
-              collateralToken: morphoMarketParams.collateralToken
-                .address as Address,
-              oracle: morphoMarketParams.oracle as Address,
-              irm: morphoMarketParams.irm as Address,
-              lltv: BigInt(morphoMarketParams.lltv),
-            },
-            {
-              ...marketState,
-            },
-          ],
-        })
-
-        borrowRate = wTaylorCompounded(borrowRate, BigInt(SECONDS_PER_YEAR))
         const liquidity = await hyperdrive.getPresentValue()
         const fixedRate = await hyperdrive.getFixedApr()
 
+        const borrowRate = morphoMarketBorrowRates[i]
+
         return {
           market: {
-            ...morphoMarketParams,
+            ...market,
             loanToken: {
-              ...morphoMarketParams.loanToken,
-              address: morphoMarketParams.loanToken.address as Address,
+              ...market.loanToken,
+              address: market.loanToken.address as Address,
             },
             collateralToken: {
-              ...morphoMarketParams.collateralToken,
-              address: morphoMarketParams.loanToken.address as Address,
+              ...market.collateralToken,
+              address: market.loanToken.address as Address,
             },
-            hyperdrive: morphoMarketParams.hyperdrive as Address,
+            hyperdrive: market.hyperdrive as Address,
           },
           liquidity,
           fixedRate,
