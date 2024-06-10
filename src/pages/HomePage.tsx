@@ -97,10 +97,10 @@ export function HomePage() {
 
       <div className="flex flex-col items-center gap-y-4">
         <div className="flex flex-col items-center gap-y-4">
-          <h1 className="text-2xl font-bold font-chakra">
+          <h1 className="text-4xl font-chakra">
             Available Morpho Blue Markets
           </h1>
-          <span className="text-sm text-gray-500">
+          <span className="text-secondary-foreground">
             Open a supported position on Morpho Blue and fix your rate in one
             transaction with Hyperdrive.
           </span>
