@@ -4,7 +4,7 @@ import { Route, Switch } from "wouter"
 
 import "@rainbow-me/rainbowkit/styles.css"
 
-import { RainbowKitProvider, midnightTheme } from "@rainbow-me/rainbowkit"
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { WagmiProvider } from "wagmi"
 import { rainbowConfig } from "./client/rainbowClient"
@@ -16,8 +16,9 @@ function App() {
     <WagmiProvider config={rainbowConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
-          theme={midnightTheme({
-            borderRadius: "small",
+          theme={darkTheme({
+            borderRadius: "large",
+            fontStack: "system",
           })}
         >
           <div className="min-h-screen">
