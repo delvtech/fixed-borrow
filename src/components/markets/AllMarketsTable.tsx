@@ -144,7 +144,7 @@ function useAllMarkets() {
       const allMarkets = await reader.getAllMarketsInfo()
       return allMarkets?.map((marketData) => ({
         loanCollateralTag: `${marketData.market.collateralToken.symbol}/${marketData.market.loanToken.symbol}`,
-        liquidity: "100_000",
+        liquidity: marketData.liquidity.toString(),
         fixedRate: marketData.fixedRate,
         borrowRate: marketData.borrowRate,
       }))

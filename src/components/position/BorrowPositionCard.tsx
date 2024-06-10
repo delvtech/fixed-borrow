@@ -1,4 +1,3 @@
-import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader, CardTitle } from "components/base/card"
 import { Separator } from "components/base/separator"
@@ -13,75 +12,77 @@ export function BorrowPositionCard(props: BorrowPosition) {
   console.log(props, props.loanToken.iconUrl)
 
   return (
-    <Card className="min-w-[1200px]">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-x-2">
+        <CardTitle className="flex items-center gap-x-2 font-chakra text-xl">
           <img src={props.loanToken.iconUrl} className="h-5 w-5" />
           {props.collateralToken.symbol} / {props.loanToken.symbol}
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex flex-row gap-x-12">
-        <div className="grid grid-cols-2 grid-rows-2 gap-8 grow grid-col">
-          <div className="flex gap-x-2 items-start">
-            <span className="text-sm text-gray-600">Total Col.</span>
-            <div>
-              <div className="font-medium font-display leading-5 text-lg">
+      <CardContent className="flex flex-row gap-x-24">
+        <div>
+          <div className="text-sm mb-4">Your Current Position</div>
+          <div className="grid grid-cols-2 grid-rows-2 gap-8 grow grid-col">
+            <div className="flex gap-y-1 items-start flex-col">
+              <span className="text-sm text-secondary-foreground">
+                Total Col.
+              </span>
+              <div className="font-dm leading-5 text-lg">
                 {dnum.format(
                   [
                     BigInt(props.totalCollateral),
                     props.collateralToken.decimals,
                   ],
                   2
-                )}{" "}
-                {props.collateralToken.symbol}
+                )}
+                <span className="leading-6 text-sm relative top-0.5 left-0.5">
+                  {props.collateralToken.symbol}
+                </span>
               </div>
               {props.totalCollateralUsd && (
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-secondary-foreground font-dm">
                   ${props.totalCollateralUsd}
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="flex gap-x-2 items-start">
-            <span className="text-sm text-gray-600">Debt</span>
-            <div>
-              <div className="font-medium font-display leading-5 text-lg">
+            <div className="flex gap-y-1 items-start flex-col">
+              <span className="text-sm text-secondary-foreground">Debt</span>
+              <div className="font-dm leading-5 text-lg">
                 {dnum.format(
                   [BigInt(props.totalDebt), props.loanToken.decimals],
                   2
-                )}{" "}
-                {props.loanToken.symbol}
+                )}
+                <span className="leading-6 text-sm relative top-0.5 left-0.5">
+                  {props.loanToken.symbol}
+                </span>
               </div>
               {props.totalDebtUsd && (
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-secondary-foreground font-dm">
                   ${props.totalDebtUsd}
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="flex gap-x-2 items-start">
-            <span className="text-sm text-gray-600">Liq. Price</span>
-            <div>
-              <div className="font-medium font-display leading-5 text-lg">
+            <div className="flex gap-y-1 items-start flex-col">
+              <span className="text-sm text-secondary-foreground">
+                Liq. Price
+              </span>
+              <div className="font-dm leading-5 text-lg">
                 {props.liquidationPrice} {props.collateralToken.symbol}
               </div>
-              <div className="text-sm text-gray-600">
-                {" "}
+              <div className="text-sm text-secondary-foreground font-dm">
                 {props.collateralToken.symbol} / {props.loanToken.symbol}
               </div>
             </div>
-          </div>
 
-          <div className="flex gap-x-2 items-start">
-            <span className="text-sm text-gray-600">LTV</span>
-            <div>
-              <div className="font-medium font-display leading-5 text-lg">
+            <div className="flex gap-y-1 items-start flex-col">
+              <span className="text-sm text-secondary-foreground">LTV</span>
+              <div className="font-dm leading-5 text-lg">
                 {props.ltv * 100}%
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-secondary-foreground font-dm">
                 {dnum.format([BigInt(props.marketMaxLtv), 16])}% Max LTV
               </div>
             </div>
@@ -92,31 +93,47 @@ export function BorrowPositionCard(props: BorrowPosition) {
           <Separator className="min-h-full" orientation="vertical" />
         </div>
 
-        <div className="grid grid-cols-1 grid-rows-2 gap-4 grow">
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-600">Current Borrow APY</span>
-            <div className="font-medium font-display leading-5 text-lg flex items-center">
-              {dnum.format(dnum.from(props.currentBorrowApy * 100), 2)}%
-              {borrowRateDelta && (
+        <div>
+          <div className="text-sm mb-4">Your Borrowing Cost</div>
+
+          <div className="grid grid-cols-1 grid-rows-2 gap-8 grow">
+            <div className="flex gap-y-1 items-start flex-col">
+              <span className="text-sm text-secondary-foreground">
+                Current Borrow APY
+              </span>
+              <div className="font-dm leading-5 text-lg">
+                {dnum.format(dnum.from(props.currentBorrowApy * 100), 2)}%
+              </div>
+              {/* <div className="text-sm text-secondary-foreground font-dm">
                 <Badge
                   className="text-xs w-fit ml-2 text-gray-600"
-                  variant="secondary"
+                  variant="destructive"
                 >
-                  {borrowRateDelta > 0 ? "+" : ""}
-                  {dnum.format(dnum.from(borrowRateDelta), 2)}% (30d)
+                  {(borrowRateDelta ?? 0) > 0 ? "+" : ""}
+                  {dnum.format(dnum.from(borrowRateDelta ?? 0), 2)}% (30d)
                 </Badge>
-              )}
+              </div> */}
             </div>
-          </div>
 
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-600">30d avg Borrow APY</span>
-            <div className="font-medium font-display leading-5 text-lg">
-              {props.averageBorrowApy
-                ? `${dnum.format(dnum.from(props.averageBorrowApy * 100), 2)}%`
-                : "unknown"}
+            <div className="flex gap-y-1 items-start flex-col">
+              <span className="text-sm text-secondary-foreground">
+                30d avg Borrow APY
+              </span>
+              <div className="font-dm leading-5 text-lg">
+                {props.averageBorrowApy
+                  ? `${dnum.format(dnum.from(props.averageBorrowApy * 100), 2)}%`
+                  : "unknown"}
+              </div>
+              {/* <div className="text-sm text-secondary-foreground font-dm">
+                <Badge
+                  className="text-xs w-fit ml-2 text-gray-600"
+                  variant="destructive"
+                >
+                  {(borrowRateDelta ?? 0) > 0 ? "+" : ""}
+                  {dnum.format(dnum.from(borrowRateDelta ?? 0), 2)}% (30d)
+                </Badge>
+              </div> */}
             </div>
-            {/* <div className="text-sm text-gray-600">+1.52% (7d)</div> */}
           </div>
         </div>
 
@@ -124,7 +141,7 @@ export function BorrowPositionCard(props: BorrowPosition) {
           <Separator className="min-h-full" orientation="vertical" />
         </div>
 
-        <div className="m-auto flex flex-col items-center gap-y-2 grow">
+        <div className="flex flex-col items-center gap-y-2 m-auto p-8 rounded">
           <div className="text-2xl font-semibold">10.41%</div>
           <Button>Fix your rate</Button>
         </div>

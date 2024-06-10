@@ -36,9 +36,10 @@ export function HomePage() {
     <main className="my-16 flex flex-col gap-y-24">
       <div className="flex gap-y-12 flex-col">
         <div className="flex flex-col items-center gap-y-4">
-          <h1 className="text-2xl font-bold">Fix Your Borrow</h1>
-          <span className="text-sm text-gray-500">
-            Keep all the best parts of your Borrow position, but have peace of
+          <h1 className="text-6xl text-primary font-chakra">Fix Your Borrow</h1>
+          <span className="text-lg text-secondary-foreground text-center">
+            Keep all the best parts of your Borrow position, but have peace of{" "}
+            <br />
             mind with a predictable interest rate.
           </span>
 
@@ -96,7 +97,9 @@ export function HomePage() {
 
       <div className="flex flex-col items-center gap-y-4">
         <div className="flex flex-col items-center gap-y-4">
-          <h1 className="text-2xl font-bold">Available Morpho Blue Markets</h1>
+          <h1 className="text-2xl font-bold font-chakra">
+            Available Morpho Blue Markets
+          </h1>
           <span className="text-sm text-gray-500">
             Open a supported position on Morpho Blue and fix your rate in one
             transaction with Hyperdrive.
