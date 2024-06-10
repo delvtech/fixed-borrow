@@ -14,8 +14,9 @@ module.exports = {
       },
     },
     fontFamily: {
-      chakra: ["Chakra Petch", ...defaultTheme.fontFamily.mono],
+      chakra: ["Chakra Petch", ...defaultTheme.fontFamily.sans],
       sans: ["Inter", ...defaultTheme.fontFamily.sans],
+      dm: ["DM Mono", ...defaultTheme.fontFamily.mono],
     },
     extend: {
       colors: {
