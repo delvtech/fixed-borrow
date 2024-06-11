@@ -22,8 +22,8 @@ export function Navbar() {
 
       <div></div>
 
-      <div className="justify-self-end flex gap-x-2">
-        <Button>Learn how fixed rates work</Button>
+      <div className="justify-self-end flex gap-x-2 items-center">
+        <Button size="sm">Learn how fixed rates work</Button>
 
         <div className="w-max">
           <ConnectButton showBalance={false} />
