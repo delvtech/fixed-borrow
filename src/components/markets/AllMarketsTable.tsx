@@ -13,7 +13,6 @@ import {
 import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 import * as React from "react"
 
-import { useQuery } from "@tanstack/react-query"
 import { Button } from "components/base/button"
 import {
   DropdownMenu,
@@ -31,10 +30,8 @@ import {
   TableHeader,
   TableRow,
 } from "components/base/table"
-import { MorphoMarketReader } from "lib/markets/MarketsReader"
-import { formatUnits } from "viem"
-import { useChainId, usePublicClient } from "wagmi"
-import { SupportedChainId } from "../../constants"
+import { useAllMarkets } from "hooks/markets/useAllMarkets"
+import { formatRate } from "utils/base/formatRate"
 
 export type MarketRowData = {
   loanCollateralTag: string
@@ -43,120 +40,8 @@ export type MarketRowData = {
   fixedRate: bigint
 }
 
-const columns: ColumnDef<MarketRowData>[] = [
-  {
-    accessorKey: "loanCollateralTag",
-    header: "Collateral/Debt",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("loanCollateralTag")}</div>
-    ),
-  },
-  {
-    accessorKey: "liquidity",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Liquidity
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("liquidity")}</div>
-    ),
-  },
-  {
-    accessorKey: "borrowRate",
-    header: () => <div className="text-right">Borrow Rate</div>,
-    cell: ({ row }) => (
-      <div className="lowercase text-right">
-        {formatRate(row.getValue("borrowRate"))}
-      </div>
-    ),
-  },
-
-  {
-    accessorKey: "fixedRate",
-    header: () => <div className="text-right">Fixed Borrow Rate</div>,
-    cell: ({ row }) => {
-      return (
-        <div className="text-right font-medium">
-          {formatRate(row.getValue("fixedRate"))}
-        </div>
-      )
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const payment = row.original
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(payment.loanCollateralTag)
-              }
-            >
-              Copy payment ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
-  },
-]
-
-export function formatRate(rate: bigint, decimals = 18): string {
-  // APR is stored in 18 decimals, so to avoid rounding errors, eg:
-  // 0.049999999999999996 * 100 = 5, we just take the first 10 characters after
-  // the decimal, and format those to a percent, eg: 0.0499999999 * 100 = 4.99.
-  const truncatedAPR = +formatUnits(rate, decimals).slice(0, 10)
-  const formatted = `${Number((100 * truncatedAPR).toFixed(2)).toLocaleString()}%`
-  return formatted
-}
-
-function useAllMarkets() {
-  const chainId = useChainId()
-  const client = usePublicClient()
-  return useQuery({
-    queryKey: ["all-markets", chainId],
-    queryFn: async (): Promise<MarketRowData[]> => {
-      const reader = new MorphoMarketReader(
-        client!,
-        chainId as SupportedChainId
-      )
-      const allMarkets = await reader.getAllMarketsInfo()
-      return allMarkets?.map((marketData) => ({
-        loanCollateralTag: `${marketData.market.collateralToken.symbol}/${marketData.market.loanToken.symbol}`,
-        liquidity: marketData.liquidity.toString(),
-        fixedRate: marketData.fixedRate,
-        borrowRate: marketData.borrowRate,
-      }))
-    },
-    enabled: !!client,
-  })
-}
-
 export function AllMarketsTable() {
   const { data = [] } = useAllMarkets()
-
-  console.log(data)
 
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -292,3 +177,82 @@ export function AllMarketsTable() {
     </div>
   )
 }
+
+const columns: ColumnDef<MarketRowData>[] = [
+  {
+    accessorKey: "loanCollateralTag",
+    header: "Collateral/Debt",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("loanCollateralTag")}</div>
+    ),
+  },
+  {
+    accessorKey: "liquidity",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Liquidity
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("liquidity")}</div>
+    ),
+  },
+  {
+    accessorKey: "borrowRate",
+    header: () => <div className="text-right">Borrow Rate</div>,
+    cell: ({ row }) => (
+      <div className="lowercase text-right">
+        {formatRate(row.getValue("borrowRate"))}
+      </div>
+    ),
+  },
+
+  {
+    accessorKey: "fixedRate",
+    header: () => <div className="text-right">Fixed Borrow Rate</div>,
+    cell: ({ row }) => {
+      return (
+        <div className="text-right font-medium">
+          {formatRate(row.getValue("fixedRate"))}
+        </div>
+      )
+    },
+  },
+  {
+    id: "actions",
+    enableHiding: false,
+    cell: ({ row }) => {
+      const payment = row.original
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() =>
+                navigator.clipboard.writeText(payment.loanCollateralTag)
+              }
+            >
+              Copy payment ID
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>View customer</DropdownMenuItem>
+            <DropdownMenuItem>View payment details</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
+  },
+]
