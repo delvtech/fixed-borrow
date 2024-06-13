@@ -14,11 +14,11 @@ import {
 } from "lib/morpho/utils"
 import {
   Address,
+  Block,
   ContractFunctionParameters,
   PublicClient,
   formatUnits,
 } from "viem"
-import { sepolia } from "viem/chains"
 import { SupportedChainId, morphoAddressesByChain } from "../../src/constants"
 import { BorrowPosition, Market } from "../../src/types"
 import { getAppConfig } from "../../src/utils/getAppConfig"
@@ -53,6 +53,34 @@ abstract class MarketReader {
   abstract getBorrowPositions(account: Address): Promise<BorrowPosition[]>
 
   abstract getAllMarketsInfo(): Promise<MarketInfo[]>
+
+  protected async getPastBlock(timestamp: number): Promise<Block | undefined> {
+    const blockExplorerUrl = this.client.chain?.blockExplorers?.default.apiUrl
+
+    if (!blockExplorerUrl) return Promise.resolve(undefined)
+
+    // Create a URL object
+    let url = new URL(blockExplorerUrl)
+
+    // Append the query parameters to the URL
+    url.search = new URLSearchParams({
+      module: "block",
+      action: "getblocknobytime",
+      timestamp: Math.floor(timestamp).toString(),
+      closest: "before",
+      apikey: import.meta.env.VITE_ETHERSCAN_API_KEY,
+    }).toString()
+
+    const res = await fetch(url, {})
+    const resJson = await res.json()
+    const blockNumber = resJson.result
+
+    console.log(blockExplorerUrl, blockNumber)
+
+    return this.client.getBlock({
+      blockNumber: BigInt(blockNumber),
+    })
+  }
 }
 
 export class MorphoMarketReader extends MarketReader {
@@ -107,15 +135,92 @@ export class MorphoMarketReader extends MarketReader {
     })
   }
 
+  async getMarketRateHistory(marketId: Address, fromBlock?: bigint) {
+    // fetch from RPC
+
+    const rateData = await this.client.getContractEvents({
+      abi: AdaptiveCurveIrmAbi,
+      address: morphoAddressesByChain[this.chainId].irm,
+      eventName: "BorrowRateUpdate",
+      args: {
+        id: marketId,
+      },
+      fromBlock,
+    })
+
+    const rates = rateData
+      .map((i) => {
+        const avgBorrowRate = i.args.avgBorrowRate
+
+        if (!avgBorrowRate) return undefined
+
+        return BigInt(avgBorrowRate)
+      })
+      .filter(Boolean) as bigint[]
+
+    let lowestRate = rates[0]
+    let highestRate = rates[0]
+
+    rates.forEach((rate) => {
+      if (rate > highestRate) {
+        highestRate = rate
+      }
+
+      if (rate < lowestRate) {
+        lowestRate = rate
+      }
+    })
+
+    return {
+      lowestRate:
+        Number(
+          formatUnits(
+            wTaylorCompounded(BigInt(lowestRate), BigInt(SECONDS_PER_YEAR)),
+            18
+          )
+        ) * 100,
+      highestRate:
+        Number(
+          formatUnits(
+            wTaylorCompounded(BigInt(highestRate), BigInt(SECONDS_PER_YEAR)),
+            18
+          )
+        ) * 100,
+      averageRate:
+        Number(
+          formatUnits(
+            wTaylorCompounded(
+              rates.reduce((prev, curr) => {
+                return prev + curr
+              }, 0n) / BigInt(rates.length),
+              BigInt(SECONDS_PER_YEAR)
+            ),
+            18
+          )
+        ) * 100,
+    }
+
+    // console.log({
+    //   lowestRate: Number(
+    //     formatUnits(
+    //       wTaylorCompounded(BigInt(lowestRate), BigInt(SECONDS_PER_YEAR)),
+    //       18
+    //     )
+    //   ),
+    // })
+  }
+
   public async getBorrowPositions(account: Address) {
     const markets = getAppConfig(this.chainId).morphoMarkets
+
+    console.log(markets)
 
     const accountBorrowPositions: BorrowPosition[] = await Promise.all(
       markets.map(async (market) => {
         // fetch position shares
         const [, borrowShares, collateral] = await this.client.readContract({
           abi: MorphoBlueAbi,
-          address: morphoAddressesByChain[sepolia.id].blue,
+          address: morphoAddressesByChain[this.chainId].blue,
           functionName: "position",
           args: [market.id as Address, account],
         })
@@ -129,7 +234,7 @@ export class MorphoMarketReader extends MarketReader {
           fee,
         ] = await this.client.readContract({
           abi: MorphoBlueAbi,
-          address: morphoAddressesByChain[sepolia.id].blue,
+          address: morphoAddressesByChain[this.chainId].blue,
           functionName: "market",
           args: [market.id as Address],
         })
@@ -145,14 +250,14 @@ export class MorphoMarketReader extends MarketReader {
         const [loanToken, collateralToken, oracle, irm, lltv] =
           await this.client.readContract({
             abi: MorphoBlueAbi,
-            address: morphoAddressesByChain[sepolia.id].blue,
+            address: morphoAddressesByChain[this.chainId].blue,
             functionName: "idToMarketParams",
             args: [market.id as Address],
           })
 
         const borrowRate = await this.client.readContract({
           abi: AdaptiveCurveIrmAbi,
-          address: morphoAddressesByChain[sepolia.id].irm,
+          address: morphoAddressesByChain[this.chainId].irm,
           functionName: "borrowRateView",
           args: [
             {
@@ -215,8 +320,19 @@ export class MorphoMarketReader extends MarketReader {
           this.chainId,
           morphoMarketParams.loanToken.address as Address
         )
+        const pastBlock = await super.getPastBlock(Date.now() / 1000 - 2592000)
 
-        collateralTokenPriceUsd && console.log()
+        const { lowestRate, highestRate, averageRate } =
+          await this.getMarketRateHistory(
+            market.id as Address,
+            pastBlock?.number ? BigInt(pastBlock.number) : undefined
+          )
+
+        const hyperdrive = new ReadHyperdrive({
+          address: market.hyperdrive as Address,
+          publicClient: this.client,
+        })
+        const fixedRate = await hyperdrive.getFixedApr()
 
         return {
           ...morphoMarketParams,
@@ -247,7 +363,13 @@ export class MorphoMarketReader extends MarketReader {
               )
             : undefined,
           marketMaxLtv: lltv.toString(),
-          currentBorrowApy: Number(formatUnits(borrowAPY, 18)),
+          fixedRate: Number(formatUnits(fixedRate, 18)),
+          currentRate: Number(formatUnits(borrowAPY, 16)),
+          rates: {
+            lowestRate,
+            highestRate,
+            averageRate,
+          },
           ltv: Number(dn.format([ltv, 18], 2)),
           liquidationPrice: dn.format(
             [liqPrice, morphoMarketParams.collateralToken.decimals],

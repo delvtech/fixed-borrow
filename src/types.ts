@@ -49,9 +49,14 @@ export interface BorrowPosition {
   /** Market maximum loan to value as a decimal ex. 0.90 */
   marketMaxLtv: string
 
-  /** Current borrow APY as a decimal ex .12 = 12% */
-  currentBorrowApy: number
+  fixedRate: number
 
-  /** Average borrow APY as a decimal ex .12 = 12% */
-  averageBorrowApy?: number
+  /** Current borrow APY as a decimal ex .12 = 12% */
+  currentRate: number
+
+  rates?: {
+    highestRate: number
+    lowestRate: number
+    averageRate: number
+  }
 }

@@ -1,3 +1,4 @@
+import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader, CardTitle } from "components/base/card"
 import { Separator } from "components/base/separator"
@@ -5,11 +6,11 @@ import * as dnum from "dnum"
 import { BorrowPosition } from "../../types"
 
 export function BorrowPositionCard(props: BorrowPosition) {
-  const borrowRateDelta = props.averageBorrowApy
-    ? (props.currentBorrowApy - props.averageBorrowApy) * 100
+  const borrowRateDelta = props.rates?.averageRate
+    ? props.currentRate - props.rates?.averageRate
     : null
 
-  console.log(props, props.loanToken.iconUrl)
+  console.log(props.currentRate, props.rates?.averageRate)
 
   return (
     <Card>
@@ -102,9 +103,9 @@ export function BorrowPositionCard(props: BorrowPosition) {
                 Current Borrow APY
               </span>
               <div className="font-dm leading-5 text-lg">
-                {dnum.format(dnum.from(props.currentBorrowApy * 100), 2)}%
+                {dnum.format(dnum.from(props.currentRate), 2)}%
               </div>
-              {/* <div className="text-sm text-secondary-foreground font-dm">
+              <div className="text-sm text-secondary-foreground font-dm">
                 <Badge
                   className="text-xs w-fit ml-2 text-gray-600"
                   variant="destructive"
@@ -112,7 +113,7 @@ export function BorrowPositionCard(props: BorrowPosition) {
                   {(borrowRateDelta ?? 0) > 0 ? "+" : ""}
                   {dnum.format(dnum.from(borrowRateDelta ?? 0), 2)}% (30d)
                 </Badge>
-              </div> */}
+              </div>
             </div>
 
             <div className="flex gap-y-1 items-start flex-col">
@@ -120,11 +121,11 @@ export function BorrowPositionCard(props: BorrowPosition) {
                 30d avg Borrow APY
               </span>
               <div className="font-dm leading-5 text-lg">
-                {props.averageBorrowApy
-                  ? `${dnum.format(dnum.from(props.averageBorrowApy * 100), 2)}%`
+                {props.rates?.averageRate
+                  ? `${dnum.format(dnum.from(props.rates?.averageRate), 2)}%`
                   : "unknown"}
               </div>
-              {/* <div className="text-sm text-secondary-foreground font-dm">
+              <div className="text-sm text-secondary-foreground font-dm">
                 <Badge
                   className="text-xs w-fit ml-2 text-gray-600"
                   variant="destructive"
@@ -132,7 +133,7 @@ export function BorrowPositionCard(props: BorrowPosition) {
                   {(borrowRateDelta ?? 0) > 0 ? "+" : ""}
                   {dnum.format(dnum.from(borrowRateDelta ?? 0), 2)}% (30d)
                 </Badge>
-              </div> */}
+              </div>
             </div>
           </div>
         </div>
@@ -142,7 +143,9 @@ export function BorrowPositionCard(props: BorrowPosition) {
         </div>
 
         <div className="flex flex-col items-center gap-y-2 m-auto p-8 rounded">
-          <div className="text-2xl font-semibold">10.41%</div>
+          <div className="text-2xl font-semibold">
+            {dnum.format(dnum.from(props.fixedRate), 2)}%
+          </div>
           <Button>Fix your rate</Button>
         </div>
       </CardContent>
