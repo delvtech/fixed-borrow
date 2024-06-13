@@ -17,10 +17,12 @@ module.exports = {
       chakra: ["Chakra Petch", ...defaultTheme.fontFamily.sans],
       sans: ["Inter", ...defaultTheme.fontFamily.sans],
       dm: ["DM Mono", ...defaultTheme.fontFamily.mono],
+      mono: ["DM Mono", ...defaultTheme.fontFamily.mono],
     },
     extend: {
       colors: {
         border: "hsl(var(--border))",
+        "border-secondary": "hsl(var(--border-secondary))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
