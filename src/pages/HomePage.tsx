@@ -36,7 +36,9 @@ export function HomePage() {
     <main className="my-16 flex flex-col gap-y-24">
       <div className="flex gap-y-12 flex-col">
         <div className="flex flex-col items-center gap-y-4">
-          <h1 className="text-6xl text-primary font-chakra">Fix Your Borrow</h1>
+          <h1 className="text-6xl text-primary font-chakra gradient-text">
+            Fix Your Borrow
+          </h1>
           <span className="text-lg text-secondary-foreground text-center">
             Keep all the best parts of your Borrow position, but have peace of{" "}
             <br />
@@ -44,19 +46,19 @@ export function HomePage() {
           </span>
 
           <div className="flex gap-x-2">
-            <Badge className="text-xs" variant="secondary">
-              <Check size={16} className="mr-1" /> Protect against high future
-              rates
+            <Badge className="text-xs">
+              <Check size={16} className="mr-1 stroke-primary" /> Protect
+              against high future rates
             </Badge>
 
-            <Badge className="text-xs" variant="secondary">
-              <Check size={16} className="mr-1" /> Core position remains
-              unchanged
+            <Badge className="text-xs">
+              <Check size={16} className="mr-1 stroke-primary" /> Core position
+              remains unchanged
             </Badge>
 
-            <Badge className="text-xs" variant="secondary">
-              <Check size={16} className="mr-1" /> Keep using automations or
-              other tools
+            <Badge className="text-xs">
+              <Check size={16} className="mr-1 stroke-primary" /> Keep using
+              automations or other tools
             </Badge>
           </div>
         </div>
