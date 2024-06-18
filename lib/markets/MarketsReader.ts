@@ -202,172 +202,175 @@ export class MorphoMarketReader extends MarketReader {
   public async getBorrowPositions(account: Address) {
     const markets = getAppConfig(this.chainId).morphoMarkets
 
-    const accountBorrowPositions: BorrowPosition[] = await Promise.all(
-      markets.map(async (market) => {
-        // fetch position shares
-        const [, borrowShares, collateral] = await this.client.readContract({
-          abi: MorphoBlueAbi,
-          address: morphoAddressesByChain[this.chainId].blue,
-          functionName: "position",
-          args: [market.id as Address, account],
-        })
-
-        const [
-          totalSupplyAssets,
-          totalSupplyShares,
-          totalBorrowAssets,
-          totalBorrowShares,
-          lastUpdate,
-          fee,
-        ] = await this.client.readContract({
-          abi: MorphoBlueAbi,
-          address: morphoAddressesByChain[this.chainId].blue,
-          functionName: "market",
-          args: [market.id as Address],
-        })
-
-        const morphoMarketParams = getAppConfig(
-          this.chainId
-        ).morphoMarkets.find((market) => market.id)
-
-        if (!morphoMarketParams) {
-          throw new Error()
-        }
-
-        const [loanToken, collateralToken, oracle, irm, lltv] =
-          await this.client.readContract({
+    const accountBorrowPositions = (
+      await Promise.all(
+        markets.map(async (market) => {
+          // Fetch position shares
+          const [, borrowShares, collateral] = await this.client.readContract({
             abi: MorphoBlueAbi,
             address: morphoAddressesByChain[this.chainId].blue,
-            functionName: "idToMarketParams",
+            functionName: "position",
+            args: [market.id as Address, account],
+          })
+
+          // Early termination if the connect account does not have a borrow
+          // position open.
+          if (borrowShares <= 0) {
+            return Promise.resolve(undefined)
+          }
+
+          // Fetch market state.
+          const [
+            totalSupplyAssets,
+            totalSupplyShares,
+            totalBorrowAssets,
+            totalBorrowShares,
+            lastUpdate,
+            fee,
+          ] = await this.client.readContract({
+            abi: MorphoBlueAbi,
+            address: morphoAddressesByChain[this.chainId].blue,
+            functionName: "market",
             args: [market.id as Address],
           })
 
-        const borrowRate = await this.client.readContract({
-          abi: AdaptiveCurveIrmAbi,
-          address: morphoAddressesByChain[this.chainId].irm,
-          functionName: "borrowRateView",
-          args: [
-            {
-              loanToken,
-              collateralToken,
-              oracle,
-              irm,
-              lltv,
-            },
-            {
-              totalSupplyShares,
-              totalSupplyAssets,
-              totalBorrowAssets,
-              totalBorrowShares,
-              lastUpdate,
-              fee,
-            },
-          ],
-        })
+          // const [loanToken, collateralToken, oracle, irm, lltv] =
+          //   await this.client.readContract({
+          //     abi: MorphoBlueAbi,
+          //     address: morphoAddressesByChain[this.chainId].blue,
+          //     functionName: "idToMarketParams",
+          //     args: [market.id as Address],
+          //   })
 
-        const borrowAssetsUser = toAssetsUp(
-          borrowShares,
-          totalBorrowAssets,
-          totalBorrowShares
-        )
+          const borrowRate = await this.client.readContract({
+            abi: AdaptiveCurveIrmAbi,
+            address: morphoAddressesByChain[this.chainId].irm,
+            functionName: "borrowRateView",
+            args: [
+              {
+                loanToken: market.loanToken.address as Address,
+                collateralToken: market.collateralToken.address as Address,
+                oracle: market.collateralToken.address as Address,
+                irm: market.irm as Address,
+                lltv: BigInt(market.lltv),
+              },
+              {
+                totalSupplyShares,
+                totalSupplyAssets,
+                totalBorrowAssets,
+                totalBorrowShares,
+                lastUpdate,
+                fee,
+              },
+            ],
+          })
 
-        const borrowAPY = wTaylorCompounded(
-          borrowRate,
-          BigInt(SECONDS_PER_YEAR)
-        )
-
-        const oraclePrice = await this.client.readContract({
-          abi: OracleAbi,
-          address: oracle,
-          functionName: "price",
-        })
-
-        // todo fix ltv calcuation if user does not have position, maybe early return
-
-        const ltv = wDivDown(
-          borrowAssetsUser,
-          mulDivDown(collateral, oraclePrice, ORACLE_PRICE_SCALE)
-        )
-
-        const collateralPrice = mulDivDown(
-          collateral,
-          oraclePrice,
-          ORACLE_PRICE_SCALE
-        )
-
-        const liqPrice = wDivDown(
-          borrowAssetsUser,
-          wMulDown(lltv, collateralPrice)
-        )
-
-        const collateralTokenPriceUsd = await getTokenUsdPrice(
-          this.chainId,
-          morphoMarketParams.collateralToken.address as Address
-        )
-
-        const loanTokenPriceUsd = await getTokenUsdPrice(
-          this.chainId,
-          morphoMarketParams.loanToken.address as Address
-        )
-        const pastBlock = await super.getPastBlock(Date.now() / 1000 - 2592000)
-
-        const { lowestRate, highestRate, averageRate } =
-          await this.getMarketRateHistory(
-            market.id as Address,
-            pastBlock?.number ? BigInt(pastBlock.number) : undefined
+          const borrowAssetsUser = toAssetsUp(
+            borrowShares,
+            totalBorrowAssets,
+            totalBorrowShares
           )
 
-        const hyperdrive = new ReadHyperdrive({
-          address: market.hyperdrive as Address,
-          publicClient: this.client,
+          const borrowAPY = wTaylorCompounded(
+            borrowRate,
+            BigInt(SECONDS_PER_YEAR)
+          )
+
+          const oraclePrice = await this.client.readContract({
+            abi: OracleAbi,
+            address: market.oracle as Address,
+            functionName: "price",
+          })
+
+          // todo fix ltv calcuation if user does not have position, maybe early return
+
+          const ltv = wDivDown(
+            borrowAssetsUser,
+            mulDivDown(collateral, oraclePrice, ORACLE_PRICE_SCALE)
+          )
+
+          const collateralPrice = mulDivDown(
+            collateral,
+            oraclePrice,
+            ORACLE_PRICE_SCALE
+          )
+
+          const liqPrice = wDivDown(
+            borrowAssetsUser,
+            wMulDown(BigInt(market.lltv), collateralPrice)
+          )
+
+          const collateralTokenPriceUsd = await getTokenUsdPrice(
+            this.chainId,
+            market.collateralToken.address as Address
+          )
+
+          const loanTokenPriceUsd = await getTokenUsdPrice(
+            this.chainId,
+            market.loanToken.address as Address
+          )
+          const pastBlock = await super.getPastBlock(
+            Date.now() / 1000 - 2592000
+          )
+
+          const { lowestRate, highestRate, averageRate } =
+            await this.getMarketRateHistory(
+              market.id as Address,
+              pastBlock?.number ? BigInt(pastBlock.number) : undefined
+            )
+
+          const hyperdrive = new ReadHyperdrive({
+            address: market.hyperdrive as Address,
+            publicClient: this.client,
+          })
+
+          const fixedRate = await hyperdrive.getFixedApr()
+
+          return {
+            ...market,
+            totalCollateral: collateral.toString(),
+            totalCollateralUsd: collateralTokenPriceUsd
+              ? dn.format(
+                  [
+                    wMulDown(collateralTokenPriceUsd, collateral),
+                    market.collateralToken.decimals,
+                  ],
+                  {
+                    digits: 2,
+                    trailingZeros: true,
+                  }
+                )
+              : undefined,
+            totalDebt: borrowAssetsUser.toString(),
+            totalDebtUsd: loanTokenPriceUsd
+              ? dn.format(
+                  [
+                    wMulDown(loanTokenPriceUsd, borrowAssetsUser),
+                    market.loanToken.decimals,
+                  ],
+                  {
+                    digits: 2,
+                    trailingZeros: true,
+                  }
+                )
+              : undefined,
+            marketMaxLtv: BigInt(market.lltv).toString(),
+            fixedRate: Number(formatUnits(fixedRate, 18)),
+            currentRate: Number(formatUnits(borrowAPY, 16)),
+            rates: {
+              lowestRate,
+              highestRate,
+              averageRate,
+            },
+            ltv: Number(dn.format([ltv, 18], 2)),
+            liquidationPrice: dn.format(
+              [liqPrice, market.collateralToken.decimals],
+              2
+            ),
+          } as BorrowPosition
         })
-
-        const fixedRate = await hyperdrive.getFixedApr()
-
-        return {
-          ...morphoMarketParams,
-          totalCollateral: collateral.toString(),
-          totalCollateralUsd: collateralTokenPriceUsd
-            ? dn.format(
-                [
-                  wMulDown(collateralTokenPriceUsd, collateral),
-                  morphoMarketParams.collateralToken.decimals,
-                ],
-                {
-                  digits: 2,
-                  trailingZeros: true,
-                }
-              )
-            : undefined,
-          totalDebt: borrowAssetsUser.toString(),
-          totalDebtUsd: loanTokenPriceUsd
-            ? dn.format(
-                [
-                  wMulDown(loanTokenPriceUsd, borrowAssetsUser),
-                  morphoMarketParams.loanToken.decimals,
-                ],
-                {
-                  digits: 2,
-                  trailingZeros: true,
-                }
-              )
-            : undefined,
-          marketMaxLtv: lltv.toString(),
-          fixedRate: Number(formatUnits(fixedRate, 18)),
-          currentRate: Number(formatUnits(borrowAPY, 16)),
-          rates: {
-            lowestRate,
-            highestRate,
-            averageRate,
-          },
-          ltv: Number(dn.format([ltv, 18], 2)),
-          liquidationPrice: dn.format(
-            [liqPrice, morphoMarketParams.collateralToken.decimals],
-            2
-          ),
-        } as BorrowPosition
-      })
-    )
+      )
+    ).filter(Boolean) as BorrowPosition[]
 
     return accountBorrowPositions
   }
