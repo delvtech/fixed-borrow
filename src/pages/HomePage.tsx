@@ -62,7 +62,7 @@ export function HomePage() {
             </Badge>
           </div>
         </div>
-        <div className="flex flex-col gap-y-12 items-center">
+        <div className="flex flex-col gap-y-12 items-center px-12">
           {match(allBorrowPositionsQueryStatus)
             .with("success", () => {
               return borrowPositions!.map((position) => (
@@ -73,10 +73,10 @@ export function HomePage() {
               ))
             })
             .with("pending", () => {
-              return Array.from({ length: 5 }, (_, index) => (
+              return Array.from({ length: 2 }, (_, index) => (
                 <Skeleton
                   key={index}
-                  className="h-[224px] w-[1200px] rounded-xl"
+                  className="h-[396px] w-full rounded-xl max-w-screen-lg rounded-lg"
                 />
               ))
             })

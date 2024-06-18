@@ -39,8 +39,8 @@ export function BorrowPositionCard(props: BorrowPosition) {
     : null
 
   return (
-    <div className="flex">
-      <Card>
+    <div className="flex w-full max-w-screen-lg">
+      <Card className="grow">
         <CardHeader>
           <div className="bg-[#1c1f27] p-3 rounded-[8px] w-fit">
             <img
@@ -57,96 +57,94 @@ export function BorrowPositionCard(props: BorrowPosition) {
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="flex gap-x-4">
-          <div className="flex gap-x-4">
-            <div className="w-80">
-              <div className="text-sm mb-4 font-medium">Your Current Loan</div>
-              <div className="grid grid-cols-2 grid-rows-2 gap-y-8">
-                <BorrowPositionCardStat
-                  title="Total Collateral"
-                  value={dnum.format(
-                    [
-                      BigInt(props.totalCollateral),
-                      props.collateralToken.decimals,
-                    ],
-                    2
-                  )}
-                  subValue={props.collateralToken.symbol}
-                  secondaryValue={`$${props.totalCollateralUsd}`}
-                />
+        <CardContent className="grid gap-x-4 grid-cols-[1fr_24px_1fr]">
+          <div>
+            <div className="text-sm mb-4 font-medium">Your Current Loan</div>
+            <div className="grid grid-cols-2 grid-rows-2 gap-y-8">
+              <BorrowPositionCardStat
+                title="Total Collateral"
+                value={dnum.format(
+                  [
+                    BigInt(props.totalCollateral),
+                    props.collateralToken.decimals,
+                  ],
+                  2
+                )}
+                subValue={props.collateralToken.symbol}
+                secondaryValue={`$${props.totalCollateralUsd}`}
+              />
 
-                <BorrowPositionCardStat
-                  title="Debt"
-                  value={dnum.format(
-                    [BigInt(props.totalDebt), props.loanToken.decimals],
-                    2
-                  )}
-                  subValue={props.loanToken.symbol}
-                  secondaryValue={`$${props.totalDebtUsd}`}
-                />
+              <BorrowPositionCardStat
+                title="Debt"
+                value={dnum.format(
+                  [BigInt(props.totalDebt), props.loanToken.decimals],
+                  2
+                )}
+                subValue={props.loanToken.symbol}
+                secondaryValue={`$${props.totalDebtUsd}`}
+              />
 
-                <BorrowPositionCardStat
-                  title="Liq. Price"
-                  value={`${props.ltv * 100}%`}
-                  secondaryValue={`${dnum.format([BigInt(props.marketMaxLtv), 16])}% Max LTV`}
-                />
+              <BorrowPositionCardStat
+                title="Liq. Price"
+                value={`${props.ltv * 100}%`}
+                secondaryValue={`${dnum.format([BigInt(props.marketMaxLtv), 16])}% Max LTV`}
+              />
 
-                <BorrowPositionCardStat
-                  title="LTV"
-                  value={props.liquidationPrice ?? ""}
-                  subValue={props.collateralToken.symbol}
-                  secondaryValue={`${props.collateralToken.symbol}/${props.loanToken.symbol}`}
-                />
-              </div>
+              <BorrowPositionCardStat
+                title="LTV"
+                value={props.liquidationPrice ?? ""}
+                subValue={props.collateralToken.symbol}
+                secondaryValue={`${props.collateralToken.symbol}/${props.loanToken.symbol}`}
+              />
             </div>
+          </div>
 
-            <div>
-              <Separator className="min-h-full" orientation="vertical" />
-            </div>
+          <div>
+            <Separator className="min-h-full" orientation="vertical" />
+          </div>
 
-            <div className="w-80">
-              <div className="text-sm mb-4">Your Borrowing Cost</div>
+          <div>
+            <div className="text-sm mb-4">Your Borrowing Cost</div>
 
-              <div className="grid grid-cols-1 grid-rows-2 gap-y-8">
-                <BorrowPositionCardStat
-                  title="Current Borrow APY"
-                  value={`${dnum.format(dnum.from(props.currentRate), 2)}%`}
-                  secondaryValue={
-                    <Badge
-                      className="text-xs w-fit py-[2px] px-[4px] rounded-[4px]"
-                      variant="destructive"
-                    >
-                      {(borrowRateDelta ?? 0) > 0 ? "+" : ""}
-                      {dnum.format(dnum.from(borrowRateDelta ?? 0), 2)}% (30d)
-                    </Badge>
-                  }
-                />
+            <div className="grid grid-cols-1 grid-rows-2 gap-y-8">
+              <BorrowPositionCardStat
+                title="Current Borrow APY"
+                value={`${dnum.format(dnum.from(props.currentRate), 2)}%`}
+                secondaryValue={
+                  <Badge
+                    className="text-xs w-fit py-[2px] px-[4px] rounded-[4px]"
+                    variant="destructive"
+                  >
+                    {(borrowRateDelta ?? 0) > 0 ? "+" : ""}
+                    {dnum.format(dnum.from(borrowRateDelta ?? 0), 2)}% (30d)
+                  </Badge>
+                }
+              />
 
-                <BorrowPositionCardStat
-                  title=" 30d avg Borrow APY"
-                  value={
-                    props.rates?.averageRate
-                      ? `${dnum.format(dnum.from(props.rates?.averageRate), 2)}%`
-                      : "unknown"
-                  }
-                  secondaryValue={
-                    <Badge
-                      className="text-xs w-fit py-[2px] px-[4px] rounded-[4px]"
-                      variant="destructive"
-                    >
-                      {(borrowRateDelta ?? 0) > 0 ? "+" : ""}
-                      {dnum.format(dnum.from(borrowRateDelta ?? 0), 2)}% (30d)
-                    </Badge>
-                  }
-                />
-              </div>
+              <BorrowPositionCardStat
+                title=" 30d avg Borrow APY"
+                value={
+                  props.rates?.averageRate
+                    ? `${dnum.format(dnum.from(props.rates?.averageRate), 2)}%`
+                    : "unknown"
+                }
+                secondaryValue={
+                  <Badge
+                    className="text-xs w-fit py-[2px] px-[4px] rounded-[4px]"
+                    variant="destructive"
+                  >
+                    {(borrowRateDelta ?? 0) > 0 ? "+" : ""}
+                    {dnum.format(dnum.from(borrowRateDelta ?? 0), 2)}% (30d)
+                  </Badge>
+                }
+              />
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* TODO FIX */}
-      <div className="flex flex-col bg-background min-h-full p-8 rounded gap-6 border-t border-b border-r -ml-10">
+      <div className="flex flex-col bg-background min-h-full p-8 rounded-lg gap-6 border-t border-b border-r -ml-10">
         <span className="text-lg font-medium text-primary text-center">
           Fix your Rate
         </span>
