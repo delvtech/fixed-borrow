@@ -21,8 +21,10 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- TODO investigate why z-index is not being applied in tailwind -->
     <svg
-      class="pointer-events-none absolute top-0 z-0 mx-auto mt-20 w-full opacity-30"
+      style="z-index: -10"
+      class="pointer-events-none absolute top-0 mx-auto mt-20 w-full opacity-30"
       width="1440"
       height="524"
       viewBox="0 0 1440 524"
