@@ -174,7 +174,7 @@ export function BorrowPositionCard(props: BorrowPosition) {
         </div>
 
         <div className="flex flex-col gap-y-2 items-center">
-          <Button size="lg">Fix your Rate</Button>
+          <Button size="lg">Fix Your Rate</Button>
           <div className="text-sm text-secondary-foreground text-center">
             Coverage Period: 1 year. Remove anytime.
           </div>
