@@ -75,8 +75,6 @@ abstract class MarketReader {
     const resJson = await res.json()
     const blockNumber = resJson.result
 
-    console.log(blockExplorerUrl, blockNumber)
-
     return this.client.getBlock({
       blockNumber: BigInt(blockNumber),
     })
@@ -199,21 +197,10 @@ export class MorphoMarketReader extends MarketReader {
           )
         ) * 100,
     }
-
-    // console.log({
-    //   lowestRate: Number(
-    //     formatUnits(
-    //       wTaylorCompounded(BigInt(lowestRate), BigInt(SECONDS_PER_YEAR)),
-    //       18
-    //     )
-    //   ),
-    // })
   }
 
   public async getBorrowPositions(account: Address) {
     const markets = getAppConfig(this.chainId).morphoMarkets
-
-    console.log(markets)
 
     const accountBorrowPositions: BorrowPosition[] = await Promise.all(
       markets.map(async (market) => {
@@ -295,6 +282,8 @@ export class MorphoMarketReader extends MarketReader {
           functionName: "price",
         })
 
+        // todo fix ltv calcuation if user does not have position, maybe early return
+
         const ltv = wDivDown(
           borrowAssetsUser,
           mulDivDown(collateral, oraclePrice, ORACLE_PRICE_SCALE)
@@ -332,6 +321,7 @@ export class MorphoMarketReader extends MarketReader {
           address: market.hyperdrive as Address,
           publicClient: this.client,
         })
+
         const fixedRate = await hyperdrive.getFixedApr()
 
         return {
