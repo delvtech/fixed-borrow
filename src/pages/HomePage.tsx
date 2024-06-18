@@ -1,30 +1,11 @@
-import { useQuery } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
 import { Skeleton } from "components/base/skeleton"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
 import { BorrowPositionCard } from "components/position/BorrowPositionCard"
-import { MorphoMarketReader } from "lib/markets/MarketsReader"
+import { useAllBorrowPositions } from "hooks/markets/useAllBorrowPositions"
 import { Check, CircleSlash } from "lucide-react"
 import { match } from "ts-pattern"
-import { Address } from "viem"
-import { useAccount, useChainId, usePublicClient } from "wagmi"
-import { SupportedChainId } from "../constants"
-
-function useAllBorrowPositions(account?: Address) {
-  const chainId = useChainId()
-  const client = usePublicClient()
-  return useQuery({
-    queryKey: ["all-borrow-positions", account, chainId],
-    queryFn: async () => {
-      const reader = new MorphoMarketReader(
-        client!,
-        chainId as SupportedChainId
-      )
-      return await reader.getBorrowPositions(account!)
-    },
-    enabled: !!account && !!client,
-  })
-}
+import { useAccount } from "wagmi"
 
 export function HomePage() {
   const { address: account } = useAccount()
@@ -39,11 +20,12 @@ export function HomePage() {
           <h1 className="text-6xl font-chakra gradient-text">
             Fix Your Borrow
           </h1>
-          <span className="text-lg text-secondary-foreground text-center">
+
+          <p className="text-lg text-secondary-foreground text-center">
             Keep all the best parts of your Borrow position, but have peace of{" "}
             <br />
             mind with a predictable interest rate.
-          </span>
+          </p>
 
           <div className="flex gap-x-2">
             <Badge className="text-xs">
@@ -62,6 +44,7 @@ export function HomePage() {
             </Badge>
           </div>
         </div>
+
         <div className="flex flex-col gap-y-12 items-center px-12">
           {match(allBorrowPositionsQueryStatus)
             .with("success", () => {
@@ -76,7 +59,7 @@ export function HomePage() {
               return Array.from({ length: 2 }, (_, index) => (
                 <Skeleton
                   key={index}
-                  className="h-[396px] w-full rounded-xl max-w-screen-lg rounded-lg"
+                  className="h-[396px] w-full max-w-screen-lg rounded-lg"
                 />
               ))
             })
@@ -98,18 +81,17 @@ export function HomePage() {
       </div>
 
       <div className="flex flex-col items-center gap-y-4">
-        <div className="flex flex-col items-center gap-y-4">
+        <div className="text-center space-y-4">
           <h1 className="text-4xl font-chakra">
             Available Morpho Blue Markets
           </h1>
-          <span className="text-secondary-foreground">
+          <p className="text-secondary-foreground">
             Open a supported position on Morpho Blue and fix your rate in one
             transaction with Hyperdrive.
-          </span>
+          </p>
         </div>
-        <div className="flex flex-col gap-y-12 items-center">
-          <AllMarketsTable />
-        </div>
+
+        <AllMarketsTable />
       </div>
     </main>
   )
