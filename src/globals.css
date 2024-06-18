@@ -4,6 +4,10 @@
 
 @layer base {
   :root {
+    /* Custom Colors */
+    --aquamarine: #15FFAB;
+    --sky-blue: #14D0F9;
+
     --background: 230 37% 3%;
     --foreground: 0 0% 100%;
 
@@ -71,6 +75,6 @@
 
 @layer components {
   .gradient-text {
-    @apply bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[var(--sky-blue)] to-primary bg-clip-text text-transparent;
   }
 }

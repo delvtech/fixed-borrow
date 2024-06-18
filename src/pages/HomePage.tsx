@@ -36,7 +36,7 @@ export function HomePage() {
     <main className="my-16 flex flex-col gap-y-24">
       <div className="flex gap-y-12 flex-col">
         <div className="flex flex-col items-center gap-y-4">
-          <h1 className="text-6xl text-primary font-chakra gradient-text">
+          <h1 className="text-6xl font-chakra gradient-text">
             Fix Your Borrow
           </h1>
           <span className="text-lg text-secondary-foreground text-center">
