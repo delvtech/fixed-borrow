@@ -5,8 +5,8 @@
 @layer base {
   :root {
     /* Custom Colors */
-    --aquamarine: #15FFAB;
-    --sky-blue: #14D0F9;
+    --aquamarine: #15ffab;
+    --sky-blue: #14d0f9;
 
     --background: 230 37% 3%;
     --foreground: 0 0% 100%;
@@ -20,8 +20,8 @@
 
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 222 12% 21%;
+    --muted-foreground: 0 0% 100%;
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
     --destructive: 0 100% 67%;

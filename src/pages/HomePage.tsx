@@ -80,7 +80,7 @@ export function HomePage() {
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-y-4">
+      <div className="flex flex-col items-center gap-y-4 px-12">
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-chakra">
             Available Morpho Blue Markets
