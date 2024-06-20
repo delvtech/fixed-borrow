@@ -24,7 +24,7 @@ import { BorrowPosition, Market } from "../../src/types"
 import { getAppConfig } from "../../src/utils/getAppConfig"
 import { getTokenUsdPrice } from "../../src/utils/getTokenUsdPrice"
 
-interface MarketInfo {
+export interface MarketInfo {
   market: Market
   liquidity: bigint
   fixedRate: bigint
@@ -375,7 +375,7 @@ export class MorphoMarketReader extends MarketReader {
     return accountBorrowPositions
   }
 
-  async getAllMarketsInfo() {
+  async getAllMarketsInfo(): Promise<MarketInfo[]> {
     // Get whitelisted Morpho Blue markets from AppConfig
     const appConfig = getAppConfig(this.chainId)
     const markets = appConfig.morphoMarkets

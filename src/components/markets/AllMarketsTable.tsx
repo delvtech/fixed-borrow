@@ -1,4 +1,5 @@
 import {
+  CellContext,
   ColumnDef,
   ColumnFiltersState,
   SortingState,
@@ -10,10 +11,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown } from "lucide-react"
 import * as React from "react"
 
-import { Button } from "components/base/button"
+import { Badge } from "components/base/badge"
 import {
   Table,
   TableBody,
@@ -22,15 +22,11 @@ import {
   TableHeader,
   TableRow,
 } from "components/base/table"
+import * as dn from "dnum"
 import { useAllMarkets } from "hooks/markets/useAllMarkets"
+import { MarketInfo } from "lib/markets/MarketsReader"
 import { formatRate } from "utils/base/formatRate"
-
-export type MarketRowData = {
-  loanCollateralTag: string
-  liquidity: string
-  borrowRate: bigint
-  fixedRate: bigint
-}
+import { Market } from "../../types"
 
 export function AllMarketsTable() {
   const { data = [] } = useAllMarkets()
@@ -65,13 +61,13 @@ export function AllMarketsTable() {
   return (
     <div className="max-w-screen-xl w-full">
       <div className="flex items-center py-4"></div>
-      <Table>
+      <Table className="border">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 return (
-                  <TableHead key={header.id}>
+                  <TableHead key={header.id} className="text-[#8A92A3]">
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -111,36 +107,68 @@ export function AllMarketsTable() {
   )
 }
 
-const columns: ColumnDef<MarketRowData>[] = [
+interface TokenPairProps {
+  market: Market
+  size?: number
+}
+function TokenPair(props: TokenPairProps) {
+  return (
+    <span>
+      <img
+        src={props.market.collateralToken.iconUrl}
+        className="h-5 w-5 inline"
+      />
+      <img
+        src={props.market.loanToken.iconUrl}
+        className="h-5 w-5 inline -ml-3"
+      />
+    </span>
+  )
+}
+
+const columns: ColumnDef<MarketInfo>[] = [
   {
-    accessorKey: "loanCollateralTag",
     header: "Collateral/Debt",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("loanCollateralTag")}</div>
-    ),
-  },
-  {
-    accessorKey: "liquidity",
-    header: ({ column }) => {
+    accessorFn: (row) => {
+      return `${row.market.collateralToken.symbol}/${row.market.loanToken.symbol}`
+    },
+    cell: (props: CellContext<MarketInfo, string>) => {
+      const { row, getValue } = props
+
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Liquidity
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+        <div className="capitalize flex items-center gap-x-2 font-mono">
+          <TokenPair market={row.original.market} />
+          {getValue()}
+          <Badge className="text-xs text-[#8A92A3] px-1 border-none">
+            LLTV: {dn.format([BigInt(row.original.market.lltv), 16])}%
+          </Badge>
+        </div>
       )
     },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("liquidity")}</div>
-    ),
+  },
+  {
+    header: "Liquidity",
+    accessorFn: (row) => {
+      return row.liquidity
+    },
+    cell: (props: CellContext<MarketInfo, bigint>) => {
+      const { getValue } = props
+
+      return (
+        <div className="capitalize flex items-center gap-x-2 font-mono">
+          {dn.format([getValue(), 18], {
+            digits: 2,
+            compact: true,
+          })}
+        </div>
+      )
+    },
   },
   {
     accessorKey: "borrowRate",
     header: () => <div className="text-right">Borrow Rate</div>,
     cell: ({ row }) => (
-      <div className="lowercase text-right">
+      <div className="lowercase text-right font-mono">
         {formatRate(row.getValue("borrowRate"))}
       </div>
     ),
@@ -151,8 +179,10 @@ const columns: ColumnDef<MarketRowData>[] = [
     header: () => <div className="text-right">Fixed Borrow Rate</div>,
     cell: ({ row }) => {
       return (
-        <div className="text-right font-medium">
-          {formatRate(row.getValue("fixedRate"))}
+        <div className="text-right">
+          <span className="gradient-text font-medium font-mono">
+            {formatRate(row.getValue("fixedRate"))}
+          </span>
         </div>
       )
     },

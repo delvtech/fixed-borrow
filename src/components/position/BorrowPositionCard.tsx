@@ -170,7 +170,7 @@ export function BorrowPositionCard(props: BorrowPosition) {
           <div className="text-sm text-secondary-foreground font-medium">
             Max Projected Fixed Rate
           </div>
-          <div className="text-3xl font-chakra text-primary font-semibold">{`${dnum.format(dnum.from(props.fixedRate), 2)}%`}</div>
+          <div className="text-3xl font-chakra font-semibold gradient-text">{`${dnum.format(dnum.from(props.fixedRate), 2)}%`}</div>
         </div>
 
         <div className="flex flex-col gap-y-2 items-center">
