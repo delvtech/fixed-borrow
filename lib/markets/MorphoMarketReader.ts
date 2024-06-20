@@ -163,7 +163,7 @@ export class MorphoMarketReader extends MarketReader {
             abi: MorphoBlueAbi,
             address: morphoAddressesByChain[this.chainId].blue,
             functionName: "position",
-            args: [market.id as Address, account],
+            args: [market.id, account],
           })
 
           // Early termination if the connect account does not have a borrow
@@ -184,7 +184,7 @@ export class MorphoMarketReader extends MarketReader {
             abi: MorphoBlueAbi,
             address: morphoAddressesByChain[this.chainId].blue,
             functionName: "market",
-            args: [market.id as Address],
+            args: [market.id],
           })
 
           // const [loanToken, collateralToken, oracle, irm, lltv] =
@@ -192,7 +192,7 @@ export class MorphoMarketReader extends MarketReader {
           //     abi: MorphoBlueAbi,
           //     address: morphoAddressesByChain[this.chainId].blue,
           //     functionName: "idToMarketParams",
-          //     args: [market.id as Address],
+          //     args: [market.id],
           //   })
 
           const borrowRate = await this.client.readContract({
@@ -201,10 +201,10 @@ export class MorphoMarketReader extends MarketReader {
             functionName: "borrowRateView",
             args: [
               {
-                loanToken: market.loanToken.address as Address,
-                collateralToken: market.collateralToken.address as Address,
-                oracle: market.collateralToken.address as Address,
-                irm: market.irm as Address,
+                loanToken: market.loanToken.address,
+                collateralToken: market.collateralToken.address,
+                oracle: market.collateralToken.address,
+                irm: market.irm,
                 lltv: market.lltv,
               },
               {
@@ -231,7 +231,7 @@ export class MorphoMarketReader extends MarketReader {
 
           const oraclePrice = await this.client.readContract({
             abi: OracleAbi,
-            address: market.oracle as Address,
+            address: market.oracle,
             functionName: "price",
           })
 
@@ -255,12 +255,12 @@ export class MorphoMarketReader extends MarketReader {
 
           const collateralTokenPriceUsd = await getTokenUsdPrice(
             this.chainId,
-            market.collateralToken.address as Address
+            market.collateralToken.address
           )
 
           const loanTokenPriceUsd = await getTokenUsdPrice(
             this.chainId,
-            market.loanToken.address as Address
+            market.loanToken.address
           )
           const pastBlock = await super.getPastBlock(
             Date.now() / 1000 - 2592000
@@ -268,12 +268,12 @@ export class MorphoMarketReader extends MarketReader {
 
           const { lowestRate, highestRate, averageRate } =
             await this.getMarketRateHistory(
-              market.id as Address,
+              market.id,
               pastBlock?.number ? BigInt(pastBlock.number) : undefined
             )
 
           const hyperdrive = new ReadHyperdrive({
-            address: market.hyperdrive as Address,
+            address: market.hyperdrive,
             publicClient: this.client,
           })
 
@@ -334,7 +334,7 @@ export class MorphoMarketReader extends MarketReader {
     const markets = appConfig.morphoMarkets
 
     const morphoMarketStates = await this.getMarketStateBatch(
-      markets.map((market) => market.id as Address),
+      markets.map((market) => market.id),
       morphoAddressesByChain[this.chainId].blue
     )
 
@@ -361,10 +361,10 @@ export class MorphoMarketReader extends MarketReader {
     }
 
     const marketParams = markets.map((market) => ({
-      loanToken: market.loanToken.address as Address,
-      collateralToken: market.collateralToken.address as Address,
-      oracle: market.oracle as Address,
-      irm: market.irm as Address,
+      loanToken: market.loanToken.address,
+      collateralToken: market.collateralToken.address,
+      oracle: market.oracle,
+      irm: market.irm,
       lltv: market.lltv,
     }))
 
@@ -382,7 +382,7 @@ export class MorphoMarketReader extends MarketReader {
     return Promise.all(
       markets.map(async (market, i) => {
         const hyperdrive = new ReadHyperdrive({
-          address: market.hyperdrive as Address,
+          address: market.hyperdrive,
           publicClient: this.client,
         })
         const liquidity = await hyperdrive.getPresentValue()
@@ -395,13 +395,13 @@ export class MorphoMarketReader extends MarketReader {
             ...market,
             loanToken: {
               ...market.loanToken,
-              address: market.loanToken.address as Address,
+              address: market.loanToken.address,
             },
             collateralToken: {
               ...market.collateralToken,
-              address: market.loanToken.address as Address,
+              address: market.loanToken.address,
             },
-            hyperdrive: market.hyperdrive as Address,
+            hyperdrive: market.hyperdrive,
           },
           liquidity,
           fixedRate,

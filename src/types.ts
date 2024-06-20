@@ -44,9 +44,9 @@ export interface Market {
 }
 
 export interface MorphoMarket extends Market {
-  id: string
-  oracle: string
-  irm: string
+  id: Address
+  oracle: Address
+  irm: Address
 }
 
 export interface Token {

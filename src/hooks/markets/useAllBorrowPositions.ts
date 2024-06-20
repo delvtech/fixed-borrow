@@ -17,5 +17,6 @@ export function useAllBorrowPositions(account?: Address) {
       return await reader.getBorrowPositions(account!)
     },
     enabled: !!account && !!client,
+    refetchOnWindowFocus: false,
   })
 }
