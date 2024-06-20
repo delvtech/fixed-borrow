@@ -24,9 +24,8 @@ import {
 } from "components/base/table"
 import * as dn from "dnum"
 import { useAllMarkets } from "hooks/markets/useAllMarkets"
-import { MarketInfo } from "lib/markets/MarketsReader"
 import { formatRate } from "utils/base/formatRate"
-import { Market } from "../../types"
+import { Market, MarketInfo } from "../../types"
 
 export function AllMarketsTable() {
   const { data = [] } = useAllMarkets()

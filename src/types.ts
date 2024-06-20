@@ -1,5 +1,12 @@
 import { Address } from "viem"
 
+export interface MarketInfo {
+  market: Market
+  liquidity: bigint
+  fixedRate: bigint
+  borrowRate: bigint
+}
+
 export interface Market {
   loanToken: Token
   collateralToken: Token
