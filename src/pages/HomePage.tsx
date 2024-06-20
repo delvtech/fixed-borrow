@@ -95,7 +95,9 @@ export function HomePage() {
           </p>
         </div>
 
-        <AllMarketsTable />
+        <div className="max-w-screen-lg w-full">
+          <AllMarketsTable />
+        </div>
       </div>
     </main>
   )
