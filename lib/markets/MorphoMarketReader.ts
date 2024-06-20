@@ -152,7 +152,7 @@ export class MorphoMarketReader extends MarketReader {
     }
   }
 
-  public async getBorrowPositions(account: Address) {
+  public async getBorrowPositions(account: Address): Promise<BorrowPosition[]> {
     const markets = getAppConfig(this.chainId).morphoMarkets
 
     const accountBorrowPositions = (
@@ -205,7 +205,7 @@ export class MorphoMarketReader extends MarketReader {
                 collateralToken: market.collateralToken.address as Address,
                 oracle: market.collateralToken.address as Address,
                 irm: market.irm as Address,
-                lltv: BigInt(market.lltv),
+                lltv: market.lltv,
               },
               {
                 totalSupplyShares,
@@ -250,7 +250,7 @@ export class MorphoMarketReader extends MarketReader {
 
           const liqPrice = wDivDown(
             borrowAssetsUser,
-            wMulDown(BigInt(market.lltv), collateralPrice)
+            wMulDown(market.lltv, collateralPrice)
           )
 
           const collateralTokenPriceUsd = await getTokenUsdPrice(
@@ -320,7 +320,7 @@ export class MorphoMarketReader extends MarketReader {
               [liqPrice, market.collateralToken.decimals],
               2
             ),
-          } as BorrowPosition
+          }
         })
       )
     ).filter(Boolean) as BorrowPosition[]
@@ -365,7 +365,7 @@ export class MorphoMarketReader extends MarketReader {
       collateralToken: market.collateralToken.address as Address,
       oracle: market.oracle as Address,
       irm: market.irm as Address,
-      lltv: BigInt(market.lltv),
+      lltv: market.lltv,
     }))
 
     const morphoMarketBorrowRates = (
