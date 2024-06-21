@@ -1,222 +1,111 @@
 export const faqData = [
   {
     key: "faq1",
-    question: "How can I get fixed rates?",
+    question: "What is Fixed Rate Borrow?",
     answer: (
       <div className="flex flex-col gap-4">
-        <p>Open a Long and hold it to maturity.</p>
         <p>
-          Opening a Long position in Hyperdrive means purchasing hy[Token] at a
-          discount. hy[Token] is redeemable for its full face value at maturity.
-          The market price traders pay (which includes fees paid to LPs) and the
-          hy[Token]&apos;s value at maturity are known upfront, which results in
-          a fixed rate of return.
+          Fixed Rate Borrow allows users to hedge against variable interest rate
+          fluctuations by taking a Short position on Hyperdrive, effectively
+          capping borrowing costs.
         </p>
         <p>
-          Opening Longs has an immediate impact on the market. hy[Token]&apos;s
-          market price increases, which means the fixed rate decreases.
-          Conversely, closing Longs prior to maturity has the immediate impact
-          of decreasing the market price and increasing the fixed rate.
+          By earning the lender's rate on your borrow position, you can
+          counteract the variability of your loan's costs with your lending
+          profits through the corresponding Hyperdrive market.
         </p>
         <p>
-          Users can also take speculative Long positions where they bet on the
-          short-term movement of rates. Read our docs to learn more about
-          Hyperdrive&apos;s{" "}
-          <a
-            className="daisy-link"
-            rel="noreferrer"
-            target="_blank"
-            href="https://docs-delv.gitbook.io/hyperdrive/hyperdrive-overview/position-types"
-          >
-            Position Types
-          </a>
-          .
+          A dedicated Fixed Rate Borrow product is expected to launch soon (Q2
+          2024).
         </p>
       </div>
     ),
   },
   {
     key: "faq2",
-    question: "How can I get variable rates?",
+    question: "How does Fixed Rate Borrow work?",
     answer: (
       <div className="flex flex-col gap-4">
         <p>
-          Users can get multiplied exposure to variable rates by opening a
-          Short.
+          When you take a Short position on Hyperdrive, you pay a fixed rate to
+          the pool and receive the pool's capital to generate yield. This yield
+          can counterbalance the variable interest rates of your loan.
         </p>
         <p>
-          Simply put, a Short is the opposite of a Long. When opening a Short,
-          the trader pays the fixed rate to the pool (plus fees paid to LPs) and
-          gets the pool’s capital (including what the trader paid) to generate
-          yield for them.
-        </p>
-        <p>
-          Opening a Short causes the market price of hy[Token] to decrease
-          (which causes the fixed rate to increase), while closing a Short has
-          the inverse effect.
-        </p>
-        <p>
-          Users can take speculative Short positions or use Shorts for hedging
-          other investments. Read our docs to learn more about Hyperdrive&apos;s{" "}
-          <a
-            className="daisy-link"
-            rel="noreferrer"
-            target="_blank"
-            href="https://docs-delv.gitbook.io/hyperdrive/hyperdrive-overview/position-types"
-          >
-            Position Types
-          </a>
-          .
+          For example, if you borrow 1,000 DAI at a variable rate of 4% and take
+          a Short position on Hyperdrive at a fixed rate of 2.5%, the profits
+          from lending at Hyperdrive can help mitigate the effects of rising
+          variable rates.
         </p>
       </div>
     ),
   },
   {
     key: "faq3",
-    question: "What are the benefits of providing liquidity?",
+    question: "Can you provide an example of Fixed Rate Borrow in action?",
     answer: (
-      <div>
-        <span>
-          Liquidity providers (LPs) benefit from 3 potential revenue sources:
-          <ol className="list-decimal space-y-2 px-8 py-4">
-            <li>
-              {" "}
-              Trading fees from longs and shorts being opened and closed by
-              traders
-            </li>{" "}
-            <li>
-              Variable rate on their idle capital being deployed to the
-              underlying yield source{" "}
-            </li>
-            <li>
-              Profit (or loss) resulting from automated counter-trades to
-              traders&apos; Long/Short positions
-            </li>
-          </ol>
-          <br />
-          <p>
-            LP capital isn&apos;t tied to a specific maturity date, so these
-            benefits remain until the funds are withdrawn by the LP.
-          </p>
-          <br /> Learn more about{" "}
-          <a
-            className="daisy-link"
-            rel="noreferrer"
-            target="_blank"
-            href="https://docs-delv.gitbook.io/hyperdrive/hyperdrive-overview/position-types/liquidity-provider/lp-profit-loss"
-          >
-            LP Profit/Loss
-          </a>{" "}
-          in the docs.
-        </span>
+      <div className="flex flex-col gap-4">
+        <p>
+          Sure! Let's say Francine is borrowing 1,000 DAI at a variable rate of
+          4%. To hedge against rate increases, she takes a Short position on
+          Hyperdrive at a fixed rate of 2.5%.
+        </p>
+        <p>
+          If the variable rate rises to 8%, Francine would pay 80 DAI for her
+          loan, but she would earn 75 DAI from Hyperdrive, resulting in total
+          borrow costs of 30 DAI (3.0%). This hedging reduces the impact of
+          variable rate increases.
+        </p>
       </div>
     ),
   },
   {
     key: "faq4",
-    question: "How do LP positions work?",
+    question: "What happens if the variable borrow rate decreases?",
     answer: (
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         <p>
-          Users open an LP position by providing a market’s specific base asset
-          to the AMM. This increases the AMM&apos;s capacity for Longs and
-          Shorts. LP capital is then used to back Long and Short positions
-          opened by traders.
+          If the variable borrow rate decreases, the hedge might perform worse
+          than the variable borrow rate alone. For instance, if the rate drops
+          to 2%, Francine would pay 20 DAI for her loan and earn 5 DAI from
+          Hyperdrive, resulting in a total cost of 40 DAI (4.0%).
         </p>
         <p>
-          LP liquidity is used to back open positions, but not all of it is
-          being utilized at all times. The portion that is not currently backing
-          open positions is known as “idle liquidity”. If LPs attempt to
-          withdraw more than the system&apos;s current idle liquidity, the
-          portion of their liquidity that exceeds the system&apos;s idle
-          liquidity may be queued for delayed withdrawal. This liquidity will
-          continue to earn trading fees until enough capital is freed up in the
-          market (as traders close positions or they reach maturity) for the LP
-          to complete their withdrawal process.
-        </p>
-        <br />
-        <p>
-          Learn more about{" "}
-          <a
-            className="daisy-link"
-            rel="noreferrer"
-            target="_blank"
-            href="https://docs-delv.gitbook.io/hyperdrive/hyperdrive-overview/position-types/liquidity-provider/value-of-the-lp-position"
-          >
-            the value of the LP position
-          </a>{" "}
-          in the docs.
+          Despite this, the hedged position provides predictability and caps the
+          maximum borrowing cost.
         </p>
       </div>
     ),
   },
   {
     key: "faq5",
-    question: "Can I close my Long / Short / LP position before maturity?",
+    question: "What are the benefits of hedging with Hyperdrive?",
     answer: (
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         <p>
-          Yes, Longs and Shorts can be closed at any time (except in rare cases
-          where closing could be delayed). However, closing these positions
-          before maturity entails selling them to the pool at the current market
-          price. In other words, positions that are closed early may not get the
-          initially expected rate of return (and could result in loss of yield
-          and principal), since their exit value depends on market activity.
-        </p>
-
-        <p>
-          Liquidity Provider (LP) positions don&apos;t have a maturity date, so
-          LP funds can be withdrawn whenever there is enough idle liquidity in
-          the system (i.e., liquidity that is not currently backing open
-          Long/Short positions); if there isn&apos;t enough idle liquidity, the
-          system will initiate a delayed withdrawal process. The LP&apos;s
-          capital continues to receive the same benefits until enough liquidity
-          is freed up for withdrawal.
+          Hedging with Hyperdrive offers predictability in borrowing costs,
+          capping the downside risk of variable interest rate loans.
         </p>
         <p>
-          Learn more about the different{" "}
-          <a
-            className="daisy-link"
-            rel="noreferrer"
-            target="_blank"
-            href="https://docs-delv.gitbook.io/hyperdrive/hyperdrive-overview/position-types"
-          >
-            Position Types
-          </a>{" "}
-          in the docs.
+          It allows borrowers to manage their financial exposure more
+          effectively, ensuring that even if variable rates spike, the total
+          borrowing costs remain controlled.
         </p>
       </div>
     ),
   },
   {
     key: "faq6",
-    question: "Are there any trading fees?",
+    question: "Are there any fees associated with Fixed Rate Borrow?",
     answer: (
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         <p>
-          Users pay two types of fees when opening or closing their Long or
-          Short positions:{" "}
-        </p>
-        <ol className="list-decimal space-y-2 px-8 py-2">
-          <li>
-            A Curve Fee that is dynamic and proportional to the fixed rate.
-          </li>
-          <li>A Flat Fee that is fixed proportional to the position size. </li>
-        </ol>
-        <p>
-          Curve Fees are proportional to the fixed rate and the time left until
-          the position’s maturity date, and are applied when the position is
-          opened or closed (to the non-matured portion). Flat Fees are a fixed
-          percentage of the matured position size.
+          Yes, trading fees are applied when opening or closing Short positions.
+          These fees include a dynamic Curve Fee and a Flat Fee proportional to
+          the position size.
         </p>
         <p>
-          LPs earn Curve Fees and Flat Fees from user trades. Depending upon the
-          deployment, part of these fees may go to places other than the LPs,
-          such as the treasury contract of the protocol or to some other
-          recipient.
-        </p>
-        <p>
-          Learn more in the{" "}
+          For detailed information on fees, you can refer to the{" "}
           <a
             className="daisy-link"
             rel="noreferrer"
@@ -225,9 +114,9 @@ export const faqData = [
           >
             Fees
           </a>{" "}
-          section of our docs.
+          section of our documentation.
         </p>
       </div>
     ),
   },
-];
+]

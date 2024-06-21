@@ -1,6 +1,6 @@
 import { Badge } from "components/base/badge"
 import { Skeleton } from "components/base/skeleton"
-import { FAQEntries } from "components/core/FAQ/FAQ"
+import { FAQ } from "components/core/FAQ/FAQ"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
 import { BorrowPositionCard } from "components/position/BorrowPositionCard"
 import { useAllBorrowPositions } from "hooks/markets/useAllBorrowPositions"
@@ -94,7 +94,7 @@ export function HomePage() {
 
         <AllMarketsTable />
       </div>
-      <FAQEntries />
+      <FAQ />
     </main>
   )
 }

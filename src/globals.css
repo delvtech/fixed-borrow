@@ -8,7 +8,7 @@
     --aquamarine: #15FFAB;
     --sky-blue: #14D0F9;
 
-    --background: 230 37% 3%;
+    --background: 197 26% 9%;
     --foreground: 0 0% 100%;
 
     /* Surface Styles */
@@ -22,7 +22,7 @@
     --popover-foreground: 240 10% 3.9%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
+    --accent: 175 72% 80%;
     --accent-foreground: 240 5.9% 10%;
     --destructive: 0 100% 67%;
     --destructive-foreground: 0 100% 67%;
@@ -42,6 +42,10 @@
   }
 
   .dark {
+
+    --aquamarine: #15FFAB;
+    --sky-blue: #14D0F9;
+
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
