@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { MorphoMarketReader } from "lib/markets/MarketsReader"
+import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { Address } from "viem"
 import { useChainId, usePublicClient } from "wagmi"
 import { SupportedChainId } from "~/constants"
@@ -17,5 +17,6 @@ export function useAllBorrowPositions(account?: Address) {
       return await reader.getBorrowPositions(account!)
     },
     enabled: !!account && !!client,
+    refetchOnWindowFocus: false,
   })
 }

@@ -3,6 +3,7 @@ import { Address, createPublicClient, http } from "viem"
 import { mainnet, sepolia } from "viem/chains"
 import { MorphoBlueAbi } from "../../lib/morpho/abi/MorphoBlueAbi.js"
 import {
+  SupportedChainId,
   morphoAddressesByChain,
   supportedChainIds,
   tokenIconBySymbol,
@@ -44,8 +45,10 @@ function getClient(chainId: number) {
 
 supportedChainIds.forEach(async (chainId) => {
   const client = getClient(chainId)
-  const morphoMarketIds = whitelistedMetaMorphoMarketsByChain[chainId]
-  const morphoBlueAddress = morphoAddressesByChain[chainId].blue
+  const morphoMarketIds =
+    whitelistedMetaMorphoMarketsByChain[chainId as SupportedChainId]
+  const morphoBlueAddress =
+    morphoAddressesByChain[chainId as SupportedChainId].blue
 
   const tokens: Array<Token> = []
 

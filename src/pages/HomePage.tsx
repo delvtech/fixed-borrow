@@ -81,7 +81,11 @@ export function HomePage() {
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-y-4">
+      <div className="flex flex-col items-center gap-y-4 px-12">
+        <img
+          className="h-12 bg-[#0F1117] p-2 rounded"
+          src="logos/morpho-logo-dark.svg"
+        />
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-chakra">
             Available Morpho Blue Markets
@@ -92,7 +96,9 @@ export function HomePage() {
           </p>
         </div>
 
-        <AllMarketsTable />
+        <div className="max-w-screen-lg w-full">
+          <AllMarketsTable />
+        </div>
       </div>
       <FAQ />
     </main>

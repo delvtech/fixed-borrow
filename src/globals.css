@@ -5,8 +5,8 @@
 @layer base {
   :root {
     /* Custom Colors */
-    --aquamarine: #15FFAB;
-    --sky-blue: #14D0F9;
+    --aquamarine: #15ffab;
+    --sky-blue: #14d0f9;
 
     --background: 197 26% 9%;
     --foreground: 0 0% 100%;
