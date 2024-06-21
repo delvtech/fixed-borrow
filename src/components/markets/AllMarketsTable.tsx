@@ -58,7 +58,7 @@ export function AllMarketsTable() {
   })
 
   return (
-    <div className="max-w-screen-xl w-full">
+    <div className="w-full max-w-screen-xl">
       <div className="flex items-center py-4"></div>
       <Table className="border">
         <TableHeader>
@@ -115,11 +115,11 @@ function TokenPair(props: TokenPairProps) {
     <span>
       <img
         src={props.market.collateralToken.iconUrl}
-        className="h-5 w-5 inline"
+        className="inline h-5 w-5"
       />
       <img
         src={props.market.loanToken.iconUrl}
-        className="h-5 w-5 inline -ml-3"
+        className="-ml-3 inline h-5 w-5"
       />
     </span>
   )
@@ -135,10 +135,10 @@ const columns: ColumnDef<MarketInfo>[] = [
       const { row, getValue } = props
 
       return (
-        <div className="capitalize flex items-center gap-x-2 font-mono">
+        <div className="flex items-center gap-x-2 font-mono capitalize">
           <TokenPair market={row.original.market} />
           {getValue()}
-          <Badge className="text-xs text-[#8A92A3] px-1 border-none">
+          <Badge className="border-none px-1 text-xs text-[#8A92A3]">
             LLTV: {dn.format([BigInt(row.original.market.lltv), 16])}%
           </Badge>
         </div>
@@ -154,7 +154,7 @@ const columns: ColumnDef<MarketInfo>[] = [
       const { getValue } = props
 
       return (
-        <div className="capitalize flex items-center gap-x-2 font-mono">
+        <div className="flex items-center gap-x-2 font-mono capitalize">
           {dn.format([getValue(), 18], {
             digits: 2,
             compact: true,
@@ -167,7 +167,7 @@ const columns: ColumnDef<MarketInfo>[] = [
     accessorKey: "borrowRate",
     header: () => <div className="text-right">Borrow Rate</div>,
     cell: ({ row }) => (
-      <div className="lowercase text-right font-mono">
+      <div className="text-right font-mono lowercase">
         {formatRate(row.getValue("borrowRate"))}
       </div>
     ),
@@ -179,7 +179,7 @@ const columns: ColumnDef<MarketInfo>[] = [
     cell: ({ row }) => {
       return (
         <div className="text-right">
-          <span className="gradient-text font-medium font-mono">
+          <span className="gradient-text font-mono font-medium">
             {formatRate(row.getValue("fixedRate"))}
           </span>
         </div>

@@ -3,9 +3,9 @@ import { Button } from "components/base/button"
 
 export function Navbar() {
   return (
-    <div className="grid grid-cols-3 py-4 items-center px-8 border-b">
+    <div className="grid grid-cols-3 items-center border-b px-8 py-4">
       <div>
-        <span className="text-xl font-semibold font-chakra">
+        <span className="font-chakra text-xl font-semibold">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="130"
@@ -22,7 +22,7 @@ export function Navbar() {
 
       <div></div>
 
-      <div className="justify-self-end flex gap-x-2 items-center">
+      <div className="flex items-center gap-x-2 justify-self-end">
         <Button size="sm" variant="secondary">
           Learn how fixed rates work
         </Button>

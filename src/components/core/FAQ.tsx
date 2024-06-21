@@ -12,10 +12,10 @@ import { faqData } from "static/faqData"
 export function FAQ(): ReactElement {
   return (
     <div className="mt-8 flex w-full flex-col items-center">
-      <h3 className="mb-8 text-3xl font-chakra text-center text-accent">
+      <h3 className="mb-8 text-center font-chakra text-3xl text-accent">
         Frequently Asked Questions
       </h3>
-      <div className="mx-8 flex lg:w-[1200px] flex-row gap-6 rounded-[2rem] bg-secondary p-12">
+      <div className="mx-8 flex flex-row gap-6 rounded-[2rem] bg-secondary p-12 lg:w-[1200px]">
         <FAQEntries />
       </div>
     </div>
@@ -32,10 +32,10 @@ export function FAQEntries(): JSX.Element {
         {faqData.map((faq) => (
           <Accordion type="single" collapsible>
             <AccordionItem value={faq.key}>
-              <AccordionTrigger className="text-secondary-foreground text-left">
+              <AccordionTrigger className="text-left text-secondary-foreground">
                 {faq.question}
               </AccordionTrigger>
-              <AccordionContent className="bg-border rounded-lg p-4 my-2">
+              <AccordionContent className="my-2 rounded-lg bg-border p-4">
                 {faq.answer}
               </AccordionContent>
             </AccordionItem>
@@ -54,10 +54,10 @@ export function FAQEntries(): JSX.Element {
               key={key}
               onClick={() => setSelectedFAQKey(key)}
               className={cn(
-                "justify-start text-left text-md hover:opacity-100 p-3",
+                "text-md justify-start p-3 text-left hover:opacity-100",
                 {
                   "font-normal opacity-80": selectedFAQKey !== key,
-                  "font-medium bg-border rounded-[8px]": selectedFAQKey === key,
+                  "rounded-[8px] bg-border font-medium": selectedFAQKey === key,
                 }
               )}
             >
@@ -68,7 +68,7 @@ export function FAQEntries(): JSX.Element {
 
         {/* answers */}
         <div className="col-span-2 flex flex-col font-chakra">
-          <h4 className="mb-4 text-secondary-foreground text-2xl">
+          <h4 className="mb-4 text-2xl text-secondary-foreground">
             {selectedFAQ?.question}
           </h4>
           <div className="opacity-80">{selectedFAQ?.answer}</div>

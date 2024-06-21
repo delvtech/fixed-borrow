@@ -21,13 +21,13 @@ export function HomePage() {
 
   return (
     <main className="my-16 flex flex-col gap-y-24">
-      <div className="flex gap-y-12 flex-col">
+      <div className="flex flex-col gap-y-12">
         <div className="flex flex-col items-center gap-y-4">
-          <h1 className="text-6xl font-chakra gradient-text">
+          <h1 className="gradient-text font-chakra text-6xl">
             Fix Your Borrow
           </h1>
 
-          <p className="text-lg text-secondary-foreground text-center">
+          <p className="text-center text-lg text-secondary-foreground">
             Keep all the best parts of your Borrow position, but have peace of{" "}
             <br />
             mind with a predictable interest rate.
@@ -54,7 +54,7 @@ export function HomePage() {
         {selectedMarket ? (
           <BorrowFlow market={selectedMarket} />
         ) : (
-          <div className="flex flex-col gap-y-12 items-center px-12">
+          <div className="flex flex-col items-center gap-y-12 px-12">
             {match(allBorrowPositionsQueryStatus)
               .with("success", () => {
                 return borrowPositions!.map((position) => (
@@ -76,7 +76,7 @@ export function HomePage() {
               .with("error", () => {
                 return (
                   <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold flex items-center gap-x-2">
+                    <div className="flex items-center gap-x-2 text-3xl font-bold">
                       Error <CircleSlash size={24} className="inline" />
                     </div>
                     <div>
@@ -93,11 +93,11 @@ export function HomePage() {
 
       <div className="flex flex-col items-center gap-y-4 px-12">
         <img
-          className="h-12 bg-[#0F1117] p-2 rounded"
+          className="h-12 rounded bg-[#0F1117] p-2"
           src="logos/morpho-logo-dark.svg"
         />
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-chakra">
+        <div className="space-y-4 text-center">
+          <h1 className="font-chakra text-4xl">
             Available Morpho Blue Markets
           </h1>
           <p className="text-secondary-foreground">
@@ -106,7 +106,7 @@ export function HomePage() {
           </p>
         </div>
 
-        <div className="max-w-screen-lg w-full">
+        <div className="w-full max-w-screen-lg">
           <AllMarketsTable />
         </div>
       </div>
