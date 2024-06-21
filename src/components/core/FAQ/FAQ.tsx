@@ -15,7 +15,7 @@ export function FAQ(): ReactElement {
       <h3 className="mb-8 text-3xl font-chakra text-center text-accent">
         Frequently Asked Questions
       </h3>
-      <div className="mx-8 flex md:w-[1200px] flex-row gap-6 rounded-[2rem] bg-secondary p-12">
+      <div className="mx-8 flex lg:w-[1200px] flex-row gap-6 rounded-[2rem] bg-secondary p-12">
         <FAQEntries />
       </div>
     </div>
@@ -32,7 +32,7 @@ export function FAQEntries(): JSX.Element {
         {faqData.map((faq) => (
           <Accordion type="single" collapsible>
             <AccordionItem value={faq.key}>
-              <AccordionTrigger className="text-secondary-foreground">
+              <AccordionTrigger className="text-secondary-foreground text-left">
                 {faq.question}
               </AccordionTrigger>
               <AccordionContent className="bg-border rounded-lg p-4 my-2">
