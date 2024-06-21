@@ -14,7 +14,8 @@
       "@/utils": ["./src/@/lib/utils"],
       "utils/*": ["./src/utils/*"],
       "lib/*": ["./lib/*"],
-      "~/constants": ["./src/constants.ts"]
+      "~/constants": ["./src/constants.ts"],
+      "static/*": ["./src/static/*"],
     },
 
     /* Bundler mode */
