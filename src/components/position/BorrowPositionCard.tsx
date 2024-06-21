@@ -33,7 +33,11 @@ function BorrowPositionCardStat(props: BorrowPositionCardStatProps) {
   )
 }
 
-export function BorrowPositionCard(props: BorrowPosition) {
+type BorrowPositionCardProps = BorrowPosition & {
+  onClick?: () => void
+}
+
+export function BorrowPositionCard(props: BorrowPositionCardProps) {
   const borrowRateDelta = props.rates?.averageRate
     ? props.currentRate - props.rates?.averageRate
     : null
@@ -44,16 +48,17 @@ export function BorrowPositionCard(props: BorrowPosition) {
         <CardHeader>
           <div className="bg-[#1c1f27] p-3 rounded-[8px] w-fit">
             <img
-              src={props.collateralToken.iconUrl}
+              src={props.market.collateralToken.iconUrl}
               className="h-5 w-5 inline"
             />
             <img
-              src={props.loanToken.iconUrl}
+              src={props.market.loanToken.iconUrl}
               className="h-5 w-5 inline -ml-3"
             />
           </div>
           <CardTitle className="flex items-center gap-x-2 font-chakra text-xl">
-            {props.collateralToken.symbol} / {props.loanToken.symbol}
+            {props.market.collateralToken.symbol} /{" "}
+            {props.market.loanToken.symbol}
           </CardTitle>
         </CardHeader>
 
@@ -66,35 +71,35 @@ export function BorrowPositionCard(props: BorrowPosition) {
                 value={dnum.format(
                   [
                     BigInt(props.totalCollateral),
-                    props.collateralToken.decimals,
+                    props.market.collateralToken.decimals,
                   ],
                   2
                 )}
-                subValue={props.collateralToken.symbol}
+                subValue={props.market.collateralToken.symbol}
                 secondaryValue={`$${props.totalCollateralUsd}`}
               />
 
               <BorrowPositionCardStat
                 title="Debt"
                 value={dnum.format(
-                  [BigInt(props.totalDebt), props.loanToken.decimals],
+                  [BigInt(props.totalDebt), props.market.loanToken.decimals],
                   2
                 )}
-                subValue={props.loanToken.symbol}
+                subValue={props.market.loanToken.symbol}
                 secondaryValue={`$${props.totalDebtUsd}`}
               />
 
               <BorrowPositionCardStat
                 title="Liq. Price"
                 value={`${props.ltv * 100}%`}
-                secondaryValue={`${dnum.format([BigInt(props.marketMaxLtv), 16])}% Max LTV`}
+                secondaryValue={`${dnum.format([BigInt(props.market.lltv), 16])}% Max LTV`}
               />
 
               <BorrowPositionCardStat
                 title="LTV"
                 value={props.liquidationPrice ?? ""}
-                subValue={props.collateralToken.symbol}
-                secondaryValue={`${props.collateralToken.symbol}/${props.loanToken.symbol}`}
+                subValue={props.market.collateralToken.symbol}
+                secondaryValue={`${props.market.collateralToken.symbol}/${props.market.loanToken.symbol}`}
               />
             </div>
           </div>
@@ -174,7 +179,9 @@ export function BorrowPositionCard(props: BorrowPosition) {
         </div>
 
         <div className="flex flex-col gap-y-2 items-center">
-          <Button size="lg">Fix Your Rate</Button>
+          <Button size="lg" onClick={props.onClick}>
+            Fix Your Rate
+          </Button>
           <div className="text-sm text-secondary-foreground text-center">
             Coverage Period: 1 year. Remove anytime.
           </div>

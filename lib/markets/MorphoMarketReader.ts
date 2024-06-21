@@ -280,7 +280,7 @@ export class MorphoMarketReader extends MarketReader {
           const fixedRate = await hyperdrive.getFixedApr()
 
           return {
-            ...market,
+            market,
             totalCollateral: collateral.toString(),
             totalCollateralUsd: collateralTokenPriceUsd
               ? dn.format(

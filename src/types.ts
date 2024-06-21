@@ -58,11 +58,8 @@ export interface Token {
 }
 
 export interface BorrowPosition {
-  /** Loan token */
-  loanToken: Token
-
-  /** Collateral token*/
-  collateralToken: Token
+  /** The underlying market. */
+  market: Market
 
   /** Total collateral in 18 decimals. */
   totalCollateral: string
@@ -81,9 +78,6 @@ export interface BorrowPosition {
 
   /** Price of one unit of collateral in which a liquidation will be triggered. */
   liquidationPrice?: string
-
-  /** Market maximum loan to value as a decimal ex. 0.90 */
-  marketMaxLtv: string
 
   fixedRate: number
 
