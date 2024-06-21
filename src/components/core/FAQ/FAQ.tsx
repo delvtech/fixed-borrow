@@ -32,8 +32,12 @@ export function FAQEntries(): JSX.Element {
         {faqData.map((faq) => (
           <Accordion type="single" collapsible>
             <AccordionItem value={faq.key}>
-              <AccordionTrigger>{faq.question}</AccordionTrigger>
-              <AccordionContent>{faq.answer}</AccordionContent>
+              <AccordionTrigger className="text-secondary-foreground">
+                {faq.question}
+              </AccordionTrigger>
+              <AccordionContent className="bg-border rounded-lg p-4 my-2">
+                {faq.answer}
+              </AccordionContent>
             </AccordionItem>
           </Accordion>
         ))}
