@@ -10,7 +10,9 @@ interface BorrowFlowProps {
 type BorrowFlowStep = "review"
 
 export function BorrowFlow(props: BorrowFlowProps) {
-  const [step, setStep] = useState<BorrowFlowStep>("review")
+  const [step] = useState<BorrowFlowStep>("review")
+
+  console.log(props)
 
   return match(step)
     .with("review", () => {
