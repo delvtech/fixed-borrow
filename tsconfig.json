@@ -33,8 +33,12 @@
     "noFallthroughCasesInSwitch": true
   },
   "ts-node": {
-    // Tell ts-node CLI to install the --loader automatically, explained below
-    "esm": true
+    "transpileOnly": true,
+    "esm": true,
+    "compilerOptions": {
+      "module": "Node16",
+      "moduleResolution": "Node16"
+    }
   },
   "include": ["src", "lib"],
   "references": [{ "path": "./tsconfig.node.json" }]

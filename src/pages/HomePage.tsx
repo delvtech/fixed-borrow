@@ -1,23 +1,18 @@
 import { Badge } from "components/base/badge"
 import { Skeleton } from "components/base/skeleton"
-import { BorrowFlow } from "components/core/BorrowFlow"
 import { FAQ } from "components/core/FAQ"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
 import { BorrowPositionCard } from "components/position/BorrowPositionCard"
 import { useAllBorrowPositions } from "hooks/markets/useAllBorrowPositions"
 import { Check, CircleSlash } from "lucide-react"
-import { useState } from "react"
 import { match } from "ts-pattern"
 import { useAccount } from "wagmi"
-import { Market } from "../types"
 
 export function HomePage() {
   const { address: account } = useAccount()
 
   const { data: borrowPositions, status: allBorrowPositionsQueryStatus } =
     useAllBorrowPositions(account)
-
-  const [selectedMarket, setSelectedMarket] = useState<Market>()
 
   return (
     <main className="my-16 flex flex-col gap-y-24">
@@ -51,44 +46,39 @@ export function HomePage() {
           </div>
         </div>
 
-        {selectedMarket ? (
-          <BorrowFlow market={selectedMarket} />
-        ) : (
-          <div className="flex flex-col items-center gap-y-12 px-12">
-            {match(allBorrowPositionsQueryStatus)
-              .with("success", () => {
-                return borrowPositions!.map((position) => (
-                  <BorrowPositionCard
-                    key={`${position.market.loanToken}${position.market.collateralToken}`}
-                    onClick={() => setSelectedMarket(position.market)}
-                    {...position}
-                  />
-                ))
-              })
-              .with("pending", () => {
-                return Array.from({ length: 2 }, (_, index) => (
-                  <Skeleton
-                    key={index}
-                    className="h-[396px] w-full max-w-screen-lg rounded-lg"
-                  />
-                ))
-              })
-              .with("error", () => {
-                return (
-                  <div className="flex flex-col items-center">
-                    <div className="flex items-center gap-x-2 text-3xl font-bold">
-                      Error <CircleSlash size={24} className="inline" />
-                    </div>
-                    <div>
-                      Unable to load borrow positions. Please contact our
-                      support service.
-                    </div>
+        <div className="flex flex-col items-center gap-y-12 px-12">
+          {match(allBorrowPositionsQueryStatus)
+            .with("success", () => {
+              return borrowPositions!.map((position) => (
+                <BorrowPositionCard
+                  key={`${position.market.loanToken}${position.market.collateralToken}`}
+                  {...position}
+                />
+              ))
+            })
+            .with("pending", () => {
+              return Array.from({ length: 2 }, (_, index) => (
+                <Skeleton
+                  key={index}
+                  className="h-[396px] w-full max-w-screen-lg rounded-lg"
+                />
+              ))
+            })
+            .with("error", () => {
+              return (
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center gap-x-2 text-3xl font-bold">
+                    Error <CircleSlash size={24} className="inline" />
                   </div>
-                )
-              })
-              .exhaustive()}
-          </div>
-        )}
+                  <div>
+                    Unable to load borrow positions. Please contact our support
+                    service.
+                  </div>
+                </div>
+              )
+            })
+            .exhaustive()}
+        </div>
       </div>
 
       <div className="flex flex-col items-center gap-y-4 px-12">

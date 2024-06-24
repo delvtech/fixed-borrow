@@ -5,6 +5,7 @@ import { Separator } from "components/base/separator"
 import * as dnum from "dnum"
 import { ReactNode } from "react"
 import { formatRate } from "utils/base/formatRate"
+import { Link } from "wouter"
 import { BorrowPosition } from "../../types"
 
 interface BorrowPositionCardStatProps {
@@ -34,9 +35,7 @@ function BorrowPositionCardStat(props: BorrowPositionCardStatProps) {
   )
 }
 
-type BorrowPositionCardProps = BorrowPosition & {
-  onClick?: () => void
-}
+type BorrowPositionCardProps = BorrowPosition
 
 export function BorrowPositionCard(props: BorrowPositionCardProps) {
   const borrowRateDelta = props.rates?.averageRate
@@ -182,9 +181,9 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
         </div>
 
         <div className="flex flex-col items-center gap-y-2">
-          <Button size="lg" onClick={props.onClick}>
-            Fix Your Rate
-          </Button>
+          <Link href={`/borrow/${props.market.hyperdrive}`}>
+            <Button size="lg">Fix Your Rate</Button>
+          </Link>
           <div className="text-center text-sm text-secondary-foreground">
             Coverage Period: 1 year. Remove anytime.
           </div>
