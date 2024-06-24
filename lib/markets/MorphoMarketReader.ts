@@ -34,9 +34,15 @@ interface MorphoMarketState {
   fee: bigint
 }
 
+interface MorphoMarketRateHistory {
+  lowestRate: number
+  highestRate: number
+  averageRate: number
+}
+
 export class MorphoMarketReader extends MarketReader {
-  protected morphoBlueAddress: Address
-  protected irmAddress: Address
+  private morphoBlueAddress: Address
+  private irmAddress: Address
 
   constructor(client: PublicClient, chainId: SupportedChainId) {
     super(client, chainId)
@@ -44,115 +50,7 @@ export class MorphoMarketReader extends MarketReader {
     this.irmAddress = morphoAddressesByChain[chainId].irm
   }
 
-  async getMarketStateBatch(
-    morphoIds: Address[],
-    morphoBlueAddress: Address
-  ): Promise<Array<MorphoMarketState>> {
-    const makeCall = (
-      id: Address
-    ): ContractFunctionParameters<typeof MorphoBlueAbi, "view", "market"> => {
-      return {
-        abi: MorphoBlueAbi,
-        address: morphoBlueAddress,
-        functionName: "market",
-        args: [id],
-      }
-    }
-
-    const results = await this.client.multicall({
-      contracts: morphoIds.map(makeCall),
-      allowFailure: false,
-    })
-
-    return results.map((result, i) => {
-      const [
-        totalSupplyAssets,
-        totalSupplyShares,
-        totalBorrowAssets,
-        totalBorrowShares,
-        lastUpdate,
-        fee,
-      ] = result as [bigint, bigint, bigint, bigint, bigint, bigint]
-
-      return {
-        id: morphoIds[i],
-        totalBorrowAssets,
-        totalBorrowShares,
-        totalSupplyAssets,
-        totalSupplyShares,
-        lastUpdate,
-        fee,
-      }
-    })
-  }
-
-  async getMarketRateHistory(marketId: Address, fromBlock?: bigint) {
-    // fetch from RPC
-
-    const rateData = await this.client.getContractEvents({
-      abi: AdaptiveCurveIrmAbi,
-      address: morphoAddressesByChain[this.chainId].irm,
-      eventName: "BorrowRateUpdate",
-      args: {
-        id: marketId,
-      },
-      fromBlock,
-    })
-
-    const rates = rateData
-      .map((i) => {
-        const avgBorrowRate = i.args.avgBorrowRate
-
-        if (!avgBorrowRate) return undefined
-
-        return BigInt(avgBorrowRate)
-      })
-      .filter(Boolean) as bigint[]
-
-    let lowestRate = rates[0]
-    let highestRate = rates[0]
-
-    rates.forEach((rate) => {
-      if (rate > highestRate) {
-        highestRate = rate
-      }
-
-      if (rate < lowestRate) {
-        lowestRate = rate
-      }
-    })
-
-    return {
-      lowestRate:
-        Number(
-          formatUnits(
-            wTaylorCompounded(BigInt(lowestRate), BigInt(SECONDS_PER_YEAR)),
-            18
-          )
-        ) * 100,
-      highestRate:
-        Number(
-          formatUnits(
-            wTaylorCompounded(BigInt(highestRate), BigInt(SECONDS_PER_YEAR)),
-            18
-          )
-        ) * 100,
-      averageRate:
-        Number(
-          formatUnits(
-            wTaylorCompounded(
-              rates.reduce((prev, curr) => {
-                return prev + curr
-              }, 0n) / BigInt(rates.length),
-              BigInt(SECONDS_PER_YEAR)
-            ),
-            18
-          )
-        ) * 100,
-    }
-  }
-
-  public async getBorrowPositions(account: Address): Promise<BorrowPosition[]> {
+  async getBorrowPositions(account: Address): Promise<BorrowPosition[]> {
     const markets = getAppConfig(this.chainId).morphoMarkets
 
     const accountBorrowPositions = (
@@ -161,7 +59,7 @@ export class MorphoMarketReader extends MarketReader {
           // Fetch position shares
           const [, borrowShares, collateral] = await this.client.readContract({
             abi: MorphoBlueAbi,
-            address: morphoAddressesByChain[this.chainId].blue,
+            address: this.morphoBlueAddress,
             functionName: "position",
             args: [market.id, account],
           })
@@ -182,7 +80,7 @@ export class MorphoMarketReader extends MarketReader {
             fee,
           ] = await this.client.readContract({
             abi: MorphoBlueAbi,
-            address: morphoAddressesByChain[this.chainId].blue,
+            address: this.morphoBlueAddress,
             functionName: "market",
             args: [market.id],
           })
@@ -190,14 +88,14 @@ export class MorphoMarketReader extends MarketReader {
           // const [loanToken, collateralToken, oracle, irm, lltv] =
           //   await this.client.readContract({
           //     abi: MorphoBlueAbi,
-          //     address: morphoAddressesByChain[this.chainId].blue,
+          //     address: this.morphoBlueAddress,
           //     functionName: "idToMarketParams",
           //     args: [market.id],
           //   })
 
           const borrowRate = await this.client.readContract({
             abi: AdaptiveCurveIrmAbi,
-            address: morphoAddressesByChain[this.chainId].irm,
+            address: this.irmAddress,
             functionName: "borrowRateView",
             args: [
               {
@@ -266,11 +164,12 @@ export class MorphoMarketReader extends MarketReader {
             Date.now() / 1000 - 2592000
           )
 
-          const { lowestRate, highestRate, averageRate } =
-            await this.getMarketRateHistory(
-              market.id,
-              pastBlock?.number ? BigInt(pastBlock.number) : undefined
-            )
+          const rateHistory = pastBlock.number
+            ? await this.getMarketRateHistory(
+                market.id,
+                BigInt(pastBlock.number)
+              )
+            : undefined
 
           const hyperdrive = new ReadHyperdrive({
             address: market.hyperdrive,
@@ -310,11 +209,13 @@ export class MorphoMarketReader extends MarketReader {
             marketMaxLtv: BigInt(market.lltv).toString(),
             fixedRate: Number(formatUnits(fixedRate, 18)),
             currentRate: Number(formatUnits(borrowAPY, 16)),
-            rates: {
-              lowestRate,
-              highestRate,
-              averageRate,
-            },
+            rates: rateHistory
+              ? {
+                  lowestRate: rateHistory.lowestRate,
+                  highestRate: rateHistory.highestRate,
+                  averageRate: rateHistory.averageRate,
+                }
+              : undefined,
             ltv: Number(dn.format([ltv, 18], 2)),
             liquidationPrice: dn.format(
               [liqPrice, market.collateralToken.decimals],
@@ -335,7 +236,7 @@ export class MorphoMarketReader extends MarketReader {
 
     const morphoMarketStates = await this.getMarketStateBatch(
       markets.map((market) => market.id),
-      morphoAddressesByChain[this.chainId].blue
+      this.morphoBlueAddress
     )
 
     const makeCall = (
@@ -409,5 +310,137 @@ export class MorphoMarketReader extends MarketReader {
         }
       })
     )
+  }
+
+  /**
+   * @description Utility function formats the borrow rate fetched from the
+   * AdaptiveCurveIRM smart contract to a human readable rate.
+   *
+   * @param borrowRate - Borrow rate from the IRM as a BigNumber
+   */
+  async getMarketStateBatch(
+    morphoIds: Address[],
+    morphoBlueAddress: Address
+  ): Promise<Array<MorphoMarketState>> {
+    const makeCall = (
+      id: Address
+    ): ContractFunctionParameters<typeof MorphoBlueAbi, "view", "market"> => {
+      return {
+        abi: MorphoBlueAbi,
+        address: morphoBlueAddress,
+        functionName: "market",
+        args: [id],
+      }
+    }
+
+    const results = await this.client.multicall({
+      contracts: morphoIds.map(makeCall),
+      allowFailure: false,
+    })
+
+    return results.map((result, i) => {
+      const [
+        totalSupplyAssets,
+        totalSupplyShares,
+        totalBorrowAssets,
+        totalBorrowShares,
+        lastUpdate,
+        fee,
+      ] = result as [bigint, bigint, bigint, bigint, bigint, bigint]
+
+      return {
+        id: morphoIds[i],
+        totalBorrowAssets,
+        totalBorrowShares,
+        totalSupplyAssets,
+        totalSupplyShares,
+        lastUpdate,
+        fee,
+      }
+    })
+  }
+
+  /**
+   * @description Utility function formats the borrow rate fetched from the
+   * AdaptiveCurveIRM smart contract to a human readable rate.
+   *
+   * @param borrowRate - Borrow rate from the IRM as a BigNumber
+   */
+  getFormattedRateFromBorrowRate(borrowRate: bigint): number {
+    return (
+      Number(
+        formatUnits(
+          wTaylorCompounded(BigInt(borrowRate), BigInt(SECONDS_PER_YEAR)),
+          18
+        )
+      ) * 100
+    )
+  }
+
+  /**
+   * @description Utility function to return market rate history such as
+   * the lowest, highest, and average rates for a period. It's possible that
+   * this function returns undefined. This scenerio is usually caused by
+   * no rate data existing from the `fromBlock` to the current block.
+   *
+   * @param marketId - Morpho market id.
+   * @param fromBlock - Defines the starting block logs will be fetched from.
+   */
+  async getMarketRateHistory(
+    marketId: Address,
+    fromBlock: bigint
+  ): Promise<MorphoMarketRateHistory | undefined> {
+    // Fetch contract logs from RPC.
+    const rateData = await this.client.getContractEvents({
+      abi: AdaptiveCurveIrmAbi,
+      address: this.irmAddress,
+      eventName: "BorrowRateUpdate",
+      args: {
+        id: marketId,
+      },
+      fromBlock,
+    })
+
+    // We early return if no logs have been found. This is possible if no
+    // rate activity happened between fromBlock and the current block.
+    if (!rateData.length) {
+      return undefined
+    }
+
+    // The actual rate is stored as the avgBorrowRate in the log.
+    const rates = rateData
+      .map((i) => {
+        const avgBorrowRate = i.args.avgBorrowRate
+
+        if (!avgBorrowRate) return undefined
+
+        return BigInt(avgBorrowRate)
+      })
+      .filter(Boolean) as bigint[]
+
+    // Compute lowest, highest, and average rates.
+    let lowestRate = rates[0]
+    let highestRate = rates[0]
+
+    rates.forEach((rate) => {
+      if (rate > highestRate) {
+        highestRate = rate
+      }
+
+      if (rate < lowestRate) {
+        lowestRate = rate
+      }
+    })
+
+    const averageRate =
+      rates.reduce((prev, curr) => {
+        return prev + curr
+      }, 0n) / BigInt(rates.length)
+
+    return {
+      lowestRate: this.getFormattedRateFromBorrowRate(lowestRate),
+      highestRate: this.getFormattedRateFromBorrowRate(highestRate),
+      averageRate: this.getFormattedRateFromBorrowRate(averageRate),
+    }
   }
 }
