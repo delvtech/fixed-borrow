@@ -79,7 +79,7 @@ export interface BorrowPosition {
   /** Price of one unit of collateral in which a liquidation will be triggered. */
   liquidationPrice?: string
 
-  fixedRate: number
+  fixedRate: bigint
 
   /** Current borrow APY as a decimal ex .12 = 12% */
   currentRate: number

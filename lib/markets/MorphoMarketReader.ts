@@ -207,7 +207,7 @@ export class MorphoMarketReader extends MarketReader {
                 )
               : undefined,
             marketMaxLtv: BigInt(market.lltv).toString(),
-            fixedRate: Number(formatUnits(fixedRate, 18)),
+            fixedRate,
             currentRate: Number(formatUnits(borrowAPY, 16)),
             rates: rateHistory
               ? {

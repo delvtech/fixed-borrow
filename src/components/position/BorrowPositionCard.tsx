@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "components/base/card"
 import { Separator } from "components/base/separator"
 import * as dnum from "dnum"
 import { ReactNode } from "react"
+import { formatRate } from "utils/base/formatRate"
 import { BorrowPosition } from "../../types"
 
 interface BorrowPositionCardStatProps {
@@ -175,7 +176,9 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
           <div className="text-sm font-medium text-secondary-foreground">
             Max Projected Fixed Rate
           </div>
-          <div className="gradient-text font-chakra text-3xl font-semibold">{`${dnum.format(dnum.from(props.fixedRate), 2)}%`}</div>
+          <div className="gradient-text font-chakra text-3xl font-semibold">
+            {formatRate(props.fixedRate)}
+          </div>
         </div>
 
         <div className="flex flex-col items-center gap-y-2">
