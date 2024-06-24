@@ -1,5 +1,6 @@
 import { Badge } from "components/base/badge"
 import { Skeleton } from "components/base/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/base/tabs"
 import { BorrowFlow } from "components/core/BorrowFlow"
 import { FAQ } from "components/core/FAQ"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
@@ -50,6 +51,32 @@ export function HomePage() {
             </Badge>
           </div>
         </div>
+
+        <Tabs
+          defaultValue="uncovered-loans"
+          className="flex flex-col items-center justify-center"
+        >
+          <TabsList className="gradient-border grid h-[102px] w-[574px] grid-cols-2 border bg-transparent">
+            <TabsTrigger
+              className="data-[state=active]:gradient-background h-full rounded-r-none text-xl data-[state=active]:text-black"
+              value="uncovered-loans"
+            >
+              Uncovered Loans
+            </TabsTrigger>
+            <TabsTrigger
+              className="data-[state=active]:gradient-background h-full rounded-l-none text-xl data-[state=active]:text-black"
+              value="covered-loans"
+            >
+              Covered Loans
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="uncovered-loans">
+            <h1>Uncovered loans content</h1>
+          </TabsContent>
+          <TabsContent value="covered-loans">
+            <h1>Covered loans content</h1>
+          </TabsContent>
+        </Tabs>
 
         {selectedMarket ? (
           <BorrowFlow market={selectedMarket} />
