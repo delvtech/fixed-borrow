@@ -51,6 +51,26 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  h1 {
+    @apply text-h1 font-sans;
+  }
+
+  h2 {
+    @apply text-h2 font-sans;
+  }
+
+  h3 {
+    @apply text-h3 font-sans;
+  }
+
+  h4 {
+    @apply text-h4 font-sans;
+  }
+
+  h5 {
+    @apply text-h5 font-sans;
+  }
 }
 
 @layer components {
