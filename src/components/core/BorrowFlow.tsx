@@ -4,7 +4,8 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "components/base/ui/collapsible"
+} from "components/base/collapsible"
+import { Input } from "components/base/input"
 import { ChevronDown } from "lucide-react"
 import { useState } from "react"
 import { match } from "ts-pattern"
@@ -69,13 +70,13 @@ export function BorrowFlow(props: BorrowFlowProps) {
           </div>
 
           <Card>
-            <CardContent className="grid h-full grid-cols-3 rounded border bg-card p-6">
+            <CardContent className="grid h-full max-w-5xl grid-cols-3 rounded border bg-card p-6">
               {/* image simulation */}
               <div className="col-span-2">
                 <img src="/image.png" className="h-[440px]" />
               </div>
 
-              <div className="flex flex-col justify-between">
+              <div className="flex flex-col gap-y-12">
                 <div className="space-y-4">
                   <div className="text-secondary-foreground">
                     Debt being locked at 10.41%
@@ -83,31 +84,38 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   <div className="font-mono text-3xl font-medium">
                     171,624.00 USDC
                   </div>
-                </div>
 
-                {/* collapsible */}
+                  <Collapsible
+                    open={isOpen}
+                    onOpenChange={setIsOpen}
+                    className="w-full space-y-2 border-y py-4"
+                  >
+                    <CollapsibleTrigger className="flex w-full items-center text-start">
+                      <h4 className="inline text-sm font-medium text-secondary-foreground">
+                        Protect less or more than total debt
+                      </h4>
+                      <ChevronDown className="ml-auto inline h-4 w-4 text-secondary-foreground" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-2">
+                      <div className="text-base">
+                        How much debt would you like to cover?
+                      </div>
 
-                <Collapsible
-                  open={isOpen}
-                  onOpenChange={setIsOpen}
-                  className="w-full space-y-2 border-y py-4"
-                >
-                  <CollapsibleTrigger className="flex w-full items-center text-start">
-                    <h4 className="inline text-sm font-medium text-secondary-foreground">
-                      Protect less or more than total debt
-                    </h4>
-                    <ChevronDown className="ml-auto inline h-4 w-4 text-secondary-foreground" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-2">
-                    <div>How much debt would you like to cover?</div>
-                    {/* <div className="rounded-md border px-4 py-2 font-mono text-sm shadow-sm">
+                      <Input
+                        className="rounded-[8px] font-mono placeholder:text-secondary-foreground"
+                        placeholder="0.00"
+                      />
+                      {/* <div className="rounded-md border px-4 py-2 font-mono text-sm shadow-sm">
                       @radix-ui/colors
                     </div>
                     <div className="rounded-md border px-4 py-2 font-mono text-sm shadow-sm">
                       @stitches/react
                     </div> */}
-                  </CollapsibleContent>
-                </Collapsible>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+
+                {/* collapsible */}
 
                 <div className="space-y-1">
                   <div className="text-secondary-foreground">
