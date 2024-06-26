@@ -1,6 +1,6 @@
 import { Badge } from "components/base/badge"
 import { Skeleton } from "components/base/skeleton"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/base/tabs"
+import { Tabs, TabsList, TabsTrigger } from "components/base/tabs"
 import { BorrowFlow } from "components/core/BorrowFlow"
 import { FAQ } from "components/core/FAQ"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
@@ -70,12 +70,8 @@ export function HomePage() {
               Covered Loans
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="uncovered-loans">
-            <h1>Uncovered loans content</h1>
-          </TabsContent>
-          <TabsContent value="covered-loans">
-            <h1>Covered loans content</h1>
-          </TabsContent>
+          {/* TODO: Add TabsContent components here ie. */}
+          {/* <TabsContent value="uncovered-loans">Uncovered Loans</TabsContent> */}
         </Tabs>
 
         {selectedMarket ? (
