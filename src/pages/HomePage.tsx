@@ -1,5 +1,6 @@
 import { Badge } from "components/base/badge"
 import { Skeleton } from "components/base/skeleton"
+import { Tabs, TabsList, TabsTrigger } from "components/base/tabs"
 import { FAQ } from "components/core/FAQ"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
 import { BorrowPositionCard } from "components/position/BorrowPositionCard"
@@ -80,7 +81,27 @@ export function HomePage() {
             .exhaustive()}
         </div>
       </div>
-
+      <Tabs
+        defaultValue="uncovered-loans"
+        className="flex flex-col items-center justify-center"
+      >
+        <TabsList className="grid h-24 w-1/2 grid-cols-2 border border-primary bg-transparent text-lg md:text-xl lg:w-1/3">
+          <TabsTrigger
+            className="data-[state=active]:gradient-background h-full text-wrap rounded-r-none text-xl data-[state=active]:text-primary-foreground"
+            value="uncovered-loans"
+          >
+            Uncovered Loans
+          </TabsTrigger>
+          <TabsTrigger
+            className="data-[state=active]:gradient-background h-full text-wrap rounded-l-none text-xl data-[state=active]:text-primary-foreground"
+            value="covered-loans"
+          >
+            Covered Loans
+          </TabsTrigger>
+        </TabsList>
+        {/* TODO: Add TabsContent components here ie. */}
+        {/* <TabsContent value="uncovered-loans">Uncovered Loans</TabsContent> */}
+      </Tabs>
       <div className="flex flex-col items-center gap-y-4 px-12">
         <img
           className="h-12 rounded bg-[#0F1117] p-2"
