@@ -45,6 +45,28 @@ export function HomePage() {
           </div>
         </div>
 
+        <Tabs
+          defaultValue="uncovered-loans"
+          className="flex flex-col items-center justify-center"
+        >
+          <TabsList className="text-base grid h-16 grid-cols-2 rounded-[8rem] border border-primary bg-transparent">
+            <TabsTrigger
+              className="data-[state=active]:gradient-background text-xl h-full w-40 text-wrap rounded-[8rem] text-secondary-foreground data-[state=active]:text-[#0F1117]"
+              value="uncovered-loans"
+            >
+              Uncovered Loans
+            </TabsTrigger>
+            <TabsTrigger
+              className="data-[state=active]:gradient-background text-xl h-full w-40 text-wrap rounded-[8rem] text-secondary-foreground data-[state=active]:text-[#0F1117]"
+              value="covered-loans"
+            >
+              Covered Loans
+            </TabsTrigger>
+          </TabsList>
+          {/* TODO: Add TabsContent components here ie. */}
+          {/* <TabsContent value="uncovered-loans">Uncovered Loans</TabsContent> */}
+        </Tabs>
+
         <div className="flex flex-col items-center gap-y-12 px-12">
           {match(allBorrowPositionsQueryStatus)
             .with("success", () => {
@@ -79,27 +101,7 @@ export function HomePage() {
             .exhaustive()}
         </div>
       </div>
-      <Tabs
-        defaultValue="uncovered-loans"
-        className="flex flex-col items-center justify-center"
-      >
-        <TabsList className="grid h-24 w-1/2 grid-cols-2 border border-primary bg-transparent text-lg md:text-xl lg:w-1/3">
-          <TabsTrigger
-            className="data-[state=active]:gradient-background h-full text-wrap rounded-r-none text-xl data-[state=active]:text-primary-foreground"
-            value="uncovered-loans"
-          >
-            Uncovered Loans
-          </TabsTrigger>
-          <TabsTrigger
-            className="data-[state=active]:gradient-background h-full text-wrap rounded-l-none text-xl data-[state=active]:text-primary-foreground"
-            value="covered-loans"
-          >
-            Covered Loans
-          </TabsTrigger>
-        </TabsList>
-        {/* TODO: Add TabsContent components here ie. */}
-        {/* <TabsContent value="uncovered-loans">Uncovered Loans</TabsContent> */}
-      </Tabs>
+
       <div className="flex flex-col items-center gap-y-4 px-12">
         <img
           className="h-12 rounded bg-[#0F1117] p-2"
