@@ -56,9 +56,11 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
               className="-ml-3 inline h-5 w-5"
             />
           </div>
-          <CardTitle className="flex items-center gap-x-2 font-chakra text-xl">
-            {props.market.collateralToken.symbol} /{" "}
-            {props.market.loanToken.symbol}
+          <CardTitle className="flex items-center gap-x-2 font-chakra">
+            <h4>
+              {props.market.collateralToken.symbol} /{" "}
+              {props.market.loanToken.symbol}
+            </h4>
           </CardTitle>
         </CardHeader>
 
@@ -150,7 +152,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
 
       {/* TODO FIX */}
       <div className="-ml-10 flex min-h-full flex-col gap-6 rounded-lg border-b border-r border-t bg-background p-8">
-        <span className="text-center text-lg font-medium text-primary">
+        <span className="gradient-text text-center text-lg font-medium">
           Fix your Rate
         </span>
 
@@ -159,10 +161,12 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
             <div className="text-sm font-medium text-secondary-foreground">
               Variable
             </div>
-            {props.rates && (
-              <span className="font-mono text-3xl text-secondary-foreground">
+            {props.rates ? (
+              <h3 className="font-mono text-secondary-foreground">
                 {`${dnum.format(dnum.from(props.rates.lowestRate), 2)}%-${dnum.format(dnum.from(props.rates.highestRate), 2)}%`}
-              </span>
+              </h3>
+            ) : (
+              <h3 className="font-mono text-secondary-foreground">0%-0%</h3>
             )}
           </div>
         </div>
@@ -172,21 +176,21 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
         </div>
 
         <div className="flex flex-col items-center gap-y-2">
-          <div className="text-sm font-medium text-secondary-foreground">
+          <p className="text-sm font-medium text-secondary-foreground">
             Max Projected Fixed Rate
-          </div>
-          <div className="gradient-text font-chakra text-3xl font-semibold">
+          </p>
+          <h3 className="gradient-text text-3xl font-chakra font-semibold">
             {formatRate(props.fixedRate)}
-          </div>
+          </h3>
         </div>
 
-        <div className="flex flex-col items-center gap-y-2">
+        <div className="mt-auto flex flex-col items-center gap-y-4">
           <Link href={`/borrow/${props.market.hyperdrive}`}>
             <Button size="lg">Fix Your Rate</Button>
           </Link>
-          <div className="text-center text-sm text-secondary-foreground">
+          <p className="text-center text-sm font-light text-secondary-foreground">
             Coverage Period: 1 year. Remove anytime.
-          </div>
+          </p>
         </div>
       </div>
     </div>

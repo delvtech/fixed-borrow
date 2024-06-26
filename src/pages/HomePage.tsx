@@ -19,9 +19,7 @@ export function HomePage() {
     <main className="my-16 flex flex-col gap-y-24">
       <div className="flex flex-col gap-y-12">
         <div className="flex flex-col items-center gap-y-4">
-          <h1 className="gradient-text font-chakra text-6xl">
-            Fix Your Borrow
-          </h1>
+          <h1 className="gradient-text font-chakra">Fix Your Borrow</h1>
 
           <p className="text-center text-lg text-secondary-foreground">
             Keep all the best parts of your Borrow position, but have peace of{" "}
@@ -68,7 +66,7 @@ export function HomePage() {
             .with("error", () => {
               return (
                 <div className="flex flex-col items-center">
-                  <div className="flex items-center gap-x-2 text-3xl font-bold">
+                  <div className="text-3xl flex items-center gap-x-2 font-bold">
                     Error <CircleSlash size={24} className="inline" />
                   </div>
                   <div>
@@ -108,9 +106,9 @@ export function HomePage() {
           src="logos/morpho-logo-dark.svg"
         />
         <div className="space-y-4 text-center">
-          <h1 className="font-chakra text-4xl">
+          <h2 className="text-4xl font-chakra">
             Available Morpho Blue Markets
-          </h1>
+          </h2>
           <p className="text-secondary-foreground">
             Open a supported position on Morpho Blue and fix your rate in one
             transaction with Hyperdrive.
