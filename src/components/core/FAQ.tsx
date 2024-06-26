@@ -26,17 +26,18 @@ export function FAQEntries(): JSX.Element {
   const isTailwindSmallScreen = useIsTailwindSmallScreen()
   const [selectedFAQKey, setSelectedFAQKey] = useState("faq1")
   const selectedFAQ = faqData.find((faq) => faq.key === selectedFAQKey)
+
   if (isTailwindSmallScreen) {
     return (
       <div className="flex flex-col gap-y-2">
-        {faqData.map((faq) => (
+        {faqData.map(({ question, key, answer }) => (
           <Accordion type="single" collapsible>
-            <AccordionItem value={faq.key}>
+            <AccordionItem value={key}>
               <AccordionTrigger className="text-left text-secondary-foreground">
-                {faq.question}
+                {question}
               </AccordionTrigger>
               <AccordionContent className="my-2 rounded-lg bg-border p-4">
-                {faq.answer}
+                {answer}
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -44,6 +45,7 @@ export function FAQEntries(): JSX.Element {
       </div>
     )
   }
+
   return (
     <div className="m-8 flex min-h-[400px] max-w-6xl flex-col">
       <div className="grid grid-cols-3 gap-8">

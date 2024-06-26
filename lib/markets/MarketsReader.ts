@@ -2,6 +2,13 @@ import { Address, Block, PublicClient } from "viem"
 import { SupportedChainId } from "../../src/constants"
 import { BorrowPosition, MarketInfo } from "../../src/types"
 
+/**
+ * @description Abstract class that should be implemented for each Hyperdrive
+ * supported lending protocol. Provides utility functions that can assist
+ * the inherited classes.
+ *
+ * @param account - Address of the borrower or connected account.
+ */
 export abstract class MarketReader {
   protected client: PublicClient
   protected chainId: SupportedChainId
@@ -11,19 +18,37 @@ export abstract class MarketReader {
     this.chainId = chainId
   }
 
+  /**
+   * @description Abstract that function that when implemented, returns
+   * all current bororw positions from a Hyperdrive supported lending protocol.
+   *
+   * @param account - Address of the borrower or connected account.
+   */
   abstract getBorrowPositions(account: Address): Promise<BorrowPosition[]>
 
+  /**
+   * @description Abstract that function that when implemented, returns
+   * Hyperdrive supported markets and related useful market state information.
+   */
   abstract getAllMarketsInfo(): Promise<MarketInfo[]>
 
-  protected async getPastBlock(timestamp: number): Promise<Block | undefined> {
+  /**
+   * @description Utility function that returns the closest block from the
+   * provided timestamp. Uses a block explorer API.
+   *
+   * @param timestamp - Unix timestamp in seconds.
+   */
+  protected async getPastBlock(timestamp: number): Promise<Block> {
     const blockExplorerUrl = this.client.chain?.blockExplorers?.default.apiUrl
 
-    if (!blockExplorerUrl) return Promise.resolve(undefined)
+    // Throw error is the chain does not have a registred block explorer API.
+    if (!blockExplorerUrl)
+      throw new Error("Chain does not have block explorer api.")
 
-    // Create a URL object
+    // Create URL request object.
     let url = new URL(blockExplorerUrl)
 
-    // Append the query parameters to the URL
+    // Add query parameters to the request.
     url.search = new URLSearchParams({
       module: "block",
       action: "getblocknobytime",
@@ -32,10 +57,12 @@ export abstract class MarketReader {
       apikey: import.meta.env.VITE_ETHERSCAN_API_KEY,
     }).toString()
 
-    const res = await fetch(url, {})
+    // Fetch previous block number from block explorer API.
+    const res = await fetch(url)
     const resJson = await res.json()
     const blockNumber = resJson.result
 
+    // Fetch block data using viem.
     return this.client.getBlock({
       blockNumber: BigInt(blockNumber),
     })

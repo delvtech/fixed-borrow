@@ -19,6 +19,25 @@ module.exports = {
       dm: ["DM Mono", ...defaultTheme.fontFamily.mono],
       mono: ["DM Mono", ...defaultTheme.fontFamily.mono],
     },
+    fontSize: {
+      // body texts
+      lg: ["18px", { lineHeight: "22px" }],
+      md: ["16px", { lineHeight: "20px" }],
+
+      // design doc says `sm` should have 16px lineHeight, but it looks too
+      // squeezed when there are 2 lines of text, so we are intentionally
+      // deviating by a few pixels to make running text look better
+      sm: ["14px", { lineHeight: "18px" }],
+
+      xs: ["12px", { lineHeight: "14px" }],
+      "2xs": ["10px", { lineHeight: "12px" }],
+      // Headings
+      h1: ["64px", { lineHeight: "77px" }],
+      h2: ["40px", { lineHeight: "48px" }],
+      h3: ["32px", { lineHeight: "38px" }],
+      h4: ["24px", { lineHeight: "30px" }],
+      h5: ["20px", { lineHeight: "28px" }],
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
