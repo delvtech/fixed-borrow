@@ -64,7 +64,7 @@ export function HomePage() {
               Uncovered Loans
             </TabsTrigger>
             <TabsTrigger
-              className="data-[state=active]:gradient-background h-full rounded-l-none text-xl data-[state=active]:text-black"
+              className="data-[state=active]:gradient-background h-full rounded-l-none text-xl data-[state=active]:text-primary-foreground"
               value="covered-loans"
             >
               Covered Loans
