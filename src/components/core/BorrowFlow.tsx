@@ -11,6 +11,9 @@ type BorrowFlowStep = "review"
 
 export function BorrowFlow(props: BorrowFlowProps) {
   const [step, setStep] = useState<BorrowFlowStep>("review")
+  // TODO: Remove this when borrowflow is implemented
+  console.info(props.market)
+  setStep(step)
 
   return match(step)
     .with("review", () => {
