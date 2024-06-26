@@ -58,7 +58,4 @@
   .gradient-background {
     @apply bg-gradient-to-r from-[var(--sky-blue)] to-primary;
   }
-  .gradient-border {
-    border-image: linear-gradient(to right, #15ffab, #14d0f9,#15ffab, #14d0f9 ) 1;
-  }
 }

@@ -56,9 +56,9 @@ export function HomePage() {
           defaultValue="uncovered-loans"
           className="flex flex-col items-center justify-center"
         >
-          <TabsList className="gradient-border grid h-[102px] w-[574px] grid-cols-2 border bg-transparent">
+          <TabsList className="grid h-[102px] w-[574px] grid-cols-2 border border-primary bg-transparent">
             <TabsTrigger
-              className="data-[state=active]:gradient-background h-full rounded-r-none text-xl data-[state=active]:text-black"
+              className="data-[state=active]:gradient-background h-full rounded-r-none text-xl data-[state=active]:text-primary-foreground"
               value="uncovered-loans"
             >
               Uncovered Loans
