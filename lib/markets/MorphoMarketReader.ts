@@ -61,7 +61,7 @@ export class MorphoMarketReader extends MarketReader {
             abi: MorphoBlueAbi,
             address: this.morphoBlueAddress,
             functionName: "position",
-            args: [market.id, account],
+            args: [market.metadata.id, account],
           })
 
           // Early termination if the connect account does not have a borrow
@@ -82,7 +82,7 @@ export class MorphoMarketReader extends MarketReader {
             abi: MorphoBlueAbi,
             address: this.morphoBlueAddress,
             functionName: "market",
-            args: [market.id],
+            args: [market.metadata.id],
           })
 
           // const [loanToken, collateralToken, oracle, irm, lltv] =
@@ -90,7 +90,7 @@ export class MorphoMarketReader extends MarketReader {
           //     abi: MorphoBlueAbi,
           //     address: this.morphoBlueAddress,
           //     functionName: "idToMarketParams",
-          //     args: [market.id],
+          //     args: [market.metadata.id],
           //   })
 
           const borrowRate = await this.client.readContract({
@@ -102,7 +102,7 @@ export class MorphoMarketReader extends MarketReader {
                 loanToken: market.loanToken.address,
                 collateralToken: market.collateralToken.address,
                 oracle: market.collateralToken.address,
-                irm: market.irm,
+                irm: market.metadata.irm,
                 lltv: market.lltv,
               },
               {
@@ -129,7 +129,7 @@ export class MorphoMarketReader extends MarketReader {
 
           const oraclePrice = await this.client.readContract({
             abi: OracleAbi,
-            address: market.oracle,
+            address: market.metadata.oracle,
             functionName: "price",
           })
 
@@ -166,7 +166,7 @@ export class MorphoMarketReader extends MarketReader {
 
           const rateHistory = pastBlock.number
             ? await this.getMarketRateHistory(
-                market.id,
+                market.metadata.id,
                 BigInt(pastBlock.number)
               )
             : undefined
@@ -235,7 +235,7 @@ export class MorphoMarketReader extends MarketReader {
     const markets = appConfig.morphoMarkets
 
     const morphoMarketStates = await this.getMarketStateBatch(
-      markets.map((market) => market.id),
+      markets.map((market) => market.metadata.id),
       this.morphoBlueAddress
     )
 
@@ -264,8 +264,8 @@ export class MorphoMarketReader extends MarketReader {
     const marketParams = markets.map((market) => ({
       loanToken: market.loanToken.address,
       collateralToken: market.collateralToken.address,
-      oracle: market.oracle,
-      irm: market.irm,
+      oracle: market.metadata.oracle,
+      irm: market.metadata.irm,
       lltv: market.lltv,
     }))
 
@@ -454,12 +454,27 @@ export class MorphoMarketReader extends MarketReader {
    * @param fromBlock - Defines the starting block logs will be fetched from.
    */
   async quoteRate(market: Market): Promise<bigint> {
+    if (!market.metadata) throw new Error("No IRM")
     // get current rate at target
+
+    const hyperdrive = new ReadHyperdrive({
+      address: market.hyperdrive,
+      publicClient: this.client,
+    })
+
+    const fixedRate = await hyperdrive.getFixedApr()
+
+    // const rateAtTarget = await this.client.readContract({
+    //   abi: AdaptiveCurveIrmAbi,
+    //   address: market.metadata?.irm,
+    //   functionName: "rateAtTarget",
+    //   args: [market.metadata.id],
+    // })
 
     // r_target * curve function
 
-    const r_target = dn.from(0.1295, 18)
-    const u = dn.from(0.7667, 18)
+    // const r_target = dn.from(0.1208, 18)
+    // const u = dn.from(0.7667, 18)
 
     const curve = (currentUtilization: number) => {
       // do in 18 point
@@ -483,8 +498,19 @@ export class MorphoMarketReader extends MarketReader {
       return c
     }
 
-    const quote = dn.mul(r_target, curve(0.8547))
-    console.log(quote)
-    return quote[0]
+    const worstU = dn.from(0.35, 18)
+
+    const borrow = dn.mul(
+      [wTaylorCompounded(3618536496n, BigInt(SECONDS_PER_YEAR)), 18],
+      curve(0.8466)
+    )
+    const supply = dn.mul(borrow, worstU)
+    const gap = dn.sub(borrow, supply)
+
+    // console.log(rateAtTarget)
+
+    console.log(gap[0], dn.format(borrow))
+
+    return dn.add([fixedRate, 18], gap)[0]
   }
 }

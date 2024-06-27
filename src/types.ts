@@ -40,10 +40,10 @@ export interface Market {
   /** Special metadata related to the market, this can differ
    * in structure depending on the market type.
    */
-  metadata?: MorphoMarket
+  metadata: MorphoMarketMetadata
 }
 
-export interface MorphoMarket extends Market {
+export interface MorphoMarketMetadata {
   id: Address
   oracle: Address
   irm: Address
