@@ -12,9 +12,9 @@ import { faqData } from "static/faqData"
 export function FAQ(): ReactElement {
   return (
     <div className="mt-8 flex w-full flex-col items-center">
-      <h3 className="mb-8 text-center font-chakra text-3xl text-accent">
+      <h2 className="gradient-text mb-8 text-center font-chakra">
         Frequently Asked Questions
-      </h3>
+      </h2>
       <div className="mx-8 flex flex-row gap-6 rounded-[2rem] bg-secondary p-12 lg:w-[1200px]">
         <FAQEntries />
       </div>
@@ -56,7 +56,7 @@ export function FAQEntries(): JSX.Element {
               key={key}
               onClick={() => setSelectedFAQKey(key)}
               className={cn(
-                "text-md justify-start p-3 text-left hover:opacity-100",
+                "justify-start p-3 text-left text-md hover:opacity-100",
                 {
                   "font-normal opacity-80": selectedFAQKey !== key,
                   "rounded-[8px] bg-border font-medium": selectedFAQKey === key,
@@ -70,7 +70,7 @@ export function FAQEntries(): JSX.Element {
 
         {/* answers */}
         <div className="col-span-2 flex flex-col font-chakra">
-          <h4 className="mb-4 text-2xl text-secondary-foreground">
+          <h4 className="text-2xl mb-4 text-secondary-foreground">
             {selectedFAQ?.question}
           </h4>
           <div className="opacity-80">{selectedFAQ?.answer}</div>
