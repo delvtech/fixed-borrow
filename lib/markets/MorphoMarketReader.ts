@@ -19,7 +19,7 @@ import {
   formatUnits,
 } from "viem"
 import { SupportedChainId, morphoAddressesByChain } from "../../src/constants"
-import { BorrowPosition, MarketInfo } from "../../src/types"
+import { BorrowPosition, Market, MarketInfo } from "../../src/types"
 import { getAppConfig } from "../../src/utils/getAppConfig"
 import { getTokenUsdPrice } from "../../src/utils/getTokenUsdPrice"
 import { MarketReader } from "./MarketsReader"
@@ -442,5 +442,49 @@ export class MorphoMarketReader extends MarketReader {
       highestRate: this.getFormattedRateFromBorrowRate(highestRate),
       averageRate: this.getFormattedRateFromBorrowRate(averageRate),
     }
+  }
+
+  /**
+   * @description Utility function to return market rate history such as
+   * the lowest, highest, and average rates for a period. It's possible that
+   * this function returns undefined. This scenerio is usually caused by
+   * no rate data existing from the `fromBlock` to the current block.
+   *
+   * @param marketId - Morpho market id.
+   * @param fromBlock - Defines the starting block logs will be fetched from.
+   */
+  async quoteRate(market: Market): Promise<bigint> {
+    // get current rate at target
+
+    // r_target * curve function
+
+    const r_target = dn.from(0.1295, 18)
+    const u = dn.from(0.7667, 18)
+
+    const curve = (currentUtilization: number) => {
+      // do in 18 point
+      const u = dn.from(currentUtilization, 18)
+      const u_target = dn.from(0.9, 18)
+      const one = dn.from(1, 18)
+      const zero = dn.from(0, 18)
+      const k = dn.from(4, 18)
+      const error_norm = dn.greaterThan(u, u_target)
+        ? dn.sub(one, u_target)
+        : u_target
+
+      const error = dn.div(dn.sub(u, u_target), error_norm)
+
+      const c_norm = dn.lessThan(error, zero)
+        ? dn.sub(one, dn.div(one, k))
+        : dn.sub(k, 1)
+
+      const c = dn.add(dn.mul(c_norm, error), one)
+
+      return c
+    }
+
+    const quote = dn.mul(r_target, curve(0.8547))
+    console.log(quote)
+    return quote[0]
   }
 }

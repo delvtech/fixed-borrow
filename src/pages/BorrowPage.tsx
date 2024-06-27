@@ -1,7 +1,8 @@
 import { BorrowFlow } from "components/core/BorrowFlow"
+import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { useState } from "react"
 import { getAppConfig } from "utils/getAppConfig"
-import { useChainId } from "wagmi"
+import { useChainId, usePublicClient } from "wagmi"
 import { useParams } from "wouter"
 import { navigate } from "wouter/use-browser-location"
 import { SupportedChainId } from "~/constants"
@@ -23,6 +24,14 @@ export function BorrowPage() {
 
   if (!market) {
     navigate("/")
+  }
+
+  const client = usePublicClient()
+
+  if (client && market) {
+    const reader = new MorphoMarketReader(client, chainId as SupportedChainId)
+
+    console.log(reader.quoteRate(market))
   }
 
   return (

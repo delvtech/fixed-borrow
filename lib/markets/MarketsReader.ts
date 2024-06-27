@@ -1,6 +1,6 @@
 import { Address, Block, PublicClient } from "viem"
 import { SupportedChainId } from "../../src/constants"
-import { BorrowPosition, MarketInfo } from "../../src/types"
+import { BorrowPosition, Market, MarketInfo } from "../../src/types"
 
 /**
  * @description Abstract class that should be implemented for each Hyperdrive
@@ -31,6 +31,15 @@ export abstract class MarketReader {
    * Hyperdrive supported markets and related useful market state information.
    */
   abstract getAllMarketsInfo(): Promise<MarketInfo[]>
+
+  /**
+   * @description Abstract that function that when implemented, computes the
+   * current fixed rate quote for a specific market. The fixed rate quote is
+   * the worst-case fixed rate.
+   *
+   * @param market - The market to quote a fixed rate.
+   */
+  abstract quoteRate(market: Market): Promise<bigint>
 
   /**
    * @description Utility function that returns the closest block from the
