@@ -464,12 +464,12 @@ export class MorphoMarketReader extends MarketReader {
 
     const fixedRate = await hyperdrive.getFixedApr()
 
-    // const rateAtTarget = await this.client.readContract({
-    //   abi: AdaptiveCurveIrmAbi,
-    //   address: market.metadata?.irm,
-    //   functionName: "rateAtTarget",
-    //   args: [market.metadata.id],
-    // })
+    const rateAtTarget = await this.client.readContract({
+      abi: AdaptiveCurveIrmAbi,
+      address: market.metadata?.irm,
+      functionName: "rateAtTarget",
+      args: [market.metadata.id],
+    })
 
     // r_target * curve function
 
@@ -501,8 +501,8 @@ export class MorphoMarketReader extends MarketReader {
     const worstU = dn.from(0.35, 18)
 
     const borrow = dn.mul(
-      [wTaylorCompounded(3618536496n, BigInt(SECONDS_PER_YEAR)), 18],
-      curve(0.8466)
+      [wTaylorCompounded(rateAtTarget, BigInt(SECONDS_PER_YEAR)), 18],
+      curve(0.35)
     )
     const supply = dn.mul(borrow, worstU)
     const gap = dn.sub(borrow, supply)
