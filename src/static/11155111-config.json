@@ -35,7 +35,8 @@
       },
       "oracle": "0x23F3A48121861b78f66BbE3DF60AD24A21c4DDad",
       "irm": "0x0fB591F09ab2eB967c0EFB9eE0EF6642c2abe6Ab",
-      "lltv": "980000000000000000"
+      "lltv": "980000000000000000",
+      "termLength": "1209600"
     }
   ]
 }

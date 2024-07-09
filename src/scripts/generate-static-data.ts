@@ -1,3 +1,4 @@
+import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import * as fs from "fs"
 import { Address, createPublicClient, http } from "viem"
 import { mainnet, sepolia } from "viem/chains"
@@ -127,6 +128,13 @@ supportedChainIds.forEach(async (chainId) => {
       !tokens.some((token) => token.address === collateralTokenAddress) &&
         tokens.push(collateralToken)
 
+      const readHyperdrive = new ReadHyperdrive({
+        publicClient: client,
+        address: market.hyperdrive,
+      })
+
+      const termLength = (await readHyperdrive.getPoolConfig()).positionDuration
+
       return {
         id: market.morphoId,
         hyperdrive: market.hyperdrive,
@@ -135,6 +143,7 @@ supportedChainIds.forEach(async (chainId) => {
         oracle,
         irm,
         lltv: lltv.toString(),
+        termLength: termLength.toString(),
       }
     })
   )

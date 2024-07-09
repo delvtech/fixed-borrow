@@ -19,6 +19,7 @@ function transformMetaMorphoMarkets(
       address: rawData.collateralToken.address as Address,
     },
     hyperdrive: rawData.hyperdrive as Address,
+    termLength: BigInt(rawData.termLength),
     lltv: BigInt(rawData.lltv),
     metadata: {
       id: rawData.id as Address,

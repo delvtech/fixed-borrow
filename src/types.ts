@@ -34,8 +34,11 @@ export interface Market {
    */
   lltv: bigint
 
-  /** The Hyperdrive market address */
+  /** Hyperdrive contract address */
   hyperdrive: Address
+
+  /** Hyperdrive term length */
+  termLength: bigint
 
   /** Special metadata related to the market, this can differ
    * in structure depending on the market type.
@@ -62,13 +65,13 @@ export interface BorrowPosition {
   market: Market
 
   /** Total collateral in 18 decimals. */
-  totalCollateral: string
+  totalCollateral: bigint
 
   /** Total collateral priced in USD. */
   totalCollateralUsd?: string
 
   /** Total debt in 18 point decimal. */
-  totalDebt: string
+  totalDebt: bigint
 
   /** Total debt priced in USD. */
   totalDebtUsd?: string
@@ -77,12 +80,12 @@ export interface BorrowPosition {
   ltv: number
 
   /** Price of one unit of collateral in which a liquidation will be triggered. */
-  liquidationPrice?: string
+  liquidationPrice?: bigint
 
   fixedRate: bigint
 
   /** Current borrow APY as a decimal ex .12 = 12% */
-  currentRate: number
+  currentRate: bigint
 
   rates?: {
     highestRate: number
