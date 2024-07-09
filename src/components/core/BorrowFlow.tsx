@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query"
 import { Button } from "components/base/button"
 import { Card, CardContent } from "components/base/card"
 import {
@@ -6,23 +7,58 @@ import {
   CollapsibleTrigger,
 } from "components/base/collapsible"
 import { Input } from "components/base/input"
+import * as dn from "dnum"
+import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { ChevronDown } from "lucide-react"
 import { useState } from "react"
 import { match } from "ts-pattern"
-import { Market } from "../../types"
+import { useChainId, usePublicClient } from "wagmi"
+import { SupportedChainId } from "~/constants"
+import { BorrowPosition, Market } from "../../types"
 
 interface BorrowFlowProps {
   market: Market
+  position: BorrowPosition
 }
 
 type BorrowFlowStep = "review"
 
+function useBorrowRateQuote(market: Market) {
+  const chainId = useChainId()
+  const client = usePublicClient()
+
+  return useQuery({
+    queryKey: ["borrow-rate-quote", chainId],
+    queryFn: async () => {
+      const reader = new MorphoMarketReader(
+        client!,
+        chainId as SupportedChainId
+      )
+
+      return reader.quoteRate(market)
+    },
+    enabled: !!chainId && !!client,
+  })
+}
+
 export function BorrowFlow(props: BorrowFlowProps) {
   const [step] = useState<BorrowFlowStep>("review")
 
-  console.log(props)
-
   const [isOpen, setIsOpen] = useState(false)
+
+  const { data: rateQuote } = useBorrowRateQuote(props.market)
+
+  const borrowPositionDebt = props.position.totalDebt
+  const projectedFixRateDebt = dn.mul(
+    [borrowPositionDebt, 18],
+    dn.add(dn.from(1, 18), [rateQuote ?? 0n, 18])
+  )
+  const projectedVarRateDebt = dn.mul(
+    [borrowPositionDebt, 18],
+    dn.add(dn.from(1, 18), [props.position.currentRate, 18])
+  )
+
+  console.log(props.market.termLength)
 
   return match(step)
     .with("review", () => {
@@ -44,10 +80,19 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   Lock in max rate
                 </p>
                 <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
-                  10.31% <span className="text-md font-normal">APY</span>
+                  {rateQuote
+                    ? dn.format([rateQuote, 16], {
+                        digits: 2,
+                      })
+                    : "N/A"}
+                  % <span className="text-md font-normal">APY</span>
                 </h3>
                 <p className="text-sm text-secondary-foreground">
-                  Current rate: 9.31% APY
+                  Current rate:{" "}
+                  {dn.format(dn.from([props.position.currentRate, 16]), {
+                    digits: 2,
+                  })}
+                  % APY
                 </p>
               </div>
 
@@ -56,11 +101,17 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   Fixed rate debt 1yr
                 </p>
                 <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
-                  188,385.21
+                  {dn.format(projectedFixRateDebt, {
+                    digits: 2,
+                  })}
                   <span className="text-md font-normal">USDC</span>
                 </h3>
                 <p className="text-sm text-secondary-foreground">
-                  Proj. var debt: 186,521.12 USDC
+                  Proj. var debt:{" "}
+                  {dn.format(projectedVarRateDebt, {
+                    digits: 2,
+                  })}{" "}
+                  USDC
                 </p>
               </div>
 
