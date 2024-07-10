@@ -1,4 +1,5 @@
 import { Badge } from "components/base/badge"
+import { Card, CardDescription, CardTitle } from "components/base/card"
 import { Skeleton } from "components/base/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "components/base/tabs"
 import { FAQ } from "components/core/FAQ"
@@ -16,8 +17,32 @@ export function HomePage() {
     useAllBorrowPositions(account)
 
   return (
-    <main className="my-16 flex flex-col gap-y-24">
+    <main className="flex flex-col gap-y-24 py-8">
       <div className="flex flex-col gap-y-12">
+        <div className="flex justify-evenly border-b pb-8">
+          <div className="flex w-1/2 flex-col justify-evenly sm:flex-row">
+            <Card className="border border-none bg-transparent">
+              <CardTitle>$4.3B</CardTitle>
+              <CardDescription className="my-2 text-secondary-foreground">
+                Total Coverage
+              </CardDescription>
+            </Card>
+            <Card className="border border-none bg-transparent">
+              <CardTitle>8,232</CardTitle>
+              <CardDescription className="my-2 text-secondary-foreground">
+                Borrow Positions Covered
+              </CardDescription>
+            </Card>
+            <Card className="border border-none bg-transparent">
+              <CardTitle>
+                <img className="h-8 rounded" src="logos/morpho-logo-dark.svg" />
+              </CardTitle>
+              <CardDescription className="my-2 text-secondary-foreground">
+                Supported Protocol
+              </CardDescription>
+            </Card>
+          </div>
+        </div>
         <div className="flex flex-col items-center gap-y-4">
           <h1 className="gradient-text font-chakra">Fix Your Borrow</h1>
 
