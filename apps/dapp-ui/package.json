@@ -14,8 +14,7 @@
     "format": "prettier --write '**/*.{gql,graphql,js,jsx,ts,tsx,json,md,yaml,yml}'",
     "format:check": "prettier --check '**/*.{gql,graphql,js,jsx,ts,tsx,json,md}'",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "codegen-graphql": "graphql-codegen -c configs/codegen.ts && yarn format",
-    "codegen-static": "yarn ts-node --esm src/scripts/generate-static-data.ts && yarn format"
+    "codegen-graphql": "graphql-codegen -c configs/codegen.ts && yarn format"
   },
   "dependencies": {
     "@delvtech/hyperdrive-viem": "^2.3.0",
@@ -44,7 +43,8 @@
     "ts-pattern": "^5.1.2",
     "viem": "2.x",
     "wagmi": "^2.8.3",
-    "wouter": "^3.1.2"
+    "wouter": "^3.1.2",
+    "@hyperdrive-borrow/config": "*"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.2",
