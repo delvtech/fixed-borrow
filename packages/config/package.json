@@ -1,0 +1,20 @@
+{
+  "name": "@hyperdrive-borrow/config",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "gen": "npx tsx ./src/generate.ts"
+  },
+  "devDependencies": {
+    "@hyperdrive-borrow/artifacts": "*",
+    "tsx": "^4.16.2",
+    "typescript": "^5.2.2"
+  }
+}
