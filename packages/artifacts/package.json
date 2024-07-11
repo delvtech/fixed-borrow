@@ -1,0 +1,25 @@
+{
+  "name": "@hyperdrive-borrow/artifacts",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./*.js": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}
