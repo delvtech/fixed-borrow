@@ -38,9 +38,11 @@ function BorrowPositionCardStat(props: BorrowPositionCardStatProps) {
 type BorrowPositionCardProps = BorrowPosition
 
 export function BorrowPositionCard(props: BorrowPositionCardProps) {
-  const borrowRateDelta = props.rates?.averageRate
-    ? props.currentRate - props.rates?.averageRate
-    : null
+  const averageRate = dnum.from(
+    props.rates?.averageRate ?? 0,
+    props.market.loanToken.decimals
+  )
+  const borrowRateDelta = props.rates?.averageRate ? averageRate[0] : null
 
   return (
     <div className="flex w-full max-w-screen-lg">
@@ -99,7 +101,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
 
               <BorrowPositionCardStat
                 title="LTV"
-                value={props.liquidationPrice ?? ""}
+                value={props.liquidationPrice?.toString() ?? ""}
                 subValue={props.market.collateralToken.symbol}
                 secondaryValue={`${props.market.collateralToken.symbol}/${props.market.loanToken.symbol}`}
               />
