@@ -1,9 +1,8 @@
 import { Address } from "viem"
 import { SupportedChainId } from "../constants"
 
+import { mainnetConfig, sepoliaConfig } from "@hyperdrive-borrow/config"
 import { mainnet } from "viem/chains"
-import * as mainnetConfig from "../static/1-config.json"
-import * as sepoliaConfig from "../static/11155111-config.json"
 import { ArrayElement, Market } from "../types"
 
 function transformMetaMorphoMarkets(

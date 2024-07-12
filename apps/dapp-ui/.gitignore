@@ -25,6 +25,3 @@ dist-ssr
 
 # Env
 .env
-
-# Turbo
-.turbo
