@@ -101,7 +101,13 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
 
               <BorrowPositionCardStat
                 title="LTV"
-                value={props.liquidationPrice?.toString() ?? ""}
+                value={dnum.format(
+                  [
+                    props.liquidationPrice ?? 0n,
+                    props.market.collateralToken.decimals,
+                  ],
+                  2
+                )}
                 subValue={props.market.collateralToken.symbol}
                 secondaryValue={`${props.market.collateralToken.symbol}/${props.market.loanToken.symbol}`}
               />
@@ -118,7 +124,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
             <div className="grid grid-cols-1 grid-rows-2 gap-y-8">
               <BorrowPositionCardStat
                 title="Current Borrow APY"
-                value={`${dnum.format(dnum.from(props.currentRate), 2)}%`}
+                value={`${dnum.format([props.currentRate, 16], 2)}%`}
                 secondaryValue={
                   <Badge
                     className="w-fit rounded-[4px] px-[4px] py-[2px] text-xs"
