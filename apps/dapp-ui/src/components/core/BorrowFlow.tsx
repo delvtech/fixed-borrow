@@ -1,3 +1,4 @@
+import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "components/base/button"
 import { Card, CardContent } from "components/base/card"
@@ -7,11 +8,19 @@ import {
   CollapsibleTrigger,
 } from "components/base/collapsible"
 import { Input } from "components/base/input"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "components/base/tooltip"
 import * as dn from "dnum"
+import { useNumericInput } from "hooks/base/useNumericInput"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Info } from "lucide-react"
 import { useState } from "react"
 import { match } from "ts-pattern"
+import { formatTermLength } from "utils/formatTermLength"
 import { useChainId, usePublicClient } from "wagmi"
 import { SupportedChainId } from "~/constants"
 import { BorrowPosition, Market } from "../../types"
@@ -42,6 +51,9 @@ function useBorrowRateQuote(market: Market) {
 }
 
 export function BorrowFlow(props: BorrowFlowProps) {
+  const client = usePublicClient()
+  const loanDecimals = props.market.loanToken.decimals
+
   const [step] = useState<BorrowFlowStep>("review")
 
   const [isOpen, setIsOpen] = useState(false)
@@ -58,14 +70,49 @@ export function BorrowFlow(props: BorrowFlowProps) {
     dn.add(dn.from(1, 18), [props.position.currentRate, 18])
   )
 
-  console.log(props.market.termLength)
+  const { amount, amountAsBigInt, setAmount } = useNumericInput({
+    decimals: loanDecimals,
+    defaultValue: props.position.totalDebt,
+  })
+
+  const { data: costOfCoverage } = useQuery({
+    queryKey: ["cost-coverage", amount, props.market.hyperdrive],
+    queryFn: async () => {
+      const readHyperdrive = new ReadHyperdrive({
+        address: props.market.hyperdrive,
+        publicClient: client!,
+      })
+
+      return readHyperdrive.previewOpenShort({
+        amountOfBondsToShort: amountAsBigInt ?? 0n,
+        asBase: true,
+      })
+    },
+    enabled: !!client,
+  })
+
+  const { data: termLength } = useQuery({
+    queryKey: ["term-length", props.market.hyperdrive],
+    queryFn: async () => {
+      const readHyperdrive = new ReadHyperdrive({
+        address: props.market.hyperdrive,
+        publicClient: client!,
+      })
+
+      const poolConfig = await readHyperdrive.getPoolConfig()
+      return formatTermLength(poolConfig.positionDuration)
+    },
+    enabled: !!client,
+  })
 
   return match(step)
     .with("review", () => {
       return (
-        <div className="flex w-full flex-col items-center gap-y-16 bg-transparent">
+        <div className="flex w-full flex-col items-center gap-y-16 bg-transparent px-8">
           <div className="space-y-8 text-center">
-            <h3 className="gradient-text font-semibold">Lock in your rate</h3>
+            <h3 className="gradient-text font-chakra font-semibold">
+              Lock in your rate
+            </h3>
 
             <p className="text-lg text-secondary-foreground">
               Acquire coverage for your borrow position and get peace of mind
@@ -74,11 +121,12 @@ export function BorrowFlow(props: BorrowFlowProps) {
               too.
             </p>
 
-            <div className="flex justify-between text-left">
+            <div className="flex flex-wrap justify-between gap-8 text-left">
               <div className="space-y-1">
                 <p className="text-sm text-secondary-foreground">
                   Lock in max rate
                 </p>
+
                 <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
                   {rateQuote
                     ? dn.format([rateQuote, 16], {
@@ -87,6 +135,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     : "N/A"}
                   % <span className="text-md font-normal">APY</span>
                 </h3>
+
                 <p className="text-sm text-secondary-foreground">
                   Current rate:{" "}
                   {dn.format(dn.from([props.position.currentRate, 16]), {
@@ -100,18 +149,22 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 <p className="text-sm text-secondary-foreground">
                   Fixed rate debt 1yr
                 </p>
+
                 <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
                   {dn.format(projectedFixRateDebt, {
                     digits: 2,
                   })}
-                  <span className="text-md font-normal">USDC</span>
+                  <span className="text-md font-normal">
+                    {props.market.loanToken.symbol}
+                  </span>
                 </h3>
+
                 <p className="text-sm text-secondary-foreground">
                   Proj. var debt:{" "}
                   {dn.format(projectedVarRateDebt, {
                     digits: 2,
                   })}{" "}
-                  USDC
+                  {props.market.loanToken.symbol}
                 </p>
               </div>
 
@@ -119,9 +172,15 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 <p className="text-sm text-secondary-foreground">
                   Coverage period
                 </p>
+
                 <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
-                  1 <span className="text-md font-normal">yr</span>
+                  {termLength?.value}{" "}
+                  <span className="text-md font-normal">
+                    {termLength?.scale}
+                  </span>
                 </h3>
+
+                {/* TODO */}
                 <p className="text-sm text-secondary-foreground">
                   Coverage ends: 20-May-2025
                 </p>
@@ -131,18 +190,26 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
           <Card>
             <CardContent className="grid h-full max-w-5xl grid-cols-3 rounded border bg-card p-6">
-              {/* image simulation */}
-              <div className="col-span-2">
+              <div className="col-span-2 hidden md:block">
                 <img src="/image.png" className="h-[440px]" />
               </div>
 
-              <div className="flex flex-col gap-y-12">
+              <div className="col-span-3 flex flex-col gap-y-12 md:col-span-1">
                 <div className="space-y-4">
                   <p className="text-sm text-secondary-foreground">
-                    Debt being locked at 10.41%
+                    Debt being locked at{" "}
+                    {rateQuote
+                      ? dn.format([rateQuote, 16], {
+                          digits: 2,
+                        })
+                      : "N/A"}
+                    %
                   </p>
                   <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
-                    171,624.00 <span className="text-md font-normal">USDC</span>
+                    {dn.format([amountAsBigInt ?? 0n, loanDecimals], 2)}{" "}
+                    <span className="text-md font-normal">
+                      {props.market.loanToken.symbol}
+                    </span>
                   </h3>
 
                   <Collapsible
@@ -164,6 +231,9 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       <Input
                         className="rounded-[8px] font-mono placeholder:text-secondary-foreground"
                         placeholder="0.00"
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
                       />
                       {/* <div className="rounded-md border px-4 py-2 font-mono text-sm shadow-sm">
                       @radix-ui/colors
@@ -180,11 +250,53 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 <div className="space-y-1">
                   <p className="text-secondary-foreground">Cost of Coverage</p>
                   <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
-                    13,624.00 <span className="text-md font-normal">USDC</span>
+                    {dn.format(
+                      [costOfCoverage?.traderDeposit ?? 0n, loanDecimals],
+                      2
+                    )}{" "}
+                    <span className="text-md font-normal">
+                      {props.market.loanToken.symbol}
+                    </span>
                   </h3>
-                  <p className="text-secondary-foreground">
-                    What am I paying for?
-                  </p>
+
+                  <div className="flex items-center gap-x-1">
+                    <p className="text-secondary-foreground">
+                      What am I paying for?
+                    </p>
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info
+                            className="text-secondary-foreground"
+                            size={14}
+                          />
+                        </TooltipTrigger>
+
+                        {/* TODO  */}
+                        <TooltipContent className="max-w-64 space-y-4">
+                          <p>
+                            Your variable borrow costs on Morpho will be offset
+                            by the variable interest earned on Hyperdrive,
+                            resulting in a borrow rate with a fixed upper bound.
+                          </p>
+                          <p>Upfront payment on Hyperdrive: 12,734.50 USDC</p>
+                          <p>
+                            Max net variable interest incurred after 1 Yr:
+                            5,629.27 USDC Result of the full variable borrow
+                            interest payable on Morpho less the variable
+                            interest earned on Hyperdrive.
+                          </p>
+
+                          <p>
+                            Max total interest paid at the end of the coverage
+                            period: 12,734.50 USDC + 5,629.27 USDC = 18,363.77
+                            USDC (10.70%)
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -192,7 +304,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     variant="secondary"
                     className="w-full px-4 text-sm font-light"
                   >
-                    View your future position with covered debt
+                    Preview Position
                   </Button>
                   <Button className="w-full">Pay from wallet</Button>
                 </div>
