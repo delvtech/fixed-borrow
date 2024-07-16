@@ -2,12 +2,12 @@ const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
 const MILLISECONDS_PER_YEAR = MILLISECONDS_PER_DAY * 365
 
 function convertMillisecondsToDays(ms: number): number {
-  const days = Math.floor(ms / MILLISECONDS_PER_DAY) // Calculate the number of whole days
+  const days = Math.floor(ms / MILLISECONDS_PER_DAY)
   return days
 }
 
 function convertMillisecondsToYears(ms: number): number {
-  const days = Math.floor(ms / MILLISECONDS_PER_YEAR) // Calculate the number of whole days
+  const days = Math.floor(ms / MILLISECONDS_PER_YEAR)
   return days
 }
 

@@ -52,6 +52,7 @@ function useBorrowRateQuote(market: Market) {
 
 export function BorrowFlow(props: BorrowFlowProps) {
   const client = usePublicClient()
+  const loanDecimals = props.market.loanToken.decimals
 
   const [step] = useState<BorrowFlowStep>("review")
 
@@ -70,7 +71,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
   )
 
   const { amount, amountAsBigInt, setAmount } = useNumericInput({
-    decimals: props.market.loanToken.decimals,
+    decimals: loanDecimals,
     defaultValue: props.position.totalDebt,
   })
 
@@ -87,6 +88,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
         asBase: true,
       })
     },
+    enabled: !!client,
   })
 
   const { data: termLength } = useQuery({
@@ -100,6 +102,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
       const poolConfig = await readHyperdrive.getPoolConfig()
       return formatTermLength(poolConfig.positionDuration)
     },
+    enabled: !!client,
   })
 
   return match(step)
@@ -203,10 +206,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     %
                   </p>
                   <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
-                    {dn.format(
-                      [amountAsBigInt ?? 0n, props.market.loanToken.decimals],
-                      2
-                    )}{" "}
+                    {dn.format([amountAsBigInt ?? 0n, loanDecimals], 2)}{" "}
                     <span className="text-md font-normal">
                       {props.market.loanToken.symbol}
                     </span>
@@ -251,10 +251,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   <p className="text-secondary-foreground">Cost of Coverage</p>
                   <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
                     {dn.format(
-                      [
-                        costOfCoverage?.traderDeposit ?? 0n,
-                        props.market.loanToken.decimals,
-                      ],
+                      [costOfCoverage?.traderDeposit ?? 0n, loanDecimals],
                       2
                     )}{" "}
                     <span className="text-md font-normal">
