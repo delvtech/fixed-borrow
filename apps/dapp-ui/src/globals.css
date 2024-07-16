@@ -8,7 +8,7 @@
     --aquamarine: #15ffab;
     --sky-blue: #14d0f9;
 
-    --background: 230, 38%, 3%;
+    --background: 230 38% 3%;
     --foreground: 0 0% 100%;
 
     /* Surface Styles */
@@ -18,8 +18,8 @@
     --secondary: 225 21% 7%;
     --secondary-foreground: 220.8 11.96% 59.02%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover: 224 17% 13%;
+    --popover-foreground: 0 0% 100%;
     --muted: 222 12% 21%;
     --muted-foreground: 0 0% 100%;
     --accent: 175 72% 80%;
@@ -53,23 +53,23 @@
   }
 
   h1 {
-    @apply text-h1 font-sans;
+    @apply font-sans text-h1;
   }
 
   h2 {
-    @apply text-h2 font-sans;
+    @apply font-sans text-h2;
   }
 
   h3 {
-    @apply text-h3 font-sans;
+    @apply font-sans text-h3;
   }
 
   h4 {
-    @apply text-h4 font-sans;
+    @apply font-sans text-h4;
   }
 
   h5 {
-    @apply text-h5 font-sans;
+    @apply font-sans text-h5;
   }
 }
 
