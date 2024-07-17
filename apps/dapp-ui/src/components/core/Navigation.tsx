@@ -24,7 +24,7 @@ export function Navbar() {
       <div></div>
 
       <div className="flex items-center gap-x-2 justify-self-end">
-        <Button size="sm" variant="secondary">
+        <Button size="sm" variant="secondary" className="hidden md:block">
           Learn how fixed rates work
         </Button>
 
