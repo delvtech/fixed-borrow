@@ -108,17 +108,16 @@ export function BorrowFlow(props: BorrowFlowProps) {
   return match(step)
     .with("review", () => {
       return (
-        <div className="flex w-full flex-col items-center gap-y-16 bg-transparent px-8">
+        <div className="flex w-full flex-col items-center gap-16 bg-transparent px-8">
           <div className="space-y-8 text-center">
             <h3 className="gradient-text font-chakra font-semibold">
               Lock in your rate
             </h3>
 
-            <p className="text-lg text-secondary-foreground">
+            <p className="max-w-4xl text-lg text-secondary-foreground">
               Acquire coverage for your borrow position and get peace of mind
-              and predictability. Lock in <br /> your current borrow rate for
-              the next 90 days. If the rate goes lower, you’ll benefit from that
-              too.
+              and predictability. Lock in your current borrow rate for the next
+              90 days. If the rate goes lower, you’ll benefit from that too.
             </p>
 
             <div className="flex flex-wrap justify-between gap-8 text-left">
@@ -127,14 +126,14 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   Lock in max rate
                 </p>
 
-                <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
+                <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
                   {rateQuote
                     ? dn.format([rateQuote, 16], {
                         digits: 2,
                       })
                     : "N/A"}
                   % <span className="text-md font-normal">APY</span>
-                </h3>
+                </p>
 
                 <p className="text-sm text-secondary-foreground">
                   Current rate:{" "}
@@ -150,14 +149,14 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   Fixed rate debt 1yr
                 </p>
 
-                <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
+                <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
                   {dn.format(projectedFixRateDebt, {
                     digits: 2,
                   })}
                   <span className="text-md font-normal">
                     {props.market.loanToken.symbol}
                   </span>
-                </h3>
+                </p>
 
                 <p className="text-sm text-secondary-foreground">
                   Proj. var debt:{" "}
@@ -173,12 +172,12 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   Coverage period
                 </p>
 
-                <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
+                <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
                   {termLength?.value}{" "}
                   <span className="text-md font-normal">
                     {termLength?.scale}
                   </span>
-                </h3>
+                </p>
 
                 {/* TODO */}
                 <p className="text-sm text-secondary-foreground">
@@ -205,12 +204,12 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       : "N/A"}
                     %
                   </p>
-                  <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
+                  <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
                     {dn.format([amountAsBigInt ?? 0n, loanDecimals], 2)}{" "}
                     <span className="text-md font-normal">
                       {props.market.loanToken.symbol}
                     </span>
-                  </h3>
+                  </p>
 
                   <Collapsible
                     open={isOpen}
@@ -241,7 +240,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
                 <div className="space-y-1">
                   <p className="text-secondary-foreground">Cost of Coverage</p>
-                  <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
+                  <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
                     {dn.format(
                       [costOfCoverage?.traderDeposit ?? 0n, loanDecimals],
                       2
@@ -249,7 +248,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     <span className="text-md font-normal">
                       {props.market.loanToken.symbol}
                     </span>
-                  </h3>
+                  </p>
 
                   <div className="flex items-center gap-x-1">
                     <p className="text-secondary-foreground">
@@ -310,7 +309,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
     })
     .with("cover", () => {
       return (
-        <div className="flex w-full flex-col items-center gap-y-16 bg-transparent px-8">
+        <div className="flex w-full flex-col items-center gap-16 bg-transparent px-8">
           <div className="space-y-8 text-center">
             <h3 className="gradient-text font-chakra font-semibold">
               Lock in your rate
@@ -329,14 +328,14 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   Lock in max rate
                 </p>
 
-                <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
+                <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
                   {rateQuote
                     ? dn.format([rateQuote, 16], {
                         digits: 2,
                       })
                     : "N/A"}
                   % <span className="text-md font-normal">APY</span>
-                </h3>
+                </p>
 
                 <p className="text-sm text-secondary-foreground">
                   Current rate:{" "}
@@ -352,14 +351,14 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   Fixed rate debt 1yr
                 </p>
 
-                <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
+                <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
                   {dn.format(projectedFixRateDebt, {
                     digits: 2,
                   })}
                   <span className="text-md font-normal">
                     {props.market.loanToken.symbol}
                   </span>
-                </h3>
+                </p>
 
                 <p className="text-sm text-secondary-foreground">
                   Proj. var debt:{" "}
@@ -375,12 +374,12 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   Coverage period
                 </p>
 
-                <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
+                <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
                   {termLength?.value}{" "}
                   <span className="text-md font-normal">
                     {termLength?.scale}
                   </span>
-                </h3>
+                </p>
 
                 {/* TODO */}
                 <p className="text-sm text-secondary-foreground">
@@ -414,10 +413,12 @@ export function BorrowFlow(props: BorrowFlowProps) {
               <div className="space-y-6">
                 <div className="space-y-4">
                   <p>Pay from wallet</p>
+
                   <Input
                     className="rounded-sm border-primary font-mono"
                     value={"12,734.50"}
                   />
+
                   <div className="flex items-center justify-between">
                     <div className="flex gap-x-2">
                       <Button className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
@@ -469,19 +470,17 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     </p>
                     <ChevronDown className="ml-auto inline h-4 w-4 text-secondary-foreground" />
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-6 space-y-2">
-                    <div className="space-y-6 text-sm">
-                      <div className="flex justify-between">
-                        <p className="text-secondary-foreground">
-                          Current Borrow APY
-                        </p>
-                        <p className="font-mono">9.31%</p>
-                      </div>
+                  <CollapsibleContent className="mt-6 space-y-6 text-sm">
+                    <div className="flex justify-between">
+                      <p className="text-secondary-foreground">
+                        Current Borrow APY
+                      </p>
+                      <p className="font-mono">9.31%</p>
+                    </div>
 
-                      <div className="flex justify-between">
-                        <p className="text-secondary-foreground">Slippage</p>
-                        <p className="font-mono">~0.5%</p>
-                      </div>
+                    <div className="flex justify-between">
+                      <p className="text-secondary-foreground">Slippage</p>
+                      <p className="font-mono">~0.5%</p>
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
@@ -498,9 +497,9 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       June 02, 2024
                     </p>
 
-                    <Button className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
+                    <p className="h-min w-min whitespace-nowrap rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
                       180 days
-                    </Button>
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -512,9 +511,9 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
                     <p className="font-mono text-lg font-medium">~5 USD</p>
 
-                    <Button className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
+                    <p className="h-min w-min whitespace-nowrap rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
                       0.0001 ETH
-                    </Button>
+                    </p>
                   </div>
                 </div>
 
