@@ -594,25 +594,28 @@ export class MorphoMarketReader extends MarketReader {
   }
 
   /**
-   * @description Utility function to return market rate history such as
-   * the lowest, highest, and average rates for a period. It's possible that
-   * this function returns undefined. This scenerio is usually caused by
-   * no rate data existing from the `fromBlock` to the current block.
+   * @description Function that returns the worse-case fixed rate quote.
+   * We compute the current borrow rate from the underlying Morpho market and
+   * add the open short cost to create the rate quote.
    *
-   * @param marketId - Morpho market id.
-   * @param fromBlock - Defines the starting block logs will be fetched from.
+   * AdaptiveCurveIRM Math Reference: {@link https://docs.morpho.org/morpho-blue/contracts/irm/}
+   *
+   * @param market - Morpho market.
+   * @returns The worse-case rate quote.
    */
   async quoteRate(market: Market): Promise<bigint> {
+    // Ensure all required variables are present.
     if (!market.metadata) throw new Error("No IRM")
-    // get current rate at target
 
     const hyperdrive = new ReadHyperdrive({
       address: market.hyperdrive,
       publicClient: this.client,
     })
 
+    // Fetch hyperdrive spot rate.
     const fixedRate = await hyperdrive.getFixedApr()
 
+    // Fetch the rateAtTarget for the target Morpho market.
     const rateAtTarget = await this.client.readContract({
       abi: AdaptiveCurveIrmAbi,
       address: market.metadata?.irm,
@@ -620,42 +623,60 @@ export class MorphoMarketReader extends MarketReader {
       args: [market.metadata.id],
     })
 
-    // r_target * curve function
-
-    // const r_target = dn.from(0.1208, 18)
-    // const u = dn.from(0.7667, 18)
+    // Constants numbers represented in 18 decimals.
+    const one = dn.from(1, 18)
+    const zero = dn.from(0, 18)
+    const k = dn.from(4, 18)
 
     const curve = (currentUtilization: number) => {
-      // do in 18 point
+      /** Current utilization represented in 18 decimals. */
       const u = dn.from(currentUtilization, 18)
-      const u_target = dn.from(0.9, 18)
-      const one = dn.from(1, 18)
-      const zero = dn.from(0, 18)
-      const k = dn.from(4, 18)
+
+      /** Target utilization represented in 18 decimals.  */
+      const u_target = dn.from(market.lltv, 18)
+
+      // u > u_target ? 1 - u_target : u_target
       const error_norm = dn.greaterThan(u, u_target)
         ? dn.sub(one, u_target)
         : u_target
 
+      // (u - u_target) / error_norm
       const error = dn.div(dn.sub(u, u_target), error_norm)
 
+      // error < 0 ? 1 - (1 / k) : k - 1
       const c_norm = dn.lessThan(error, zero)
         ? dn.sub(one, dn.div(one, k))
         : dn.sub(k, 1)
 
-      const c = dn.add(dn.mul(c_norm, error), one)
-
-      return c
+      // (c_norm * error) + 1
+      return dn.add(dn.mul(c_norm, error), one)
     }
 
+    /**
+     * 0.35 is the worst-case utilization rate
+     * Reference: {@link https://hackmd.io/1hfGguwoTMiT4L2kCSAnAQ}
+     */
     const worstU = dn.from(0.35, 18)
 
-    const borrow = dn.mul(
-      [wTaylorCompounded(rateAtTarget, BigInt(SECONDS_PER_YEAR)), 18],
-      curve(0.35)
+    // Annualize the current rate at target.
+    const compoundedRateAtTarget = wTaylorCompounded(
+      rateAtTarget,
+      BigInt(SECONDS_PER_YEAR)
     )
+
+    /** Current Borrow APY */
+    const borrow = dn.mul([compoundedRateAtTarget, 18], curve(0.35))
+
+    /** Current Supply APY */
     const supply = dn.mul(borrow, worstU)
+
     const gap = dn.sub(borrow, supply)
 
-    return dn.add([fixedRate, 18], gap)[0]
+    // 1 - (1 / (1 + fixedRate))
+    const shortRate = dn.sub(one, dn.div(one, dn.add(one, [fixedRate, 18])))
+
+    // Add the gap and shortRate together for the rate quote.
+    const [quoteRate] = dn.add(shortRate, gap)
+    return quoteRate
   }
 }
