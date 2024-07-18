@@ -7,6 +7,7 @@ import "@rainbow-me/rainbowkit/styles.css"
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { BorrowPage } from "pages/BorrowPage"
+import { PositionPage } from "pages/PositionPage"
 import { WagmiProvider } from "wagmi"
 import { rainbowConfig } from "./client/rainbowClient"
 
@@ -27,6 +28,7 @@ function App() {
             <Switch>
               <Route path="/" component={HomePage} />
               <Route path="/borrow/:hyperdrive" component={BorrowPage} />
+              <Route path="/position/:hyperdrive" component={PositionPage} />
 
               {/* Default route in a switch */}
               <Route>404: No such page!</Route>

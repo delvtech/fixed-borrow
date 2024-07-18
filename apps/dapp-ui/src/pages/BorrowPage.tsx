@@ -3,17 +3,17 @@ import { BorrowFlow } from "components/core/BorrowFlow"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { useState } from "react"
 import { getAppConfig } from "utils/getAppConfig"
-import { useAccount, useChainId, usePublicClient } from "wagmi"
+import { useChainId, usePublicClient } from "wagmi"
 import { useParams } from "wouter"
 import { navigate } from "wouter/use-browser-location"
 import { SupportedChainId } from "~/constants"
 import { Market } from "../types"
 
-function useBorrowPosition(market?: Market) {
-  const { address: account } = useAccount()
+export function useBorrowPosition(market?: Market) {
+  // const { address: account } = useAccount()
   const chainId = useChainId()
   const client = usePublicClient()
-
+  const account = "0x042CAb2Ea353fC48C9491bDbF10a12Cfe9072B6C"
   return useQuery({
     queryKey: ["borrow-position", account],
     queryFn: async () => {
@@ -42,7 +42,7 @@ export function BorrowPage() {
   })
 
   const { data: position } = useBorrowPosition(market)
-
+  console.log(position, "position")
   if (!market) {
     navigate("/")
   }

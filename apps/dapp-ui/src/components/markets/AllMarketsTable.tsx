@@ -29,7 +29,7 @@ import { Market, MarketInfo } from "../../types"
 
 export function AllMarketsTable() {
   const { data = [] } = useAllMarkets()
-
+  console.log(data, "data")
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

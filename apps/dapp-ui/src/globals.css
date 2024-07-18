@@ -4,43 +4,43 @@
 
 @layer base {
   :root {
-    /* Custom Colors */
-    --aquamarine: #15ffab;
-    --sky-blue: #14d0f9;
+   /* Custom Colors */
+   --aquamarine: #15ffab; /* #15ffab */
+   --sky-blue: #14d0f9; /* #14d0f9 */
 
-    --background: 230 38% 3%;
-    --foreground: 0 0% 100%;
+   --background: 230 38% 3%; /* #040f19 */
+   --foreground: 0 0% 100%; /* #ffffff */
 
-    /* Surface Styles */
-    --primary: 158 100% 54%;
-    --primary-foreground: 225 21% 7%;
+   /* Surface Styles */
+   --primary: 158 100% 54%; /* #00ff88 */
+   --primary-foreground: 225 21% 7%; /* #0c1a2b */
 
-    --secondary: 225 21% 7%;
-    --secondary-foreground: 221 12% 59%;
+   --secondary: 225 21% 7%; /* #0c1a2b */
+   --secondary-foreground: 221 12% 59%; /* #9babc9 */
 
-    --popover: 224 17% 13%;
-    --popover-foreground: 0 0% 100%;
-    --muted: 222 12% 21%;
-    --muted-foreground: 0 0% 100%;
-    --accent: 224 17% 13%;
-    --accent-foreground: 221 12% 59%;
-    --destructive: 0 100% 67%;
-    --destructive-foreground: 0 100% 67%;
-    --border: 224 17% 13%;
-    --border-secondary: 222 12% 21%;
-    --input: 224 17% 13%;
-    --ring: 240 5.9% 10%;
+   --popover: 224 17% 13%; /* #111827 */
+   --popover-foreground: 0 0% 100%; /* #ffffff */
+   --muted: 222 12% 21%; /* #1c2a3d */
+   --muted-foreground: 0 0% 100%; /* #ffffff */
+   --accent: 224 17% 13%; /* #111827 */
+   --accent-foreground: 221 12% 59%; /* #9babc9 */
+   --destructive: 0 100% 67%; /* #ff0000 */
+   --destructive-foreground: 0 100% 67%; /* #ff0000 */
+   --border: 224 17% 13%; /* #111827 */
+   --border-secondary: 222 12% 21%; /* #1c2a3d */
+   --input: 224 17% 13%; /* #111827 */
+   --ring: 240 5.9% 10%; /* #1a1e26 */
 
-    /** */
+   /** */
 
-    --text-secondary: 220.8 11.96% 59.02%;
+   --text-secondary: 220.8 11.96% 59.02%; /* #9babc9 */
 
-    /* Card Styles*/
-    --card: 225 21% 7%;
-    --card-foreground: 0 0% 100%;
-    --card-border-width: 1px;
+   /* Card Styles */
+   --card: 225 21% 7%; /* #0c1a2b */
+   --card-foreground: 0 0% 100%; /* #ffffff */
+   --card-border-width: 1px;
 
-    --radius: 1rem;
+   --radius: 1rem;
   }
 }
 

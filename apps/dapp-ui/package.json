@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@delvtech/hyperdrive-viem": "^2.3.0",
+    "@hyperdrive-borrow/config": "*",
     "@radix-ui/react-accordion": "^1.0.4",
     "@radix-ui/react-collapsible": "^1.1.0",
     "@radix-ui/react-dialog": "^1.0.5",
@@ -40,8 +41,7 @@
     "ts-pattern": "^5.1.2",
     "viem": "2.x",
     "wagmi": "^2.8.3",
-    "wouter": "^3.1.2",
-    "@hyperdrive-borrow/config": "*"
+    "wouter": "^3.1.2"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.2",
