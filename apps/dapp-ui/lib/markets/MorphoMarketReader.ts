@@ -664,10 +664,10 @@ export class MorphoMarketReader extends MarketReader {
       BigInt(SECONDS_PER_YEAR)
     )
 
-    /** Current Borrow APY */
+    /** Borrow rate at the worst-case utilization. */
     const borrow = dn.mul([compoundedRateAtTarget, 18], curve(0.35))
 
-    /** Current Supply APY */
+    /** Supply rate at the worst-case utilization. */
     const supply = dn.mul(borrow, worstU)
 
     const gap = dn.sub(borrow, supply)
