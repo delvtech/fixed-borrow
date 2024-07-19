@@ -656,7 +656,7 @@ export class MorphoMarketReader extends MarketReader {
      * 0.35 is the worst-case utilization rate
      * Reference: {@link https://hackmd.io/1hfGguwoTMiT4L2kCSAnAQ}
      */
-    const worstU = dn.from(0.35, 18)
+    const worst_u = dn.from(0.35, 18)
 
     // Annualize the current rate at target.
     const compoundedRateAtTarget = wTaylorCompounded(
@@ -668,7 +668,7 @@ export class MorphoMarketReader extends MarketReader {
     const borrow = dn.mul([compoundedRateAtTarget, 18], curve(0.35))
 
     /** Supply rate at the worst-case utilization. */
-    const supply = dn.mul(borrow, worstU)
+    const supply = dn.mul(borrow, worst_u)
 
     const gap = dn.sub(borrow, supply)
 
