@@ -128,7 +128,7 @@ supportedChainIds.forEach(async (chainId) => {
         lltv: lltv.toString(),
         termLength: termLength.toString(),
       };
-    })
+    }),
   );
 
   fs.writeFileSync(
@@ -136,6 +136,6 @@ supportedChainIds.forEach(async (chainId) => {
     JSON.stringify({
       tokens,
       morphoMarkets,
-    })
+    }),
   );
 });
