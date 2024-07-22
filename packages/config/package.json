@@ -9,7 +9,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --project tsconfig.build.json",
+    "build": "tsc --project tsconfig.build.json && yarn format",
+    "format": " prettier --write '**/*.{js,jsx,ts,tsx,json}'",
     "gen": "npx tsx ./src/generate.ts"
   },
   "devDependencies": {

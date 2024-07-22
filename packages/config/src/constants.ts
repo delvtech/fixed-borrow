@@ -37,8 +37,8 @@ export const whitelistedMetaMorphoMarketsByChain: Record<
   [sepolia.id]: [
     {
       morphoId:
-        "0xdac958d8b0bb0272be51fb3e204ac384d5b463c10b141a3ffb68777857ac2e10",
-      hyperdrive: "0x2F8702a0f20Bd6C152381D59a39DBe8cA87db9c2",
+        "0x25265c1600f7ba171c1037d6a3b431516e817efa9b580d8089cdb51ba719da96",
+      hyperdrive: "0xE352F4D16C7Ee4162d1aa54b77A15d4DA8f35f4b",
     },
   ],
 };
