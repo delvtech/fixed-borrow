@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query"
 import { MorphoBlueAbi } from "lib/morpho/abi/MorphoBlueAbi"
 import { wMulDown } from "lib/morpho/utils"
-import { zeroHash } from "viem"
+import { erc20Abi, maxUint256, parseAbi } from "viem"
 import {
   useAccount,
   usePublicClient,
@@ -12,7 +12,6 @@ import { SupportedChainId, morphoAddressesByChain } from "~/constants"
 import { Market } from "../../types"
 
 export function useTestPosition(market?: Market) {
-  console.log(market)
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
 
@@ -32,6 +31,7 @@ export function useTestPosition(market?: Market) {
     address: market?.loanToken.address,
   })
 
+  // For some reason the max mint amount for the collateral token is off
   const maxMintAmountCollateral = 5000000000000000000000n
 
   //   const { data: maxMintAmountCollateral } = useReadContract({
@@ -79,69 +79,69 @@ export function useTestPosition(market?: Market) {
 
       console.log(maxMintAmountLoan, maxMintAmountCollateral)
 
-      //   let hash = await walletClient.writeContract({
-      //     abi: parseAbi([
-      //       "function mint(address destination, uint256 mintAmount)",
-      //     ]),
-      //     address: market.loanToken.address,
-      //     functionName: "mint",
-      //     args: [destination, maxMintAmountLoan],
-      //   })
-
-      //   await publicClient.waitForTransactionReceipt({
-      //     hash,
-      //   })
-
-      //   hash = await walletClient.writeContract({
-      //     abi: parseAbi([
-      //       "function mint(address destination, uint256 mintAmount)",
-      //     ]),
-      //     address: market.collateralToken.address,
-      //     functionName: "mint",
-      //     args: [destination, maxMintAmountCollateral],
-      //   })
-
-      //   await publicClient.waitForTransactionReceipt({
-      //     hash,
-      //   })
-
-      //   hash = await walletClient.writeContract({
-      //     abi: erc20Abi,
-      //     address: market.loanToken.address,
-      //     functionName: "approve",
-      //     args: [morphoBlueAddress, maxUint256],
-      //   })
-
-      //   await publicClient.waitForTransactionReceipt({
-      //     hash,
-      //   })
-
-      //   hash = await walletClient.writeContract({
-      //     abi: erc20Abi,
-      //     address: market.collateralToken.address,
-      //     functionName: "approve",
-      //     args: [morphoBlueAddress, maxUint256],
-      //   })
-
-      //   await publicClient.waitForTransactionReceipt({
-      //     hash,
-      //   })
-
       let hash = await walletClient.writeContract({
+        abi: parseAbi([
+          "function mint(address destination, uint256 mintAmount)",
+        ]),
+        address: market.loanToken.address,
+        functionName: "mint",
+        args: [destination, maxMintAmountLoan],
+      })
+
+      await publicClient.waitForTransactionReceipt({
+        hash,
+      })
+
+      hash = await walletClient.writeContract({
+        abi: parseAbi([
+          "function mint(address destination, uint256 mintAmount)",
+        ]),
+        address: market.collateralToken.address,
+        functionName: "mint",
+        args: [destination, maxMintAmountCollateral],
+      })
+
+      await publicClient.waitForTransactionReceipt({
+        hash,
+      })
+
+      hash = await walletClient.writeContract({
+        abi: erc20Abi,
+        address: market.loanToken.address,
+        functionName: "approve",
+        args: [morphoBlueAddress, maxUint256],
+      })
+
+      await publicClient.waitForTransactionReceipt({
+        hash,
+      })
+
+      hash = await walletClient.writeContract({
+        abi: erc20Abi,
+        address: market.collateralToken.address,
+        functionName: "approve",
+        args: [morphoBlueAddress, maxUint256],
+      })
+
+      await publicClient.waitForTransactionReceipt({
+        hash,
+      })
+
+      hash = await walletClient.writeContract({
         abi: MorphoBlueAbi,
         address: morphoBlueAddress,
         functionName: "supplyCollateral",
         args: [
           {
-            irm: market.metadata.oracle,
-            oracle: market.metadata.irm,
+            irm: market.metadata.irm,
+            oracle: market.metadata.oracle,
             lltv: market.lltv,
             collateralToken: market.collateralToken.address,
             loanToken: market.loanToken.address,
           },
           maxMintAmount,
           destination,
-          zeroHash,
+          "0x",
         ],
       })
 
@@ -155,8 +155,8 @@ export function useTestPosition(market?: Market) {
         functionName: "borrow",
         args: [
           {
-            irm: market.metadata.oracle,
-            oracle: market.metadata.irm,
+            irm: market.metadata.irm,
+            oracle: market.metadata.oracle,
             lltv: market.lltv,
             collateralToken: market.collateralToken.address,
             loanToken: market.loanToken.address,
@@ -164,7 +164,7 @@ export function useTestPosition(market?: Market) {
           wMulDown(maxMintAmount, market.lltv),
           0n,
           destination,
-          zeroHash,
+          destination,
         ],
       })
 
