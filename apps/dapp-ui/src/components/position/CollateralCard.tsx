@@ -1,13 +1,35 @@
+import { QueryStatus } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
+import { Skeleton } from "components/base/skeleton"
+import * as dn from "dnum"
 import { BorrowPosition, Market } from "../../types"
+
 interface CollateralCardProps {
   market: Market | undefined
   position: BorrowPosition | undefined
+  positionStatus: QueryStatus
 }
-export function CollateralCard({ market }: CollateralCardProps) {
-  // const { data: position, isLoading } = useBorrowPosition(market)
+
+export function CollateralCard({
+  market,
+  position,
+  positionStatus,
+}: CollateralCardProps) {
+  let currentLTV = 0n
+
+  if (
+    positionStatus === "success" &&
+    position?.totalCollateral &&
+    position.totalCollateral !== 0n
+  ) {
+    currentLTV = dn.divide(
+      [position.totalDebt, 18],
+      [position.totalCollateral, 18]
+    )[0]
+  }
+
   return (
     <Card className="">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
@@ -72,7 +94,14 @@ export function CollateralCard({ market }: CollateralCardProps) {
               <div className="flex flex-1 flex-col">
                 <p className="text-secondary-foreground">Current LTV</p>
                 <div className="flex items-end gap-1">
-                  <p className="text-h4">171,624.00</p>
+                  {positionStatus === "success" ? (
+                    <p className="text-h4">
+                      {dn.format([currentLTV, 18], { digits: 2 })}
+                    </p>
+                  ) : (
+                    <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+                  )}
+
                   <p className="text-sm">{market?.collateralToken.symbol}</p>
                 </div>
               </div>

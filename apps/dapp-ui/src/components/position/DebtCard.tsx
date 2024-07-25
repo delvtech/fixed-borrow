@@ -1,17 +1,36 @@
+import { QueryStatus } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
+import { Skeleton } from "components/base/skeleton"
 import * as dn from "dnum"
-import { useBorrowPosition } from "pages/BorrowPage"
-import { Market } from "../../types"
+import { BorrowPosition, Market } from "../../types"
 interface DebtCardProps {
   market: Market | undefined
+  position: BorrowPosition | undefined
+  positionStatus: QueryStatus
 }
-export function DebtCard({ market }: DebtCardProps) {
-  const { data: position, isLoading } = useBorrowPosition(market)
+export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
+  let currentLTV = 0n
+  let coveredDebt = 0n
 
+  if (
+    positionStatus === "success" &&
+    position?.totalCollateral &&
+    position.totalCollateral !== 0n
+  ) {
+    currentLTV = dn.divide(
+      [position.totalDebt, 18],
+      [position.totalCollateral, 18]
+    )[0]
+
+    coveredDebt = dn.multiply(
+      [position.totalCollateral, 18],
+      [currentLTV, 18]
+    )[0]
+  }
   return (
-    <Card className="">
+    <Card className="flex-1">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <Badge className="bg-ring p-2">
           <img src={market?.loanToken.iconUrl} className="size-14" />
@@ -32,20 +51,32 @@ export function DebtCard({ market }: DebtCardProps) {
             <p className="mb-4 text-secondary-foreground">Total Debt</p>
             <div className="flex items-end gap-1">
               <p className="text-h3">
-                {!isLoading
-                  ? dn.format([position?.totalDebt || 0n, 16], { digits: 2 })
-                  : "Loading..."}
+                {positionStatus === "success" ? (
+                  dn.format([position?.totalDebt || 0n, 16], { digits: 2 })
+                ) : (
+                  <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+                )}
               </p>
               <p className="text-sm">{market?.loanToken.symbol}</p>
             </div>
-            {/* <p className="text-secondary-foreground">
-              ${position?.totalDebtUsd}
-            </p> */}
+
+            {positionStatus === "success" ? (
+              <p className="text-secondary-foreground">{`$${position?.totalDebtUsd}`}</p>
+            ) : (
+              <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+            )}
+
             <div className="mt-8 flex">
               <div className="flex flex-1 flex-col">
                 <p className="text-secondary-foreground">Covered Debt</p>
                 <div className="flex items-end gap-1">
-                  <p className="text-h4">171,624.00</p>
+                  {positionStatus === "success" ? (
+                    <p className="text-h4">
+                      {dn.format([coveredDebt, 18], { digits: 2 })}
+                    </p>
+                  ) : (
+                    <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+                  )}
                   <p className="text-sm">{market?.loanToken.symbol}</p>
                 </div>
               </div>
@@ -60,24 +91,30 @@ export function DebtCard({ market }: DebtCardProps) {
           </CardContent>
         </Card>
         <Card className="flex-1">
-          <CardHeader className="font-chakra text-h5">Your Debt</CardHeader>
+          <CardHeader className="font-chakra text-h5">
+            Your Borrow Rate
+          </CardHeader>
           <CardContent>
-            <p className="mb-4 text-secondary-foreground">Total Debt</p>
+            <p className="mb-4 text-secondary-foreground">
+              Current Effective Borrow Rate
+            </p>
             <div className="flex items-end gap-1">
-              <p className="text-h3">171,624.00</p>
+              <p className="text-h3">173,000</p>
               <p className="text-sm">{market?.loanToken.symbol}</p>
             </div>
-            <p className="text-secondary-foreground">$171,635.00</p>
+            <p className="text-secondary-foreground">3,432 USDC/yr</p>
             <div className="mt-8 flex">
               <div className="flex flex-1 flex-col">
-                <p className="text-secondary-foreground">Covered Debt</p>
+                <p className="text-secondary-foreground">Current Borrow APY</p>
                 <div className="flex items-end gap-1">
                   <p className="text-h4">171,624.00</p>
                   <p className="text-sm">{market?.loanToken.symbol}</p>
                 </div>
               </div>
               <div className="flex flex-1 flex-col">
-                <p className="text-secondary-foreground">Outstanding Debt</p>
+                <p className="text-secondary-foreground">
+                  Projected Max Borrow APY
+                </p>
                 <div className="flex items-end gap-1">
                   <p className="text-h4">0</p>
                   <p className="text-sm">{market?.loanToken.symbol}</p>
