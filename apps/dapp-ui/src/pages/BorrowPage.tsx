@@ -25,6 +25,7 @@ function useBorrowPosition(market?: Market) {
       return reader.getBorrowPosition(account!, market!)
     },
     enabled: !!client && !!account && !!market,
+    throwOnError: true,
   })
 }
 

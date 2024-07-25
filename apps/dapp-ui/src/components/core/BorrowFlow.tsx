@@ -1,4 +1,4 @@
-import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
+import { ReadHyperdrive, ReadWriteHyperdrive } from "@delvtech/hyperdrive-viem"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "components/base/button"
 import { Card, CardContent } from "components/base/card"
@@ -22,7 +22,7 @@ import { ChevronDown, Clock, Fuel, Info, ShieldCheck } from "lucide-react"
 import { useState } from "react"
 import { match } from "ts-pattern"
 import { formatTermLength } from "utils/formatTermLength"
-import { useChainId, usePublicClient } from "wagmi"
+import { useChainId, usePublicClient, useWalletClient } from "wagmi"
 import { SupportedChainId } from "~/constants"
 import { BorrowPosition, Market } from "../../types"
 
@@ -53,6 +53,7 @@ function useBorrowRateQuote(market: Market) {
 
 export function BorrowFlow(props: BorrowFlowProps) {
   const client = usePublicClient()
+  const { data: walletClient } = useWalletClient()
   const loanDecimals = props.market.loanToken.decimals
   const [step, setStep] = useState<BorrowFlowStep>("review")
 
@@ -76,19 +77,32 @@ export function BorrowFlow(props: BorrowFlowProps) {
   })
 
   const { data: costOfCoverage } = useQuery({
-    queryKey: ["cost-coverage", amount, props.market.hyperdrive],
+    queryKey: [
+      "cost-coverage",
+      amountAsBigInt?.toString(),
+      props.market.hyperdrive,
+    ],
     queryFn: async () => {
       const readHyperdrive = new ReadHyperdrive({
         address: props.market.hyperdrive,
         publicClient: client!,
       })
 
+      // console.log(await readHyperdrive.getMarketState())
+
+      console.log(await readHyperdrive.getPoolInfo())
+      console.log(await readHyperdrive.getPoolConfig())
+
+      // console.log(await readHyperdrive.getMaxShort())
+      // console.log(await readHyperdrive.getCheckpoint())
+
       return readHyperdrive.previewOpenShort({
-        amountOfBondsToShort: amountAsBigInt ?? 0n,
+        amountOfBondsToShort: dn.from(2000, 18)[0],
         asBase: true,
       })
     },
     enabled: !!client,
+    throwOnError: true,
   })
 
   const { data: termLength } = useQuery({
@@ -294,6 +308,26 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   <Button
                     variant="secondary"
                     className="w-full px-4 text-sm font-light"
+                    onClick={async () => {
+                      if (client && walletClient) {
+                        const rw = new ReadWriteHyperdrive({
+                          address: props.market.hyperdrive,
+                          publicClient: client!,
+                          walletClient: walletClient!,
+                        })
+
+                        console.log(await rw.getCheckpoint())
+                        console.log(await rw.getMarketState())
+
+                        console.log(await rw.getPoolInfo())
+
+                        // await rw.checkpoint({
+                        //   args: {
+                        //     time: Math.floor(Date.now() / 1000),
+                        //   },
+                        // })
+                      }
+                    }}
                   >
                     Preview Position
                   </Button>

@@ -159,6 +159,12 @@ export class MorphoMarketReader extends MarketReader {
       publicClient: this.client,
     })
 
+    console.log(await this.client.getChainId())
+
+    console.log(await hyperdrive.getPoolConfig())
+    console.log(market)
+    console.log(await hyperdrive.getVersion())
+
     const fixedRate = await hyperdrive.getFixedApr()
 
     return {
