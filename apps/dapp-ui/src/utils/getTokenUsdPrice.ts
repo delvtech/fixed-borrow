@@ -9,10 +9,10 @@ const tokenUsdPriceResolvers: Record<
   [mainnet.id]: {},
   [sepolia.id]: {
     // Fake DAI
-    "0x552ceaDf3B47609897279F42D3B3309B604896f3": () =>
+    "0xe8b99bF4249D90C0eB900651F92485F7160A0513": () =>
       Promise.resolve(parseUnits("1", 18)),
     // Fake sDAI
-    "0xECa45b0391E81c311F1b390808a3BA3214d35eAA": () =>
+    "0xFF8AFe6bb92eB9D8e80c607bbe5bbb78BF1201Df": () =>
       Promise.resolve(parseUnits("1", 18)),
   },
 }
