@@ -13,6 +13,7 @@ export function useBorrowPosition(market?: Market) {
   const { address: account } = useAccount()
   const chainId = useChainId()
   const client = usePublicClient()
+
   return useQuery({
     queryKey: ["borrow-position", account],
     queryFn: async () => {
@@ -41,7 +42,6 @@ export function BorrowPage() {
   })
 
   const { data: position } = useBorrowPosition(market)
-  console.log(position, "position")
   if (!market) {
     navigate("/")
   }
