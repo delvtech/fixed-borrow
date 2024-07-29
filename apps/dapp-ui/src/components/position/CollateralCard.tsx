@@ -2,9 +2,9 @@ import { QueryStatus } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
-import { Skeleton } from "components/base/skeleton"
 import * as dn from "dnum"
 import { BorrowPosition, Market } from "../../types"
+import { PositionCardStat } from "./PositionCardStat"
 
 interface CollateralCardProps {
   market: Market | undefined
@@ -53,47 +53,37 @@ export function CollateralCard({
             Your Collateral
           </CardHeader>
           <CardContent>
-            <p className="mb-4 text-secondary-foreground">Total Collateral</p>
-            <div className="flex items-end gap-1">
-              <p className="text-h3">
-                {positionStatus === "success" ? (
-                  dn.format([position?.totalCollateral || 0n, 18], {
-                    digits: 2,
-                  })
-                ) : (
-                  <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
-                )}
-              </p>
-              <p className="text-sm">{market?.collateralToken.symbol}</p>
-            </div>
-            {positionStatus === "success" ? (
-              <p className="text-secondary-foreground">{`$${position?.totalCollateralUsd || 0}`}</p>
-            ) : (
-              <Skeleton className="mt-1 h-8 w-[150px] rounded-sm bg-muted" />
-            )}
+            <PositionCardStat
+              title="Total Collateral"
+              value={dn.format([position?.totalCollateral || 0n, 18], {
+                digits: 2,
+              })}
+              symbol={market?.collateralToken.symbol}
+              secondaryValue={`$${position?.totalCollateralUsd || 0}`}
+              dataLoading={positionStatus === "success"}
+              size="lg"
+            />
+
             <div className="mt-8 flex">
               <div className="flex flex-1 flex-col gap-4">
                 {/* TODO: Determine if this stat is useful. It is stubbed for now. */}
-                <p className="text-secondary-foreground">
-                  Available to Withdraw
-                </p>
-                <div className="flex items-end gap-1">
-                  {positionStatus === "success" ? (
-                    <p className="text-h4">0</p>
-                  ) : (
-                    <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
-                  )}
-
-                  <p className="text-sm">{market?.collateralToken.symbol}</p>
-                </div>
+                <PositionCardStat
+                  title="Available to Withdraw"
+                  value="0"
+                  symbol={market?.collateralToken.symbol}
+                  dataLoading={positionStatus === "success"}
+                  size="sm"
+                />
               </div>
               <div className="flex flex-1 flex-col gap-4">
                 {/* TODO: Determine if this stat is useful. It is stubbed for now. */}
-                <p className="text-secondary-foreground">Available to Borrow</p>
-                <div className="flex items-end gap-1">
-                  <p className="text-h4">0</p>
-                  <p className="text-sm">{market?.collateralToken.symbol}</p>
-                </div>
+                <PositionCardStat
+                  title="Available to Borrow"
+                  value="0"
+                  symbol={market?.collateralToken.symbol}
+                  dataLoading={positionStatus === "success"}
+                  size="sm"
+                />
               </div>
             </div>
           </CardContent>
@@ -101,49 +91,34 @@ export function CollateralCard({
         <Card className="flex-1">
           <CardHeader className="font-chakra text-h5">Your Risk</CardHeader>
           <CardContent>
-            <p className="mb-4 text-secondary-foreground">Liquidation Price</p>
-            <div className="flex items-end gap-1">
-              {positionStatus === "success" ? (
-                <p className="text-h3">
-                  {dn.format([position?.liquidationPrice || 0n, 18], 2)}
-                </p>
-              ) : (
-                <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
-              )}
-              <p className="text-sm">{market?.collateralToken.symbol}</p>
-            </div>
-            {/* TODO: Determine the correct substat to display here. It is stubbed for now. */}
-            <p className="text-secondary-foreground">
-              Current Price: 4,000.58 USDC/wstETH
-            </p>
+            {/* TODO: Determine the correct secondary value to display here. It is stubbed for now. */}
+            <PositionCardStat
+              title="Liquidation Price"
+              value={dn.format([position?.liquidationPrice || 0n, 18], 2)}
+              symbol={market?.collateralToken.symbol}
+              secondaryValue={`Current Price: 4,000.58 USDC/wstETH`}
+              dataLoading={positionStatus === "success"}
+              size="lg"
+            />
+
             <div className="mt-8 flex">
               <div className="flex flex-1 flex-col gap-4">
-                <p className="text-secondary-foreground">Current LTV</p>
-                <div className="flex items-end gap-1">
-                  {positionStatus === "success" ? (
-                    <p className="text-h4">
-                      {dn.format([currentLTV, 18], { digits: 2 })}
-                    </p>
-                  ) : (
-                    <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
-                  )}
-
-                  <p className="text-sm">{market?.collateralToken.symbol}</p>
-                </div>
+                <PositionCardStat
+                  title="Current LTV"
+                  value={dn.format([currentLTV, 18], { digits: 2 })}
+                  symbol={market?.collateralToken.symbol}
+                  dataLoading={positionStatus === "success"}
+                  size="sm"
+                />
               </div>
               <div className="flex flex-1 flex-col gap-4">
-                <p className="text-secondary-foreground">Max LTV</p>
-                <div className="flex items-end gap-1">
-                  {positionStatus === "success" ? (
-                    <p className="text-h4">
-                      {dn.format([position?.market.lltv || 0n, 18], 2)}
-                    </p>
-                  ) : (
-                    <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
-                  )}
-
-                  <p className="text-sm">{market?.collateralToken.symbol}</p>
-                </div>
+                <PositionCardStat
+                  title="Max LTV"
+                  value={dn.format([position?.market.lltv || 0n, 18], 2)}
+                  symbol={market?.collateralToken.symbol}
+                  dataLoading={positionStatus === "success"}
+                  size="sm"
+                />
               </div>
             </div>
           </CardContent>
