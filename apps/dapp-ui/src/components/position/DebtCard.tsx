@@ -2,9 +2,9 @@ import { QueryStatus } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
+import { PositionCardStat } from "components/position/PositionCardStat"
 import * as dn from "dnum"
 import { BorrowPosition, Market } from "../../types"
-import { PositionCardStat } from "./PositionCardStat"
 interface DebtCardProps {
   market: Market | undefined
   position: BorrowPosition | undefined
@@ -19,7 +19,7 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
     <Card className="flex-1">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <Badge className="bg-ring p-2">
-          <img src={market?.loanToken.iconUrl} className="size-14" />
+          <img src={market?.loanToken.iconUrl} className="size-10" />
         </Badge>
         <div className="flex flex-row items-center gap-2">
           <Button variant={"default"} size={"lg"}>
