@@ -95,12 +95,6 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
 
               <BorrowPositionCardStat
                 title="Liq. Price"
-                value={`${props.ltv * 100}%`}
-                secondaryValue={`${dnum.format([BigInt(props.market.lltv), 16])}% Max LTV`}
-              />
-
-              <BorrowPositionCardStat
-                title="LTV"
                 value={dnum.format(
                   [
                     props.liquidationPrice ?? 0n,
@@ -110,6 +104,12 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
                 )}
                 subValue={props.market.collateralToken.symbol}
                 secondaryValue={`${props.market.collateralToken.symbol}/${props.market.loanToken.symbol}`}
+              />
+
+              <BorrowPositionCardStat
+                title="LTV"
+                value={`${props.ltv * 100}%`}
+                secondaryValue={`${dnum.format([BigInt(props.market.lltv), 16])}% Max LTV`}
               />
             </div>
           </div>
@@ -131,7 +131,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
                     variant="destructive"
                   >
                     {(borrowRateDelta ?? 0) > 0 ? "+" : ""}
-                    {dnum.format(dnum.from(borrowRateDelta ?? 0), 2)}% (30d)
+                    {dnum.format([borrowRateDelta ?? 0n, 18], 2)}% (30d)
                   </Badge>
                 }
               />
@@ -149,7 +149,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
                     variant="destructive"
                   >
                     {(borrowRateDelta ?? 0) > 0 ? "+" : ""}
-                    {dnum.format(dnum.from(borrowRateDelta ?? 0), 2)}% (30d)
+                    {dnum.format([borrowRateDelta ?? 0n, 18], 2)}%
                   </Badge>
                 }
               />

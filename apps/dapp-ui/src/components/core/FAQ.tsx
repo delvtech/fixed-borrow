@@ -30,9 +30,9 @@ export function FAQEntries(): JSX.Element {
   if (isTailwindSmallScreen) {
     return (
       <div className="flex flex-col gap-y-2">
-        {faqData.map(({ question, key, answer }) => (
-          <Accordion type="single" collapsible>
-            <AccordionItem value={key}>
+        <Accordion type="single" collapsible>
+          {faqData.map(({ question, key, answer }) => (
+            <AccordionItem value={key} key={key}>
               <AccordionTrigger className="text-left text-secondary-foreground">
                 {question}
               </AccordionTrigger>
@@ -40,8 +40,8 @@ export function FAQEntries(): JSX.Element {
                 {answer}
               </AccordionContent>
             </AccordionItem>
-          </Accordion>
-        ))}
+          ))}
+        </Accordion>
       </div>
     )
   }
