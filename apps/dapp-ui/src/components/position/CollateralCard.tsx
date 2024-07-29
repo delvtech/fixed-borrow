@@ -18,6 +18,8 @@ export function CollateralCard({
   positionStatus,
 }: CollateralCardProps) {
   let currentLTV = 0n
+  let liquidationPrice = 0n
+  let availableToWithdraw = 0n
 
   if (
     positionStatus === "success" &&
@@ -28,7 +30,22 @@ export function CollateralCard({
       [position.totalDebt, 18],
       [position.totalCollateral, 18]
     )[0]
+    {
+      /* liquidationPrice = TotalDebt / (totalCollateral * LTV) */
+    }
+    liquidationPrice = dn.divide(
+      [position.totalDebt, 18],
+      dn.multiply([position.totalCollateral, 18], [currentLTV, 18])[0]
+    )[0]
+
+    //availableToWithdraw = totalCollateral.minus(totalDebt.dividedBy(ltv));
+    availableToWithdraw = dn.subtract(
+      [position.totalCollateral, 18],
+      dn.divide([position.totalDebt, 18], [currentLTV, 18])[0]
+    )[0]
   }
+
+  console.log(liquidationPrice, "liquidationPrice")
 
   return (
     <Card className="">
@@ -55,17 +72,38 @@ export function CollateralCard({
           <CardContent>
             <p className="mb-4 text-secondary-foreground">Total Collateral</p>
             <div className="flex items-end gap-1">
-              <p className="text-h3">171,624.00</p>
+              <p className="text-h3">
+                {positionStatus === "success" ? (
+                  dn.format([position?.totalCollateral || 0n, 18], {
+                    digits: 2,
+                  })
+                ) : (
+                  <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+                )}
+              </p>
               <p className="text-sm">{market?.collateralToken.symbol}</p>
             </div>
-            <p className="text-secondary-foreground">$171,635.00</p>
+            {positionStatus === "success" ? (
+              <p className="text-secondary-foreground">{`$${position?.totalCollateralUsd}`}</p>
+            ) : (
+              <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+            )}
             <div className="mt-8 flex">
               <div className="flex flex-1 flex-col">
                 <p className="text-secondary-foreground">
                   Available to Withdraw
                 </p>
                 <div className="flex items-end gap-1">
-                  <p className="text-h4">171,624.00</p>
+                  {positionStatus === "success" ? (
+                    <p className="text-h4">
+                      {dn.format([availableToWithdraw || 0n, 18], {
+                        digits: 2,
+                      })}
+                    </p>
+                  ) : (
+                    <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+                  )}
+
                   <p className="text-sm">{market?.collateralToken.symbol}</p>
                 </div>
               </div>
@@ -84,7 +122,11 @@ export function CollateralCard({
           <CardContent>
             <p className="mb-4 text-secondary-foreground">Liquidation Price</p>
             <div className="flex items-end gap-1">
-              <p className="text-h3">171,624.00</p>
+              {positionStatus === "success" ? (
+                <p className="text-h3">{Number(liquidationPrice)}</p>
+              ) : (
+                <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+              )}
               <p className="text-sm">{market?.collateralToken.symbol}</p>
             </div>
             <p className="text-secondary-foreground">
