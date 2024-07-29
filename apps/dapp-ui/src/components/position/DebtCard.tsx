@@ -11,24 +11,10 @@ interface DebtCardProps {
   positionStatus: QueryStatus
 }
 export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
-  let currentLTV = 0n
-  let coveredDebt = 0n
+  const coveredDebt = 0n
+  const outstandingDebt = 0n
+  const effectiveBorrowAPY = 0n
 
-  if (
-    positionStatus === "success" &&
-    position?.totalCollateral &&
-    position.totalCollateral !== 0n
-  ) {
-    currentLTV = dn.divide(
-      [position.totalDebt, 18],
-      [position.totalCollateral, 18]
-    )[0]
-
-    coveredDebt = dn.multiply(
-      [position.totalCollateral, 18],
-      [currentLTV, 18]
-    )[0]
-  }
   return (
     <Card className="flex-1">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
@@ -52,7 +38,7 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
             <div className="flex items-end gap-1">
               <p className="text-h3">
                 {positionStatus === "success" ? (
-                  dn.format([position?.totalDebt || 0n, 16], { digits: 2 })
+                  dn.format([position?.totalDebt || 0n, 18], { digits: 2 })
                 ) : (
                   <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
                 )}
@@ -68,6 +54,7 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
 
             <div className="mt-8 flex">
               <div className="flex flex-1 flex-col">
+                {/* TODO: Covered Debt is a stubbed value. Replace with actual value when available */}
                 <p className="text-secondary-foreground">Covered Debt</p>
                 <div className="flex items-end gap-1">
                   {positionStatus === "success" ? (
@@ -81,9 +68,16 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
                 </div>
               </div>
               <div className="flex flex-1 flex-col">
+                {/* TODO: Outstanding Debt is a stubbed value. Replace with actual value when covered debt becomes available. */}
                 <p className="text-secondary-foreground">Outstanding Debt</p>
                 <div className="flex items-end gap-1">
-                  <p className="text-h4">0</p>
+                  {positionStatus === "success" ? (
+                    <p className="text-h4">
+                      {dn.format([outstandingDebt, 18], { digits: 2 })}
+                    </p>
+                  ) : (
+                    <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+                  )}
                   <p className="text-sm">{market?.loanToken.symbol}</p>
                 </div>
               </div>
@@ -96,22 +90,32 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
           </CardHeader>
           <CardContent>
             <p className="mb-4 text-secondary-foreground">
-              Current Effective Borrow Rate
+              Current Effective Borrow APY
             </p>
             <div className="flex items-end gap-1">
-              <p className="text-h3">173,000</p>
-              <p className="text-sm">{market?.loanToken.symbol}</p>
+              {positionStatus === "success" ? (
+                <p className="text-h3">
+                  {dn.format([effectiveBorrowAPY, 18], { digits: 2 })}
+                </p>
+              ) : (
+                <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+              )}
+              <p className="text-sm">%</p>
             </div>
-            <p className="text-secondary-foreground">3,432 USDC/yr</p>
+            {/* TODO: The substat here is stubbed. Need to work with the product team to determine what is the best stat to display here. */}
+            <p className="text-secondary-foreground">0 USDC/yr</p>
             <div className="mt-8 flex">
               <div className="flex flex-1 flex-col">
                 <p className="text-secondary-foreground">Current Borrow APY</p>
                 <div className="flex items-end gap-1">
-                  <p className="text-h4">171,624.00</p>
-                  <p className="text-sm">{market?.loanToken.symbol}</p>
+                  <p className="text-h4">
+                    {dn.format([position?.currentRate || 0n, 18], 2)}
+                  </p>
+                  <p className="text-sm">%</p>
                 </div>
               </div>
               <div className="flex flex-1 flex-col">
+                {/* TODO: Projected Max Borrow APY is a stubbed value. Replace with actual value when FRB extra data field becomes available. */}
                 <p className="text-secondary-foreground">
                   Projected Max Borrow APY
                 </p>
