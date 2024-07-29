@@ -22,11 +22,11 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
           <img src={market?.loanToken.iconUrl} className="size-14" />
         </Badge>
         <div className="flex flex-row items-center gap-2">
-          <Button variant={"secondary"} size={"lg"}>
-            Remove Coverage
+          <Button variant={"default"} size={"lg"}>
+            Add Coverage
           </Button>
           <Button variant={"secondary"} size={"lg"}>
-            Add Coverage
+            Remove Coverage
           </Button>
         </div>
       </CardHeader>
