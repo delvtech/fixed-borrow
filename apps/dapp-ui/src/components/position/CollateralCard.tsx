@@ -19,7 +19,7 @@ export function CollateralCard({
 }: CollateralCardProps) {
   let currentLTV = 0n
   let liquidationPrice = 0n
-  let availableToWithdraw = 0n
+  const availableToWithdraw = 0n
 
   if (
     positionStatus === "success" &&
@@ -36,12 +36,6 @@ export function CollateralCard({
     liquidationPrice = dn.divide(
       [position.totalDebt, 18],
       dn.multiply([position.totalCollateral, 18], [currentLTV, 18])[0]
-    )[0]
-
-    //availableToWithdraw = totalCollateral.minus(totalDebt.dividedBy(ltv));
-    availableToWithdraw = dn.subtract(
-      [position.totalCollateral, 18],
-      dn.divide([position.totalDebt, 18], [currentLTV, 18])[0]
     )[0]
   }
 
@@ -86,10 +80,11 @@ export function CollateralCard({
             {positionStatus === "success" ? (
               <p className="text-secondary-foreground">{`$${position?.totalCollateralUsd}`}</p>
             ) : (
-              <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+              <Skeleton className="mt-1 h-8 w-[150px] rounded-sm bg-muted" />
             )}
             <div className="mt-8 flex">
               <div className="flex flex-1 flex-col">
+                {/* TODO: Determine if this stat is useful. It is stubbed for now. */}
                 <p className="text-secondary-foreground">
                   Available to Withdraw
                 </p>
@@ -108,6 +103,7 @@ export function CollateralCard({
                 </div>
               </div>
               <div className="flex flex-1 flex-col">
+                {/* TODO: Determine if this stat is useful. It is stubbed for now. */}
                 <p className="text-secondary-foreground">Available to Borrow</p>
                 <div className="flex items-end gap-1">
                   <p className="text-h4">0</p>
@@ -123,12 +119,15 @@ export function CollateralCard({
             <p className="mb-4 text-secondary-foreground">Liquidation Price</p>
             <div className="flex items-end gap-1">
               {positionStatus === "success" ? (
-                <p className="text-h3">{Number(liquidationPrice)}</p>
+                <p className="text-h3">
+                  {dn.format([position?.liquidationPrice || 0n, 18], 2)}
+                </p>
               ) : (
                 <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
               )}
               <p className="text-sm">{market?.collateralToken.symbol}</p>
             </div>
+            {/* TODO: Determine the correct substat to display here. It is stubbed for now. */}
             <p className="text-secondary-foreground">
               Current Price: 4,000.58 USDC/wstETH
             </p>
@@ -150,7 +149,14 @@ export function CollateralCard({
               <div className="flex flex-1 flex-col">
                 <p className="text-secondary-foreground">Max LTV</p>
                 <div className="flex items-end gap-1">
-                  <p className="text-h4">0</p>
+                  {positionStatus === "success" ? (
+                    <p className="text-h4">
+                      {dn.format([position?.market.lltv || 0n, 18], 2)}
+                    </p>
+                  ) : (
+                    <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+                  )}
+
                   <p className="text-sm">{market?.collateralToken.symbol}</p>
                 </div>
               </div>
