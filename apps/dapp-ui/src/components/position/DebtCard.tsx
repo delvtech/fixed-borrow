@@ -47,7 +47,7 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
             </div>
 
             {positionStatus === "success" ? (
-              <p className="text-secondary-foreground">{`$${position?.totalDebtUsd}`}</p>
+              <p className="text-secondary-foreground">{`$${position?.totalDebtUsd || 0}`}</p>
             ) : (
               <Skeleton className="mt-1 h-8 w-[250px] rounded-sm bg-muted" />
             )}

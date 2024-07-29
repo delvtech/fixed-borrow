@@ -18,28 +18,17 @@ export function CollateralCard({
   positionStatus,
 }: CollateralCardProps) {
   let currentLTV = 0n
-  let liquidationPrice = 0n
-  const availableToWithdraw = 0n
 
   if (
     positionStatus === "success" &&
     position?.totalCollateral &&
-    position.totalCollateral !== 0n
+    position?.totalDebt
   ) {
     currentLTV = dn.divide(
-      [position.totalDebt, 18],
-      [position.totalCollateral, 18]
-    )[0]
-    {
-      /* liquidationPrice = TotalDebt / (totalCollateral * LTV) */
-    }
-    liquidationPrice = dn.divide(
-      [position.totalDebt, 18],
-      dn.multiply([position.totalCollateral, 18], [currentLTV, 18])[0]
+      [position?.totalDebt, 18],
+      [position?.totalCollateral, 18]
     )[0]
   }
-
-  console.log(liquidationPrice, "liquidationPrice")
 
   return (
     <Card className="">
@@ -78,7 +67,7 @@ export function CollateralCard({
               <p className="text-sm">{market?.collateralToken.symbol}</p>
             </div>
             {positionStatus === "success" ? (
-              <p className="text-secondary-foreground">{`$${position?.totalCollateralUsd}`}</p>
+              <p className="text-secondary-foreground">{`$${position?.totalCollateralUsd || 0}`}</p>
             ) : (
               <Skeleton className="mt-1 h-8 w-[150px] rounded-sm bg-muted" />
             )}
@@ -90,11 +79,7 @@ export function CollateralCard({
                 </p>
                 <div className="flex items-end gap-1">
                   {positionStatus === "success" ? (
-                    <p className="text-h4">
-                      {dn.format([availableToWithdraw || 0n, 18], {
-                        digits: 2,
-                      })}
-                    </p>
+                    <p className="text-h4">0</p>
                   ) : (
                     <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
                   )}
