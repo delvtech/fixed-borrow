@@ -53,7 +53,7 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
             )}
 
             <div className="mt-8 flex">
-              <div className="flex flex-1 flex-col">
+              <div className="flex flex-1 flex-col gap-4">
                 {/* TODO: Covered Debt is a stubbed value. Replace with actual value when available */}
                 <p className="text-secondary-foreground">Covered Debt</p>
                 <div className="flex items-end gap-1">
@@ -67,7 +67,7 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
                   <p className="text-sm">{market?.loanToken.symbol}</p>
                 </div>
               </div>
-              <div className="flex flex-1 flex-col">
+              <div className="flex flex-1 flex-col gap-4">
                 {/* TODO: Outstanding Debt is a stubbed value. Replace with actual value when covered debt becomes available. */}
                 <p className="text-secondary-foreground">Outstanding Debt</p>
                 <div className="flex items-end gap-1">
@@ -105,7 +105,7 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
             {/* TODO: The substat here is stubbed. Need to work with the product team to determine what is the best stat to display here. */}
             <p className="text-secondary-foreground">0 USDC/yr</p>
             <div className="mt-8 flex">
-              <div className="flex flex-1 flex-col">
+              <div className="flex flex-1 flex-col gap-4">
                 <p className="text-secondary-foreground">Current Borrow APY</p>
                 <div className="flex items-end gap-1">
                   <p className="text-h4">
@@ -114,7 +114,7 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
                   <p className="text-sm">%</p>
                 </div>
               </div>
-              <div className="flex flex-1 flex-col">
+              <div className="flex flex-1 flex-col gap-4">
                 {/* TODO: Projected Max Borrow APY is a stubbed value. Replace with actual value when FRB extra data field becomes available. */}
                 <p className="text-secondary-foreground">
                   Projected Max Borrow APY

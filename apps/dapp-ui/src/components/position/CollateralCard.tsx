@@ -72,7 +72,7 @@ export function CollateralCard({
               <Skeleton className="mt-1 h-8 w-[150px] rounded-sm bg-muted" />
             )}
             <div className="mt-8 flex">
-              <div className="flex flex-1 flex-col">
+              <div className="flex flex-1 flex-col gap-4">
                 {/* TODO: Determine if this stat is useful. It is stubbed for now. */}
                 <p className="text-secondary-foreground">
                   Available to Withdraw
@@ -87,7 +87,7 @@ export function CollateralCard({
                   <p className="text-sm">{market?.collateralToken.symbol}</p>
                 </div>
               </div>
-              <div className="flex flex-1 flex-col">
+              <div className="flex flex-1 flex-col gap-4">
                 {/* TODO: Determine if this stat is useful. It is stubbed for now. */}
                 <p className="text-secondary-foreground">Available to Borrow</p>
                 <div className="flex items-end gap-1">
@@ -117,7 +117,7 @@ export function CollateralCard({
               Current Price: 4,000.58 USDC/wstETH
             </p>
             <div className="mt-8 flex">
-              <div className="flex flex-1 flex-col">
+              <div className="flex flex-1 flex-col gap-4">
                 <p className="text-secondary-foreground">Current LTV</p>
                 <div className="flex items-end gap-1">
                   {positionStatus === "success" ? (
@@ -131,7 +131,7 @@ export function CollateralCard({
                   <p className="text-sm">{market?.collateralToken.symbol}</p>
                 </div>
               </div>
-              <div className="flex flex-1 flex-col">
+              <div className="flex flex-1 flex-col gap-4">
                 <p className="text-secondary-foreground">Max LTV</p>
                 <div className="flex items-end gap-1">
                   {positionStatus === "success" ? (
