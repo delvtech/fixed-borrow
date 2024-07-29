@@ -3,6 +3,7 @@ import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
 import { Skeleton } from "components/base/skeleton"
+import { cn } from "components/utils"
 import * as dn from "dnum"
 import { BorrowPosition, Market } from "../../types"
 interface DebtCardProps {
@@ -34,52 +35,34 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
         <Card className="flex-1">
           <CardHeader className="font-chakra text-h5">Your Debt</CardHeader>
           <CardContent>
-            <p className="mb-4 text-secondary-foreground">Total Debt</p>
-            <div className="flex items-end gap-1">
-              <p className="text-h3">
-                {positionStatus === "success" ? (
-                  dn.format([position?.totalDebt || 0n, 18], { digits: 2 })
-                ) : (
-                  <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
-                )}
-              </p>
-              <p className="text-sm">{market?.loanToken.symbol}</p>
-            </div>
-
-            {positionStatus === "success" ? (
-              <p className="text-secondary-foreground">{`$${position?.totalDebtUsd || 0}`}</p>
-            ) : (
-              <Skeleton className="mt-1 h-8 w-[150px] rounded-sm bg-muted" />
-            )}
+            <DebtCardStat
+              title="Total Debt"
+              value={dn.format([position?.totalDebt || 0n, 18], { digits: 2 })}
+              symbol={market?.loanToken.symbol}
+              secondaryValue={`$${position?.totalDebtUsd || 0}`}
+              dataLoading={positionStatus === "success"}
+            />
 
             <div className="mt-8 flex">
               <div className="flex flex-1 flex-col gap-4">
                 {/* TODO: Covered Debt is a stubbed value. Replace with actual value when available */}
-                <p className="text-secondary-foreground">Covered Debt</p>
-                <div className="flex items-end gap-1">
-                  {positionStatus === "success" ? (
-                    <p className="text-h4">
-                      {dn.format([coveredDebt, 18], { digits: 2 })}
-                    </p>
-                  ) : (
-                    <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
-                  )}
-                  <p className="text-sm">{market?.loanToken.symbol}</p>
-                </div>
+                <DebtCardStat
+                  title="Covered Debt"
+                  value={dn.format([coveredDebt, 18], { digits: 2 })}
+                  symbol={market?.loanToken.symbol}
+                  dataLoading={positionStatus === "success"}
+                  size="sm"
+                />
               </div>
               <div className="flex flex-1 flex-col gap-4">
                 {/* TODO: Outstanding Debt is a stubbed value. Replace with actual value when covered debt becomes available. */}
-                <p className="text-secondary-foreground">Outstanding Debt</p>
-                <div className="flex items-end gap-1">
-                  {positionStatus === "success" ? (
-                    <p className="text-h4">
-                      {dn.format([outstandingDebt, 18], { digits: 2 })}
-                    </p>
-                  ) : (
-                    <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
-                  )}
-                  <p className="text-sm">{market?.loanToken.symbol}</p>
-                </div>
+                <DebtCardStat
+                  title="Outstanding Debt"
+                  value={dn.format([outstandingDebt, 18], { digits: 2 })}
+                  symbol={market?.loanToken.symbol}
+                  dataLoading={positionStatus === "success"}
+                  size="sm"
+                />
               </div>
             </div>
           </CardContent>
@@ -89,45 +72,82 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
             Your Borrow Rate
           </CardHeader>
           <CardContent>
-            <p className="mb-4 text-secondary-foreground">
-              Current Effective Borrow APY
-            </p>
-            <div className="flex items-end gap-1">
-              {positionStatus === "success" ? (
-                <p className="text-h3">
-                  {dn.format([effectiveBorrowAPY, 18], { digits: 2 })}
-                </p>
-              ) : (
-                <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
-              )}
-              <p className="text-sm">%</p>
-            </div>
             {/* TODO: The substat here is stubbed. Need to work with the product team to determine what is the best stat to display here. */}
-            <p className="text-secondary-foreground">0 USDC/yr</p>
+            <DebtCardStat
+              title="Current Effective Borrow APY"
+              value={dn.format([effectiveBorrowAPY, 18], { digits: 2 })}
+              symbol="%"
+              dataLoading={positionStatus === "success"}
+              size="lg"
+              secondaryValue={"0 USDC/yr"}
+            />
+
             <div className="mt-8 flex">
               <div className="flex flex-1 flex-col gap-4">
-                <p className="text-secondary-foreground">Current Borrow APY</p>
-                <div className="flex items-end gap-1">
-                  <p className="text-h4">
-                    {dn.format([position?.currentRate || 0n, 18], 2)}
-                  </p>
-                  <p className="text-sm">%</p>
-                </div>
+                <DebtCardStat
+                  title="Current Borrow APY"
+                  value={dn.format([position?.currentRate || 0n, 18], 2)}
+                  symbol="%"
+                  dataLoading={positionStatus === "success"}
+                  size="sm"
+                />
               </div>
               <div className="flex flex-1 flex-col gap-4">
                 {/* TODO: Projected Max Borrow APY is a stubbed value. Replace with actual value when FRB extra data field becomes available. */}
-                <p className="text-secondary-foreground">
-                  Projected Max Borrow APY
-                </p>
-                <div className="flex items-end gap-1">
-                  <p className="text-h4">0</p>
-                  <p className="text-sm">{market?.loanToken.symbol}</p>
-                </div>
+                <DebtCardStat
+                  title="Projected Max Borrow APY"
+                  value={"0"}
+                  symbol={market?.loanToken.symbol}
+                  dataLoading={positionStatus === "success"}
+                  size="sm"
+                />
               </div>
             </div>
           </CardContent>
         </Card>
       </CardContent>
     </Card>
+  )
+}
+
+function DebtCardStat({
+  title,
+  value,
+  secondaryValue,
+  symbol,
+  size = "lg",
+  dataLoading,
+}: {
+  title: string
+  value: string | JSX.Element
+  secondaryValue?: string | JSX.Element
+  symbol?: string
+  size?: "lg" | "sm"
+  dataLoading?: boolean
+}) {
+  return (
+    <>
+      <p className={cn("text-secondary-foreground", { "mb-4": size === "lg" })}>
+        {title}
+      </p>
+      <div className="flex items-end gap-1">
+        <p
+          className={cn({ "text-h3": size === "lg", "text-h4": size === "sm" })}
+        >
+          {dataLoading ? (
+            value
+          ) : (
+            <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
+          )}
+        </p>
+        <p className="text-sm">{symbol}</p>
+      </div>
+
+      {dataLoading ? (
+        <p className="text-secondary-foreground">{secondaryValue}</p>
+      ) : (
+        <Skeleton className="mt-1 h-8 w-[150px] rounded-sm bg-muted" />
+      )}
+    </>
   )
 }

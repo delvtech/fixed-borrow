@@ -42,6 +42,7 @@ export function BorrowPage() {
   })
 
   const { data: position } = useBorrowPosition(market)
+
   if (!market) {
     navigate("/")
   }
