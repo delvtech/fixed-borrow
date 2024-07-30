@@ -28,7 +28,7 @@ export function CollateralCard({ position }: CollateralCardProps) {
             className="size-10"
           />
         </Badge>
-        <div className="flex flex-row items-center gap-2">
+        <div className="flex items-center gap-2">
           <Button
             // TODO: Keep a mapping of brand colors (ie. Morpho Blue). Or decide on a different color for this button.
             className="bg-[#2E4DFF]"

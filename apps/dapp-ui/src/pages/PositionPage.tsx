@@ -19,7 +19,7 @@ export function PositionPage() {
 
   if (!position) {
     return (
-      <main className="my-8 flex flex-col gap-8 px-28">
+      <main className="my-8 flex flex-col gap-8 px-4 lg:px-28">
         <PositionCardSkeleton />
         <PositionCardSkeleton />
       </main>
@@ -27,7 +27,7 @@ export function PositionPage() {
   }
 
   return (
-    <main className="my-8 flex flex-col gap-8 px-28">
+    <main className="my-8 flex flex-col gap-8 px-4 lg:px-28">
       <DebtCard position={position} />
       <CollateralCard position={position} />
     </main>

@@ -20,7 +20,7 @@ export function DebtCard({ position }: DebtCardProps) {
         <Badge className="bg-ring p-2">
           <img src={position.market.loanToken.iconUrl} className="size-10" />
         </Badge>
-        <div className="flex flex-row items-center gap-2">
+        <div className="flex flex-col items-start gap-2 md:flex-row md:items-center">
           <Button variant="default" size="lg">
             Add Coverage
           </Button>
