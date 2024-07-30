@@ -12,7 +12,13 @@ import { PositionPage } from "pages/PositionPage"
 import { WagmiProvider } from "wagmi"
 import { rainbowConfig } from "./client/rainbowClient"
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+})
 
 function App() {
   return (

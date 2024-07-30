@@ -75,6 +75,20 @@ export function BorrowFlow(props: BorrowFlowProps) {
     defaultValue: props.position.totalDebt,
   })
 
+  const { data: maxShort } = useQuery({
+    queryKey: ["max-short", props.market.hyperdrive],
+    queryFn: async () => {
+      const readHyperdrive = new ReadHyperdrive({
+        address: props.market.hyperdrive,
+        publicClient: client!,
+      })
+
+      return readHyperdrive.getMaxShort()
+    },
+
+    enabled: !!client,
+  })
+
   const { data: costOfCoverage } = useQuery({
     queryKey: ["cost-coverage", amount, props.market.hyperdrive],
     queryFn: async () => {
@@ -88,7 +102,11 @@ export function BorrowFlow(props: BorrowFlowProps) {
         asBase: true,
       })
     },
-    enabled: !!client,
+    enabled:
+      !!client &&
+      !!maxShort &&
+      !!amountAsBigInt &&
+      maxShort.maxBondsOut >= amountAsBigInt,
   })
 
   const { data: termLength } = useQuery({
