@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from "components/base/card"
 import { PositionCardStat } from "components/position/PositionCardStat"
 import * as dn from "dnum"
 import { BorrowPosition, Market } from "../../types"
+import { PositionCardSkeleton } from "./PositionCardSkeleton"
 
 interface CollateralCardProps {
   market: Market | undefined
@@ -30,11 +31,15 @@ export function CollateralCard({
     )[0]
   }
 
+  if (!market || !position) {
+    return <PositionCardSkeleton />
+  }
+
   return (
-    <Card className="">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <Badge className="bg-ring p-2">
-          <img src={market?.collateralToken.iconUrl} className="size-10" />
+          <img src={market.collateralToken.iconUrl} className="size-10" />
         </Badge>
         <div className="flex flex-row items-center gap-2">
           <Button
@@ -55,10 +60,10 @@ export function CollateralCard({
           <CardContent>
             <PositionCardStat
               title="Total Collateral"
-              value={dn.format([position?.totalCollateral || 0n, 18], {
+              value={dn.format([position.totalCollateral || 0n, 18], {
                 digits: 2,
               })}
-              symbol={market?.collateralToken.symbol}
+              symbol={market.collateralToken.symbol}
               secondaryValue={`$${position?.totalCollateralUsd || 0}`}
               dataLoading={positionStatus === "success"}
               size="lg"
@@ -70,7 +75,7 @@ export function CollateralCard({
                 <PositionCardStat
                   title="Available to Withdraw"
                   value="0"
-                  symbol={market?.collateralToken.symbol}
+                  symbol={market.collateralToken.symbol}
                   dataLoading={positionStatus === "success"}
                   size="sm"
                 />
@@ -80,7 +85,7 @@ export function CollateralCard({
                 <PositionCardStat
                   title="Available to Borrow"
                   value="0"
-                  symbol={market?.collateralToken.symbol}
+                  symbol={market.collateralToken.symbol}
                   dataLoading={positionStatus === "success"}
                   size="sm"
                 />
@@ -94,8 +99,8 @@ export function CollateralCard({
             {/* TODO: Determine the correct secondary value to display here. It is stubbed for now. */}
             <PositionCardStat
               title="Liquidation Price"
-              value={dn.format([position?.liquidationPrice || 0n, 18], 2)}
-              symbol={market?.collateralToken.symbol}
+              value={dn.format([position.liquidationPrice || 0n, 18], 2)}
+              symbol={market.collateralToken.symbol}
               secondaryValue={`Current Price: 4,000.58 USDC/wstETH`}
               dataLoading={positionStatus === "success"}
               size="lg"
@@ -106,7 +111,7 @@ export function CollateralCard({
                 <PositionCardStat
                   title="Current LTV"
                   value={dn.format([currentLTV, 18], { digits: 2 })}
-                  symbol={market?.collateralToken.symbol}
+                  symbol={market.collateralToken.symbol}
                   dataLoading={positionStatus === "success"}
                   size="sm"
                 />
@@ -114,8 +119,8 @@ export function CollateralCard({
               <div className="flex flex-1 flex-col gap-4">
                 <PositionCardStat
                   title="Max LTV"
-                  value={dn.format([position?.market.lltv || 0n, 18], 2)}
-                  symbol={market?.collateralToken.symbol}
+                  value={dn.format([position.market.lltv || 0n, 18], 2)}
+                  symbol={market.collateralToken.symbol}
                   dataLoading={positionStatus === "success"}
                   size="sm"
                 />
