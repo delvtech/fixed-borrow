@@ -4,24 +4,19 @@ import { Card, CardContent, CardHeader } from "components/base/card"
 import { PositionCardStat } from "components/position/PositionCardStat"
 import * as dn from "dnum"
 import { BorrowPosition } from "../../types"
-import { PositionCardSkeleton } from "./PositionCardSkeleton"
 
 interface CollateralCardProps {
-  position: BorrowPosition | undefined
+  position: BorrowPosition
 }
 
 export function CollateralCard({ position }: CollateralCardProps) {
   let currentLTV = 0n
 
-  if (position?.totalCollateral && position?.totalDebt) {
+  if (position.totalCollateral && position.totalDebt) {
     currentLTV = dn.divide(
-      [position?.totalDebt, 18],
-      [position?.totalCollateral, 18]
+      [position.totalDebt, 18],
+      [position.totalCollateral, 18]
     )[0]
-  }
-
-  if (!position) {
-    return <PositionCardSkeleton />
   }
 
   return (
@@ -56,7 +51,7 @@ export function CollateralCard({ position }: CollateralCardProps) {
                 digits: 2,
               })}
               symbol={position.market.collateralToken.symbol}
-              secondaryValue={`$${position?.totalCollateralUsd || 0}`}
+              secondaryValue={`$${position.totalCollateralUsd || 0}`}
               size="lg"
             />
 
