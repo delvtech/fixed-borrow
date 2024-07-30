@@ -26,6 +26,7 @@ export function CollateralCard({ position }: CollateralCardProps) {
           <img
             src={position.market.collateralToken.iconUrl}
             className="size-10"
+            alt={`${position.market.collateralToken.symbol} icon`}
           />
         </Badge>
         <div className="flex items-center gap-2">

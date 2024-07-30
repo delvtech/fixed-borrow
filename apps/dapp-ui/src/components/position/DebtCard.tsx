@@ -18,7 +18,11 @@ export function DebtCard({ position }: DebtCardProps) {
     <Card className="flex-1">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <Badge className="bg-ring p-2">
-          <img src={position.market.loanToken.iconUrl} className="size-10" />
+          <img
+            src={position.market.loanToken.iconUrl}
+            className="size-10"
+            alt={`${position.market.loanToken.symbol} icon`}
+          />
         </Badge>
         <div className="flex flex-col items-start gap-2 md:flex-row md:items-center">
           <Button variant="default" size="lg">
