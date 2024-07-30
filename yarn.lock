@@ -583,33 +583,39 @@
     lodash.ismatch "^4.4.0"
     lru-cache "^10.0.1"
 
-"@delvtech/hyperdrive-artifacts@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@delvtech/hyperdrive-artifacts/-/hyperdrive-artifacts-0.3.0.tgz#7fee732b094c34615ce43f588785ad187e026d0e"
-  integrity sha512-KjTqNFsFzNq6o7n93+0OqT3qlabgZ3IcwlVAa62f9Gpji68nwcJBwq0Js//YKUAVdl5TtL/kniZGIWUJfVXT8w==
+"@delvtech/fixed-point-wasm@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@delvtech/fixed-point-wasm/-/fixed-point-wasm-0.0.3.tgz#6946b2011b7870f7aa75c6c77d87369d2191e937"
+  integrity sha512-+lfCOLFooKwAuwBG+f0fBH4N1ymMfwHrllUDK+y1BSYAJzL+J/eRyNySu9AmPb5OWpOqVtq0HE09+mvdyBIaMQ==
 
-"@delvtech/hyperdrive-js-core@2.3.0":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@delvtech/hyperdrive-js-core/-/hyperdrive-js-core-2.3.0.tgz#bd9d5b693e122fabfb2d17c93b461e48fedf7ebe"
-  integrity sha512-jTOPFxff0JsZK8CyUDFa9d2vSYvnlNgEbkvCVtkmCjQKe1MZKv54eviDzFDhOBn+6jgGZc+zfqYU1jyyMSbBFQ==
+"@delvtech/hyperdrive-artifacts@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@delvtech/hyperdrive-artifacts/-/hyperdrive-artifacts-0.4.0.tgz#8623967ee06a1150e1cbd219786920238585972a"
+  integrity sha512-5EBTsuPjFzIXkxqe54rh8mxWrmmT87ZwbWj3zaMMEV3aft6EEaZ5PFuOnY/WAsLrF5gQgK8SjuEP94tOXNtZGQ==
+
+"@delvtech/hyperdrive-js-core@2.4.3":
+  version "2.4.3"
+  resolved "https://registry.yarnpkg.com/@delvtech/hyperdrive-js-core/-/hyperdrive-js-core-2.4.3.tgz#eab8c223b500f0728ec10a8b34aade95f2eb7e5b"
+  integrity sha512-9SpV1DWzy44BdVYkT2xdgFdAl2jvEiDkv8TGAGcRbRFLdGjJexzAv3avJPfacwPDC6duT7K1uBnlk9anYtHIeg==
   dependencies:
-    "@delvtech/hyperdrive-artifacts" "^0.3.0"
-    "@delvtech/hyperdrive-wasm" "^0.14.4"
+    "@delvtech/fixed-point-wasm" "^0.0.3"
+    "@delvtech/hyperdrive-artifacts" "^0.4.0"
+    "@delvtech/hyperdrive-wasm" "^0.15.2"
     lodash.groupby "^4.6.0"
     lodash.mapvalues "^4.6.0"
 
-"@delvtech/hyperdrive-viem@^2.3.0":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@delvtech/hyperdrive-viem/-/hyperdrive-viem-2.3.0.tgz#9eb25568f83fbaf2436334c7d754949ef465d37a"
-  integrity sha512-C6YukR98hOoKkLx2eg8xI9GquhXPXviltdLIDeIaQLJ1PdcxUCcqqNQMbKzdP71uaw2y5BwxO68/sECSThhdrQ==
+"@delvtech/hyperdrive-viem@^2.4.3":
+  version "2.4.3"
+  resolved "https://registry.yarnpkg.com/@delvtech/hyperdrive-viem/-/hyperdrive-viem-2.4.3.tgz#402da52929fe4dd0c3624a4c2d9bcd3398b9b557"
+  integrity sha512-atRsVVo5KAoAzmscLZNL6z4rSeuXVCF5yCtG6Y89kjPEFZ3IsRlRlDedWkssMBpzN2QuiC3c1wI4bYlQzlUgBQ==
   dependencies:
     "@delvtech/evm-client-viem" "^0.6.1"
-    "@delvtech/hyperdrive-js-core" "2.3.0"
+    "@delvtech/hyperdrive-js-core" "2.4.3"
 
-"@delvtech/hyperdrive-wasm@^0.14.4":
-  version "0.14.4"
-  resolved "https://registry.yarnpkg.com/@delvtech/hyperdrive-wasm/-/hyperdrive-wasm-0.14.4.tgz#b757f3ee54a7d30c088fa10c12124be17b69e70f"
-  integrity sha512-b9IBnGz1RtiJ5IhnHGvgN+S7WEE6EhzlHJvJvf3eCebSLumjJyTrXurV9EiyFfG31340SBVRAGXd6sjYkGR7Dg==
+"@delvtech/hyperdrive-wasm@^0.15.2":
+  version "0.15.2"
+  resolved "https://registry.yarnpkg.com/@delvtech/hyperdrive-wasm/-/hyperdrive-wasm-0.15.2.tgz#64d3d123a5343f565f6f32881d95c0492813a3a5"
+  integrity sha512-0JbCoBPPdNfaofvk0GiHGc0SFc2zveVwbkqKMiX1cJvIPOdLxmlUKiYH9UDLMG09hWo8r21oIqS0ISgRfjx29w==
 
 "@discoveryjs/json-ext@^0.5.0":
   version "0.5.7"
