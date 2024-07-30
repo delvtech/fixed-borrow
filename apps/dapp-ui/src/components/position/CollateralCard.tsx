@@ -48,11 +48,11 @@ export function CollateralCard({ position }: CollateralCardProps) {
           <CardContent>
             <PositionCardStat
               title="Total Collateral"
-              value={dn.format([position.totalCollateral || 0n, 18], {
+              value={dn.format([position.totalCollateral, 18], {
                 digits: 2,
               })}
               symbol={position.market.collateralToken.symbol}
-              secondaryValue={`$${position.totalCollateralUsd || 0}`}
+              secondaryValue={`$${position.totalCollateralUsd}`}
               size="lg"
             />
 
@@ -82,7 +82,7 @@ export function CollateralCard({ position }: CollateralCardProps) {
             {/* TODO: Determine the correct secondary value to display here. It is stubbed for now. */}
             <PositionCardStat
               title="Liquidation Price"
-              value={dn.format([position.liquidationPrice || 0n, 18], 2)}
+              value={dn.format([position.liquidationPrice ?? 0n, 18], 2)}
               symbol={position.market.collateralToken.symbol}
               secondaryValue="Current Price: 4,000.58 USDC/wstETH"
               size="lg"
@@ -99,7 +99,7 @@ export function CollateralCard({ position }: CollateralCardProps) {
               <div className="flex flex-1 flex-col gap-4">
                 <PositionCardStat
                   title="Max LTV"
-                  value={dn.format([position.market.lltv || 0n, 18], 2)}
+                  value={dn.format([position.market.lltv, 18], 2)}
                   symbol={position.market.collateralToken.symbol}
                 />
               </div>

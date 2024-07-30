@@ -39,9 +39,9 @@ export function DebtCard({ position }: DebtCardProps) {
           <CardContent>
             <PositionCardStat
               title="Total Debt"
-              value={dn.format([position.totalDebt || 0n, 18], { digits: 2 })}
+              value={dn.format([position.totalDebt, 18], { digits: 2 })}
               symbol={position.market.loanToken.symbol}
-              secondaryValue={`$${position.totalDebtUsd || 0}`}
+              secondaryValue={`$${position.totalDebtUsd}`}
             />
 
             <div className="mt-8 flex">
@@ -82,7 +82,7 @@ export function DebtCard({ position }: DebtCardProps) {
               <div className="flex flex-1 flex-col gap-4">
                 <PositionCardStat
                   title="Current Borrow APY"
-                  value={dn.format([position.currentRate || 0n, 18], 2)}
+                  value={dn.format([position.currentRate, 18], 2)}
                   symbol="%"
                 />
               </div>
