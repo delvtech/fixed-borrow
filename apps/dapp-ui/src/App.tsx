@@ -15,8 +15,7 @@ import { rainbowConfig } from "./client/rainbowClient"
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      throwOnError: true,
-      retry: 2,
+      retry: false,
     },
   },
 })
