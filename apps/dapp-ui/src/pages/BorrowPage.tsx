@@ -9,7 +9,7 @@ import { navigate } from "wouter/use-browser-location"
 import { SupportedChainId } from "~/constants"
 import { Market } from "../types"
 
-function useBorrowPosition(market?: Market) {
+export function useBorrowPosition(market?: Market) {
   const { address: account } = useAccount()
   const chainId = useChainId()
   const client = usePublicClient()
