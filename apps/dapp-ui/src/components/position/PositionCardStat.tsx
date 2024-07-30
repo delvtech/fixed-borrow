@@ -1,13 +1,12 @@
-import { Skeleton } from "components/base/skeleton"
 import { cn } from "components/utils"
+import { ReactNode } from "react"
 
 interface PositionCardStatProps {
   title: string
-  value: string | JSX.Element
-  secondaryValue?: string | JSX.Element
-  symbol?: string
+  value: string | ReactNode
+  symbol: string
+  secondaryValue?: string | ReactNode
   size?: "lg" | "sm"
-  dataLoading?: boolean
 }
 
 export function PositionCardStat({
@@ -16,7 +15,6 @@ export function PositionCardStat({
   secondaryValue,
   symbol,
   size = "lg",
-  dataLoading = false,
 }: PositionCardStatProps) {
   return (
     <>
@@ -27,21 +25,11 @@ export function PositionCardStat({
         <p
           className={cn({ "text-h3": size === "lg", "text-h4": size === "sm" })}
         >
-          {dataLoading ? (
-            value
-          ) : (
-            <Skeleton className="h-8 w-[250px] rounded-sm bg-muted" />
-          )}
+          {value}
         </p>
         <p className="text-sm">{symbol}</p>
       </div>
-      <p className="text-secondary-foreground">
-        {dataLoading ? (
-          secondaryValue
-        ) : (
-          <Skeleton className="mt-1 h-8 w-[150px] rounded-sm bg-muted" />
-        )}
-      </p>
+      <p className="text-secondary-foreground">{secondaryValue}</p>
     </>
   )
 }

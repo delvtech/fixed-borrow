@@ -1,4 +1,3 @@
-import { QueryStatus } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
@@ -10,21 +9,12 @@ import { PositionCardSkeleton } from "./PositionCardSkeleton"
 interface CollateralCardProps {
   market: Market | undefined
   position: BorrowPosition | undefined
-  positionStatus: QueryStatus
 }
 
-export function CollateralCard({
-  market,
-  position,
-  positionStatus,
-}: CollateralCardProps) {
+export function CollateralCard({ market, position }: CollateralCardProps) {
   let currentLTV = 0n
 
-  if (
-    positionStatus === "success" &&
-    position?.totalCollateral &&
-    position?.totalDebt
-  ) {
+  if (position?.totalCollateral && position?.totalDebt) {
     currentLTV = dn.divide(
       [position?.totalDebt, 18],
       [position?.totalCollateral, 18]
@@ -65,7 +55,6 @@ export function CollateralCard({
               })}
               symbol={market.collateralToken.symbol}
               secondaryValue={`$${position?.totalCollateralUsd || 0}`}
-              dataLoading={positionStatus === "success"}
               size="lg"
             />
 
@@ -76,7 +65,6 @@ export function CollateralCard({
                   title="Available to Withdraw"
                   value="0"
                   symbol={market.collateralToken.symbol}
-                  dataLoading={positionStatus === "success"}
                   size="sm"
                 />
               </div>
@@ -86,7 +74,6 @@ export function CollateralCard({
                   title="Available to Borrow"
                   value="0"
                   symbol={market.collateralToken.symbol}
-                  dataLoading={positionStatus === "success"}
                   size="sm"
                 />
               </div>
@@ -102,7 +89,6 @@ export function CollateralCard({
               value={dn.format([position.liquidationPrice || 0n, 18], 2)}
               symbol={market.collateralToken.symbol}
               secondaryValue={`Current Price: 4,000.58 USDC/wstETH`}
-              dataLoading={positionStatus === "success"}
               size="lg"
             />
 
@@ -112,7 +98,6 @@ export function CollateralCard({
                   title="Current LTV"
                   value={dn.format([currentLTV, 18], { digits: 2 })}
                   symbol={market.collateralToken.symbol}
-                  dataLoading={positionStatus === "success"}
                   size="sm"
                 />
               </div>
@@ -121,7 +106,6 @@ export function CollateralCard({
                   title="Max LTV"
                   value={dn.format([position.market.lltv || 0n, 18], 2)}
                   symbol={market.collateralToken.symbol}
-                  dataLoading={positionStatus === "success"}
                   size="sm"
                 />
               </div>

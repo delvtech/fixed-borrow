@@ -6,7 +6,7 @@ export function PositionCardSkeleton(): JSX.Element {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <Skeleton className="size-14 bg-muted p-2" />
-        <div className="flex flex-row items-center gap-2">
+        <div className="flex items-center gap-2">
           <Skeleton className="h-12 w-40 rounded-full bg-muted" />
         </div>
       </CardHeader>
@@ -19,11 +19,11 @@ export function PositionCardSkeleton(): JSX.Element {
           </CardHeader>
           <CardContent>
             <div className="flex">
-              <div className="flex flex-1 flex-col justify-between gap-4">
+              <div className="flex flex-1 flex-col gap-4">
                 <Skeleton className="h-4 w-32 bg-muted" />
                 <Skeleton className="h-6 w-16 bg-muted" />
               </div>
-              <div className="flex flex-1 flex-col justify-between gap-4">
+              <div className="flex flex-1 flex-col gap-4">
                 <Skeleton className="h-4 w-32 bg-muted" />
                 <Skeleton className="h-6 w-16 bg-muted" />
               </div>
@@ -38,11 +38,11 @@ export function PositionCardSkeleton(): JSX.Element {
           </CardHeader>
           <CardContent>
             <div className="flex">
-              <div className="flex flex-1 flex-col justify-between gap-4">
+              <div className="flex flex-1 flex-col gap-4">
                 <Skeleton className="h-4 w-32 bg-muted" />
                 <Skeleton className="h-6 w-16 bg-muted" />
               </div>
-              <div className="flex flex-1 flex-col justify-between gap-4">
+              <div className="flex flex-1 flex-col gap-4">
                 <Skeleton className="h-4 w-32 bg-muted" />
                 <Skeleton className="h-6 w-16 bg-muted" />
               </div>

@@ -1,19 +1,22 @@
-import { QueryStatus } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
+import { PositionCardSkeleton } from "components/position/PositionCardSkeleton"
 import { PositionCardStat } from "components/position/PositionCardStat"
 import * as dn from "dnum"
 import { BorrowPosition, Market } from "../../types"
 interface DebtCardProps {
   market: Market | undefined
   position: BorrowPosition | undefined
-  positionStatus: QueryStatus
 }
-export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
+export function DebtCard({ market, position }: DebtCardProps) {
   const coveredDebt = 0n
   const outstandingDebt = 0n
   const effectiveBorrowAPY = 0n
+
+  if (!market || !position) {
+    return <PositionCardSkeleton />
+  }
 
   return (
     <Card className="flex-1">
@@ -39,7 +42,6 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
               value={dn.format([position?.totalDebt || 0n, 18], { digits: 2 })}
               symbol={market?.loanToken.symbol}
               secondaryValue={`$${position?.totalDebtUsd || 0}`}
-              dataLoading={positionStatus === "success"}
             />
 
             <div className="mt-8 flex">
@@ -49,7 +51,6 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
                   title="Covered Debt"
                   value={dn.format([coveredDebt, 18], { digits: 2 })}
                   symbol={market?.loanToken.symbol}
-                  dataLoading={positionStatus === "success"}
                   size="sm"
                 />
               </div>
@@ -59,7 +60,6 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
                   title="Outstanding Debt"
                   value={dn.format([outstandingDebt, 18], { digits: 2 })}
                   symbol={market?.loanToken.symbol}
-                  dataLoading={positionStatus === "success"}
                   size="sm"
                 />
               </div>
@@ -76,7 +76,6 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
               title="Current Effective Borrow APY"
               value={dn.format([effectiveBorrowAPY, 18], { digits: 2 })}
               symbol="%"
-              dataLoading={positionStatus === "success"}
               size="lg"
               secondaryValue={"0 USDC/yr"}
             />
@@ -87,7 +86,6 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
                   title="Current Borrow APY"
                   value={dn.format([position?.currentRate || 0n, 18], 2)}
                   symbol="%"
-                  dataLoading={positionStatus === "success"}
                   size="sm"
                 />
               </div>
@@ -97,7 +95,6 @@ export function DebtCard({ market, position, positionStatus }: DebtCardProps) {
                   title="Projected Max Borrow APY"
                   value={"0"}
                   symbol={market?.loanToken.symbol}
-                  dataLoading={positionStatus === "success"}
                   size="sm"
                 />
               </div>
