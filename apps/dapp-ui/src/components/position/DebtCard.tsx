@@ -1,28 +1,22 @@
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
-import { PositionCardSkeleton } from "components/position/PositionCardSkeleton"
 import { PositionCardStat } from "components/position/PositionCardStat"
 import * as dn from "dnum"
-import { BorrowPosition, Market } from "../../types"
+import { BorrowPosition } from "../../types"
 interface DebtCardProps {
-  market: Market | undefined
-  position: BorrowPosition | undefined
+  position: BorrowPosition
 }
-export function DebtCard({ market, position }: DebtCardProps) {
+export function DebtCard({ position }: DebtCardProps) {
   const coveredDebt = 0n
   const outstandingDebt = 0n
   const effectiveBorrowAPY = 0n
-
-  if (!market || !position) {
-    return <PositionCardSkeleton />
-  }
 
   return (
     <Card className="flex-1">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <Badge className="bg-ring p-2">
-          <img src={market?.loanToken.iconUrl} className="size-10" />
+          <img src={position.market.loanToken.iconUrl} className="size-10" />
         </Badge>
         <div className="flex flex-row items-center gap-2">
           <Button variant={"default"} size={"lg"}>
@@ -34,14 +28,14 @@ export function DebtCard({ market, position }: DebtCardProps) {
         </div>
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-evenly gap-6 lg:flex-row">
-        <Card className="flex-1">
+        <Card className="w-full flex-1">
           <CardHeader className="font-chakra text-h5">Your Debt</CardHeader>
           <CardContent>
             <PositionCardStat
               title="Total Debt"
-              value={dn.format([position?.totalDebt || 0n, 18], { digits: 2 })}
-              symbol={market?.loanToken.symbol}
-              secondaryValue={`$${position?.totalDebtUsd || 0}`}
+              value={dn.format([position.totalDebt || 0n, 18], { digits: 2 })}
+              symbol={position.market.loanToken.symbol}
+              secondaryValue={`$${position.totalDebtUsd || 0}`}
             />
 
             <div className="mt-8 flex">
@@ -50,7 +44,7 @@ export function DebtCard({ market, position }: DebtCardProps) {
                 <PositionCardStat
                   title="Covered Debt"
                   value={dn.format([coveredDebt, 18], { digits: 2 })}
-                  symbol={market?.loanToken.symbol}
+                  symbol={position.market.loanToken.symbol}
                   size="sm"
                 />
               </div>
@@ -59,14 +53,14 @@ export function DebtCard({ market, position }: DebtCardProps) {
                 <PositionCardStat
                   title="Outstanding Debt"
                   value={dn.format([outstandingDebt, 18], { digits: 2 })}
-                  symbol={market?.loanToken.symbol}
+                  symbol={position.market.loanToken.symbol}
                   size="sm"
                 />
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="flex-1">
+        <Card className="w-full flex-1">
           <CardHeader className="font-chakra text-h5">
             Your Borrow Rate
           </CardHeader>
@@ -84,7 +78,7 @@ export function DebtCard({ market, position }: DebtCardProps) {
               <div className="flex flex-1 flex-col gap-4">
                 <PositionCardStat
                   title="Current Borrow APY"
-                  value={dn.format([position?.currentRate || 0n, 18], 2)}
+                  value={dn.format([position.currentRate || 0n, 18], 2)}
                   symbol="%"
                   size="sm"
                 />
@@ -94,7 +88,7 @@ export function DebtCard({ market, position }: DebtCardProps) {
                 <PositionCardStat
                   title="Projected Max Borrow APY"
                   value={"0"}
-                  symbol={market?.loanToken.symbol}
+                  symbol={position.market.loanToken.symbol}
                   size="sm"
                 />
               </div>
