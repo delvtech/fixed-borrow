@@ -14,7 +14,7 @@ export function PositionCardStat({
   value,
   secondaryValue,
   symbol,
-  size = "lg",
+  size = "sm",
 }: PositionCardStatProps) {
   return (
     <>

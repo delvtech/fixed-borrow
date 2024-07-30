@@ -32,8 +32,8 @@ export function CollateralCard({ position }: CollateralCardProps) {
           <Button
             // TODO: Keep a mapping of brand colors (ie. Morpho Blue). Or decide on a different color for this button.
             className="bg-[#2E4DFF]"
-            variant={"secondary"}
-            size={"lg"}
+            variant="secondary"
+            size="lg"
           >
             Manage Loan
           </Button>
@@ -62,7 +62,6 @@ export function CollateralCard({ position }: CollateralCardProps) {
                   title="Available to Withdraw"
                   value="0"
                   symbol={position.market.collateralToken.symbol}
-                  size="sm"
                 />
               </div>
               <div className="flex flex-1 flex-col gap-4">
@@ -71,7 +70,6 @@ export function CollateralCard({ position }: CollateralCardProps) {
                   title="Available to Borrow"
                   value="0"
                   symbol={position.market.collateralToken.symbol}
-                  size="sm"
                 />
               </div>
             </div>
@@ -85,7 +83,7 @@ export function CollateralCard({ position }: CollateralCardProps) {
               title="Liquidation Price"
               value={dn.format([position.liquidationPrice || 0n, 18], 2)}
               symbol={position.market.collateralToken.symbol}
-              secondaryValue={`Current Price: 4,000.58 USDC/wstETH`}
+              secondaryValue="Current Price: 4,000.58 USDC/wstETH"
               size="lg"
             />
 
@@ -95,7 +93,6 @@ export function CollateralCard({ position }: CollateralCardProps) {
                   title="Current LTV"
                   value={dn.format([currentLTV, 18], { digits: 2 })}
                   symbol={position.market.collateralToken.symbol}
-                  size="sm"
                 />
               </div>
               <div className="flex flex-1 flex-col gap-4">
@@ -103,7 +100,6 @@ export function CollateralCard({ position }: CollateralCardProps) {
                   title="Max LTV"
                   value={dn.format([position.market.lltv || 0n, 18], 2)}
                   symbol={position.market.collateralToken.symbol}
-                  size="sm"
                 />
               </div>
             </div>

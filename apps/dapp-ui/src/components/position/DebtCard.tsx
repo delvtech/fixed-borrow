@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader } from "components/base/card"
 import { PositionCardStat } from "components/position/PositionCardStat"
 import * as dn from "dnum"
 import { BorrowPosition } from "../../types"
+
 interface DebtCardProps {
   position: BorrowPosition
 }
+
 export function DebtCard({ position }: DebtCardProps) {
   const coveredDebt = 0n
   const outstandingDebt = 0n
@@ -19,10 +21,10 @@ export function DebtCard({ position }: DebtCardProps) {
           <img src={position.market.loanToken.iconUrl} className="size-10" />
         </Badge>
         <div className="flex flex-row items-center gap-2">
-          <Button variant={"default"} size={"lg"}>
+          <Button variant="default" size="lg">
             Add Coverage
           </Button>
-          <Button variant={"secondary"} size={"lg"}>
+          <Button variant="secondary" size="lg">
             Remove Coverage
           </Button>
         </div>
@@ -45,7 +47,6 @@ export function DebtCard({ position }: DebtCardProps) {
                   title="Covered Debt"
                   value={dn.format([coveredDebt, 18], { digits: 2 })}
                   symbol={position.market.loanToken.symbol}
-                  size="sm"
                 />
               </div>
               <div className="flex flex-1 flex-col gap-4">
@@ -54,7 +55,6 @@ export function DebtCard({ position }: DebtCardProps) {
                   title="Outstanding Debt"
                   value={dn.format([outstandingDebt, 18], { digits: 2 })}
                   symbol={position.market.loanToken.symbol}
-                  size="sm"
                 />
               </div>
             </div>
@@ -71,7 +71,7 @@ export function DebtCard({ position }: DebtCardProps) {
               value={dn.format([effectiveBorrowAPY, 18], { digits: 2 })}
               symbol="%"
               size="lg"
-              secondaryValue={"0 USDC/yr"}
+              secondaryValue="0 USDC/yr"
             />
 
             <div className="mt-8 flex">
@@ -80,16 +80,14 @@ export function DebtCard({ position }: DebtCardProps) {
                   title="Current Borrow APY"
                   value={dn.format([position.currentRate || 0n, 18], 2)}
                   symbol="%"
-                  size="sm"
                 />
               </div>
               <div className="flex flex-1 flex-col gap-4">
                 {/* TODO: Projected Max Borrow APY is a stubbed value. Replace with actual value when FRB extra data field becomes available. */}
                 <PositionCardStat
                   title="Projected Max Borrow APY"
-                  value={"0"}
+                  value="0"
                   symbol={position.market.loanToken.symbol}
-                  size="sm"
                 />
               </div>
             </div>
