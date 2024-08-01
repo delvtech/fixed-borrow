@@ -3,6 +3,7 @@ import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader, CardTitle } from "components/base/card"
 import { Separator } from "components/base/separator"
 import * as dnum from "dnum"
+import { ChevronDown } from "lucide-react"
 import { ReactNode } from "react"
 import { formatRate } from "utils/base/formatRate"
 import { Link } from "wouter"
@@ -17,17 +18,20 @@ interface BorrowPositionCardStatProps {
 function BorrowPositionCardStat(props: BorrowPositionCardStatProps) {
   return (
     <div className="flex flex-col items-start gap-y-2">
-      <span className="text-sm text-secondary-foreground">{props.title}</span>
-      <div className="font-dm text-lg font-medium leading-5">
+      <span className="text-sm font-light text-secondary-foreground">
+        {props.title}
+      </span>
+
+      <p className="flex items-baseline gap-x-1 font-dm text-lg">
         {props.value}
+
         {props.subValue && (
-          <span className="relative left-0.5 top-0.5 text-sm font-normal">
-            {props.subValue}
-          </span>
+          <span className="text-sm font-light">{props.subValue}</span>
         )}
-      </div>
+      </p>
+
       {props.secondaryValue && (
-        <div className="font-dm text-sm text-secondary-foreground">
+        <div className="font-dm text-sm font-light text-secondary-foreground">
           {props.secondaryValue}
         </div>
       )}
@@ -48,7 +52,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
     <div className="flex w-full max-w-screen-lg">
       <Card className="grow">
         <CardHeader>
-          <div className="w-fit rounded-[8px] bg-[#1c1f27] p-3">
+          <div className="w-fit rounded-[8px] bg-popover p-3">
             <img
               src={props.market.collateralToken.iconUrl}
               className="inline h-5 w-5"
@@ -59,16 +63,17 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
             />
           </div>
           <CardTitle className="flex items-center gap-x-2 font-chakra">
-            <h4>
-              {props.market.collateralToken.symbol} /{" "}
+            <h4 className="font-mono font-bold">
+              {props.market.collateralToken.symbol}/
               {props.market.loanToken.symbol}
             </h4>
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="grid grid-cols-[1fr_24px_1fr] gap-x-4">
+        <CardContent className="grid grid-cols-[1fr_24px_1fr] gap-x-4 rounded-xl">
           <div>
-            <div className="mb-4 text-sm font-medium">Your Current Loan</div>
+            <div className="mb-4 text-sm">Your Current Loan</div>
+
             <div className="grid grid-cols-2 grid-rows-2 gap-y-8">
               <BorrowPositionCardStat
                 title="Total Collateral"
@@ -158,45 +163,45 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
         </CardContent>
       </Card>
 
-      {/* TODO FIX */}
-      <div className="-ml-10 flex min-h-full flex-col gap-6 rounded-lg border-b border-r border-t bg-background p-8">
-        <span className="gradient-text text-center text-lg font-medium">
+      <div className="-ml-10 flex min-h-full flex-col gap-6 rounded-lg rounded-l-none border-y border-r bg-background p-8">
+        <p className="gradient-text text-center text-lg font-medium">
           Fix your Rate
-        </span>
+        </p>
 
-        <div className="text-center">
-          <div>
-            <div className="text-sm font-medium text-secondary-foreground">
-              Variable
-            </div>
-            {props.rates ? (
-              <h3 className="font-mono text-secondary-foreground">
-                {`${dnum.format(dnum.from(props.rates.lowestRate), 2)}%-${dnum.format(dnum.from(props.rates.highestRate), 2)}%`}
-              </h3>
-            ) : (
-              <h3 className="font-mono text-secondary-foreground">0%-0%</h3>
-            )}
+        <div className="space-y-2 text-center">
+          <div className="text-sm font-medium text-secondary-foreground">
+            Variable
           </div>
+          {props.rates ? (
+            <p className="font-mono text-h4 text-secondary-foreground">
+              {`${dnum.format(dnum.from(props.rates.lowestRate), 2)}%-${dnum.format(dnum.from(props.rates.highestRate), 2)}%`}
+            </p>
+          ) : (
+            <p className="font-mono text-secondary-foreground">0%-0%</p>
+          )}
         </div>
 
-        <div>
-          <Separator className="min-w-full" orientation="horizontal" />
+        <div className="grid grid-cols-[1fr_32px_1fr] items-center gap-2">
+          <Separator orientation="horizontal" />
+
+          <ChevronDown className="stroke-1" size={32} />
+
+          <Separator orientation="horizontal" />
         </div>
 
         <div className="flex flex-col items-center gap-y-2">
-          <p className="text-sm font-medium text-secondary-foreground">
-            Max Projected Fixed Rate
+          <p className="text-sm font-medium text-secondary-foreground">Fixed</p>
+
+          <p className="gradient-text flex items-baseline gap-x-1 font-chakra text-h3 font-semibold">
+            {formatRate(props.fixedRate)} <span className="text-h5">APY</span>
           </p>
-          <h3 className="gradient-text text-3xl font-chakra font-semibold">
-            {formatRate(props.fixedRate)}
-          </h3>
         </div>
 
         <div className="mt-auto flex flex-col items-center gap-y-4">
           <Link href={`/borrow/${props.market.hyperdrive}`}>
             <Button size="lg">Fix Your Rate</Button>
           </Link>
-          <p className="text-center text-sm font-light text-secondary-foreground">
+          <p className="text-center text-xs font-light text-secondary-foreground">
             Coverage Period: 1 year. Remove anytime.
           </p>
         </div>

@@ -1,7 +1,7 @@
 import { Badge } from "components/base/badge"
 import { Card, CardDescription, CardTitle } from "components/base/card"
 import { Skeleton } from "components/base/skeleton"
-import { Tabs, TabsList, TabsTrigger } from "components/base/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/base/tabs"
 import { FAQ } from "components/core/FAQ"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
 import { BorrowPositionCard } from "components/position/BorrowPositionCard"
@@ -23,107 +23,117 @@ export function HomePage() {
           <div className="flex w-1/2 flex-col justify-evenly sm:flex-row">
             <Card className="border border-none bg-transparent">
               <CardTitle>$4.3B</CardTitle>
+
               <CardDescription className="my-2 text-secondary-foreground">
                 Total Coverage
               </CardDescription>
             </Card>
+
             <Card className="border border-none bg-transparent">
               <CardTitle>8,232</CardTitle>
+
               <CardDescription className="my-2 text-secondary-foreground">
                 Borrow Positions Covered
               </CardDescription>
             </Card>
+
             <Card className="border border-none bg-transparent">
               <CardTitle>
                 <img className="h-8 rounded" src="logos/morpho-logo-dark.svg" />
               </CardTitle>
+
               <CardDescription className="my-2 text-secondary-foreground">
                 Supported Protocol
               </CardDescription>
             </Card>
           </div>
         </div>
-        <div className="flex flex-col items-center gap-y-4">
-          <h1 className="gradient-text font-chakra">Fix Your Borrow</h1>
 
-          <p className="text-center text-lg text-secondary-foreground">
-            Keep all the best parts of your Borrow position, but have peace of{" "}
-            <br />
-            mind with a predictable interest rate.
-          </p>
+        <div className="space-y-24">
+          <div className="flex flex-col items-center gap-4">
+            <h1 className="gradient-text font-chakra">Fix your borrow</h1>
 
-          <div className="flex gap-x-2">
-            <Badge className="text-xs">
-              <Check size={16} className="mr-1 stroke-primary" /> Protect
-              against high future rates
-            </Badge>
+            <p className="max-w-xl text-center text-lg text-secondary-foreground">
+              Keep all the best parts of your Borrow position while gaining
+              peace of mind with a predictable interest rate.
+            </p>
 
-            <Badge className="text-xs">
-              <Check size={16} className="mr-1 stroke-primary" /> Core position
-              remains unchanged
-            </Badge>
+            <div className="flex gap-x-2">
+              <Badge className="text-xs">
+                <Check size={16} className="mr-1 stroke-primary" /> Protect
+                against high future rates
+              </Badge>
 
-            <Badge className="text-xs">
-              <Check size={16} className="mr-1 stroke-primary" /> Keep using
-              automations or other tools
-            </Badge>
+              <Badge className="text-xs">
+                <Check size={16} className="mr-1 stroke-primary" /> Core
+                position remains unchanged
+              </Badge>
+
+              <Badge className="text-xs">
+                <Check size={16} className="mr-1 stroke-primary" /> Keep using
+                automations or other tools
+              </Badge>
+            </div>
           </div>
-        </div>
 
-        <Tabs
-          defaultValue="uncovered-loans"
-          className="flex flex-col items-center justify-center"
-        >
-          <TabsList className="text-base grid h-16 grid-cols-2 rounded-[8rem] border border-primary bg-transparent">
-            <TabsTrigger
-              className="data-[state=active]:gradient-background text-xl h-full w-40 text-wrap rounded-[8rem] text-secondary-foreground data-[state=active]:text-[#0F1117]"
-              value="uncovered-loans"
-            >
-              Uncovered Loans
-            </TabsTrigger>
-            <TabsTrigger
-              className="data-[state=active]:gradient-background text-xl h-full w-40 text-wrap rounded-[8rem] text-secondary-foreground data-[state=active]:text-[#0F1117]"
-              value="covered-loans"
-            >
-              Covered Loans
-            </TabsTrigger>
-          </TabsList>
-          {/* TODO: Add TabsContent components here ie. */}
-          {/* <TabsContent value="uncovered-loans">Uncovered Loans</TabsContent> */}
-        </Tabs>
+          <Tabs
+            defaultValue="uncovered"
+            className="flex flex-col items-center justify-center"
+          >
+            <TabsList className="text-base mb-12 grid h-16 grid-cols-2 rounded-[8rem] border border-primary bg-transparent">
+              <TabsTrigger
+                className="data-[state=active]:gradient-background text-xl h-full w-40 text-wrap rounded-[8rem] text-secondary-foreground data-[state=active]:text-[#0F1117]"
+                value="uncovered"
+              >
+                Uncovered Loans
+              </TabsTrigger>
 
-        <div className="flex flex-col items-center gap-y-12 px-12">
-          {match(allBorrowPositionsQueryStatus)
-            .with("success", () => {
-              return borrowPositions!.map((position) => (
-                <BorrowPositionCard
-                  key={`${position.market.loanToken}${position.market.collateralToken}`}
-                  {...position}
-                />
-              ))
-            })
-            .with("pending", () => {
-              return Array.from({ length: 2 }, (_, index) => (
-                <Skeleton
-                  key={index}
-                  className="h-[396px] w-full max-w-screen-lg rounded-lg"
-                />
-              ))
-            })
-            .with("error", () => {
-              return (
-                <div className="flex flex-col items-center">
-                  <div className="text-3xl flex items-center gap-x-2 font-bold">
-                    Error <CircleSlash size={24} className="inline" />
-                  </div>
-                  <div>
-                    Unable to load borrow positions. Please contact our support
-                    service.
-                  </div>
-                </div>
-              )
-            })
-            .exhaustive()}
+              <TabsTrigger
+                className="data-[state=active]:gradient-background text-xl h-full w-40 text-wrap rounded-[8rem] text-secondary-foreground data-[state=active]:text-[#0F1117]"
+                value="covered"
+              >
+                Covered Loans
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="uncovered" className="w-[1200px]">
+              <div className="flex flex-col items-center gap-y-12 px-12">
+                {match(allBorrowPositionsQueryStatus)
+                  .with("success", () => {
+                    return borrowPositions!.map((position) => (
+                      <BorrowPositionCard
+                        key={`${position.market.loanToken}${position.market.collateralToken}`}
+                        {...position}
+                      />
+                    ))
+                  })
+                  .with("pending", () => {
+                    return Array.from({ length: 2 }, (_, index) => (
+                      <Skeleton
+                        key={index}
+                        className="h-[396px] w-full max-w-screen-lg rounded-lg"
+                      />
+                    ))
+                  })
+                  .with("error", () => {
+                    return (
+                      <div className="flex flex-col items-center">
+                        <div className="text-3xl flex items-center gap-x-2 font-bold">
+                          Error <CircleSlash size={24} className="inline" />
+                        </div>
+                        <div>
+                          Unable to load borrow positions. Please contact our
+                          support service.
+                        </div>
+                      </div>
+                    )
+                  })
+                  .exhaustive()}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="covered"></TabsContent>
+          </Tabs>
         </div>
       </div>
 
@@ -131,11 +141,14 @@ export function HomePage() {
         <img
           className="h-12 rounded bg-[#0F1117] p-2"
           src="logos/morpho-logo-dark.svg"
+          alt="Morpho logo"
         />
+
         <div className="space-y-4 text-center">
           <h2 className="text-4xl font-chakra">
             Available Morpho Blue Markets
           </h2>
+
           <p className="text-secondary-foreground">
             Open a supported position on Morpho Blue and fix your rate in one
             transaction with Hyperdrive.
@@ -146,6 +159,7 @@ export function HomePage() {
           <AllMarketsTable />
         </div>
       </div>
+
       <FAQ />
     </main>
   )
