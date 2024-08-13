@@ -18,5 +18,6 @@ export function useAllBorrowPositions(account?: Address) {
     },
     enabled: !!account && !!client,
     refetchOnWindowFocus: false,
+    throwOnError: true,
   })
 }
