@@ -112,15 +112,9 @@ interface TokenPairProps {
 }
 function TokenPair(props: TokenPairProps) {
   return (
-    <span>
-      <img
-        src={props.market.collateralToken.iconUrl}
-        className="inline h-5 w-5"
-      />
-      <img
-        src={props.market.loanToken.iconUrl}
-        className="-ml-3 inline h-5 w-5"
-      />
+    <span className="-gap-2 flex">
+      <img src={props.market.collateralToken.iconUrl} className="z-10 size-5" />
+      <img src={props.market.loanToken.iconUrl} className="-ml-3 size-5" />
     </span>
   )
 }
