@@ -39,7 +39,7 @@ export function getAppConfig(chainId: SupportedChainId) {
   let config = sepoliaConfig
 
   if (chainId === mainnet.id) {
-    return (config = mainnetConfig)
+    config = mainnetConfig
   }
 
   return transfromAppConfig(config)

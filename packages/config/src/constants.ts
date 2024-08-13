@@ -1,10 +1,6 @@
 import { Address, Chain } from "viem";
 import { mainnet, sepolia } from "viem/chains";
 
-export const whitelistedHyperdriveMarkets: Address[] = [
-  "0xb4E605E079B4D9ed50B7202Ca0d008EE473A8de4",
-];
-
 export const supportedChainIds: Chain["id"][] = [
   mainnet.id,
   sepolia.id,
@@ -33,7 +29,13 @@ export const whitelistedMetaMorphoMarketsByChain: Record<
   SupportedChainId,
   { morphoId: string; hyperdrive: Address }[]
 > = {
-  [mainnet.id]: [],
+  [mainnet.id]: [
+    {
+      morphoId:
+        "0x39d11026eae1c6ec02aa4c0910778664089cdd97c3fd23f68f7cd05e2e95af48",
+      hyperdrive: "0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30",
+    },
+  ],
   [sepolia.id]: [
     {
       morphoId:
@@ -46,4 +48,6 @@ export const whitelistedMetaMorphoMarketsByChain: Record<
 export const tokenIconBySymbol: Record<string, string> = {
   DAI: "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.svg?v=032",
   SDAI: "https://1827921443-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FjvdfbhgN5UCpMtP1l8r5%2Fuploads%2Fgit-blob-9873db4416f6c6f7f29d9be3ead28f5317f3dfa3%2FBadge_Dai%202.svg?alt=media",
+  sUSDe:
+    "https://assets.coingecko.com/coins/images/33669/large/sUSDe-Symbol-Color.png",
 };

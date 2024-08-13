@@ -1,10 +1,6 @@
 import { Address, Chain } from "viem"
 import { mainnet, sepolia } from "viem/chains"
 
-export const whitelistedHyperdriveMarkets: Address[] = [
-  "0xb4E605E079B4D9ed50B7202Ca0d008EE473A8de4",
-]
-
 export const supportedChainIds: Chain["id"][] = [
   mainnet.id,
   sepolia.id,
