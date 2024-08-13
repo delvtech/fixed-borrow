@@ -1,5 +1,7 @@
+import { fixed } from "@delvtech/fixed-point-wasm"
 import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { useQuery } from "@tanstack/react-query"
+import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent } from "components/base/card"
 import {
@@ -18,9 +20,8 @@ import {
 import * as dn from "dnum"
 import { useNumericInput } from "hooks/base/useNumericInput"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
-import { ChevronDown, Clock, Fuel, Info, ShieldCheck } from "lucide-react"
+import { ChevronDown, CircleCheck, Info } from "lucide-react"
 import { useState } from "react"
-import { match } from "ts-pattern"
 import { formatTermLength } from "utils/formatTermLength"
 import { useChainId, usePublicClient } from "wagmi"
 import { SupportedChainId } from "~/constants"
@@ -53,8 +54,7 @@ function useBorrowRateQuote(market: Market) {
 
 export function BorrowFlow(props: BorrowFlowProps) {
   const client = usePublicClient()
-  const loanDecimals = props.market.loanToken.decimals
-  const [step, setStep] = useState<BorrowFlowStep>("review")
+  const decimals = props.market.loanToken.decimals
 
   const [isOpen, setIsOpen] = useState(false)
 
@@ -65,28 +65,10 @@ export function BorrowFlow(props: BorrowFlowProps) {
     [borrowPositionDebt, 18],
     dn.add(dn.from(1, 18), [rateQuote ?? 0n, 18])
   )
-  const projectedVarRateDebt = dn.mul(
-    [borrowPositionDebt, 18],
-    dn.add(dn.from(1, 18), [props.position.currentRate, 18])
-  )
 
   const { amount, amountAsBigInt, setAmount } = useNumericInput({
-    decimals: loanDecimals,
+    decimals,
     defaultValue: props.position.totalDebt,
-  })
-
-  const { data: maxShort } = useQuery({
-    queryKey: ["max-short", props.market.hyperdrive],
-    queryFn: async () => {
-      const readHyperdrive = new ReadHyperdrive({
-        address: props.market.hyperdrive,
-        publicClient: client!,
-      })
-
-      return readHyperdrive.getMaxShort()
-    },
-
-    enabled: !!client,
   })
 
   const { data: costOfCoverage } = useQuery({
@@ -97,16 +79,16 @@ export function BorrowFlow(props: BorrowFlowProps) {
         publicClient: client!,
       })
 
+      const maxShort = await readHyperdrive.getMaxShort()
+
+      if (maxShort.maxBondsOut < amountAsBigInt!) return
+
       return readHyperdrive.previewOpenShort({
-        amountOfBondsToShort: amountAsBigInt ?? 0n,
+        amountOfBondsToShort: amountAsBigInt!,
         asBase: true,
       })
     },
-    enabled:
-      !!client &&
-      !!maxShort &&
-      !!amountAsBigInt &&
-      maxShort.maxBondsOut >= amountAsBigInt,
+    enabled: !!client && !!amountAsBigInt,
   })
 
   const { data: termLength } = useQuery({
@@ -123,426 +105,218 @@ export function BorrowFlow(props: BorrowFlowProps) {
     enabled: !!client,
   })
 
-  return match(step)
-    .with("review", () => {
-      return (
-        <div className="flex w-full flex-col items-center gap-16 bg-transparent px-8">
-          <div className="space-y-8 text-center">
-            <h3 className="gradient-text font-chakra font-semibold">
-              Lock in your rate
-            </h3>
+  const formattedRateQuote = fixed(rateQuote ?? 0n, decimals - 2).format({
+    decimals: 2,
+  })
+  const formatttedNetRate = fixed(
+    costOfCoverage?.spotRateAfterOpen ?? 0n,
+    16
+  ).format({
+    decimals: 4,
+  })
+  // const formattedRateImpact = fixed( costOfCoverage?.spotRateAfterOpen)
+  const formattedTotalDebt = fixed(props.position.totalDebt, decimals).format({
+    decimals: 2,
+  })
 
-            <p className="max-w-4xl text-lg text-secondary-foreground">
-              Acquire coverage for your borrow position and get peace of mind
-              and predictability. Lock in your current borrow rate for the next
-              90 days. If the rate goes lower, you’ll benefit from that too.
+  return (
+    <div className="flex w-full flex-col items-center gap-16 bg-transparent px-8">
+      <div className="max-w-3xl space-y-8 text-center">
+        <h3 className="gradient-text font-chakra font-semibold">
+          Lock in your rate
+        </h3>
+
+        <p className="max-w-4xl text-lg text-secondary-foreground">
+          Acquire coverage for your borrow position and get peace of mind and
+          predictability. Lock in your current borrow rate for the next 90 days.
+          If the rate goes lower, you’ll benefit from that too.
+        </p>
+
+        <div className="flex flex-wrap justify-between gap-8 text-left">
+          <div className="space-y-1">
+            <p className="text-sm text-secondary-foreground">
+              Lock in max rate
             </p>
 
-            <div className="flex flex-wrap justify-between gap-8 text-left">
-              <div className="space-y-1">
-                <p className="text-sm text-secondary-foreground">
-                  Lock in max rate
-                </p>
-
-                <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
-                  {rateQuote
-                    ? dn.format([rateQuote, 16], {
-                        digits: 2,
-                      })
-                    : "N/A"}
-                  % <span className="text-md font-normal">APY</span>
-                </p>
-
-                <p className="text-sm text-secondary-foreground">
-                  Current rate:{" "}
-                  {dn.format(dn.from([props.position.currentRate, 16]), {
-                    digits: 2,
-                  })}
-                  % APY
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm text-secondary-foreground">
-                  Fixed rate debt 1yr
-                </p>
-
-                <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
-                  {dn.format(projectedFixRateDebt, {
-                    digits: 2,
-                  })}
-                  <span className="text-md font-normal">
-                    {props.market.loanToken.symbol}
-                  </span>
-                </p>
-
-                <p className="text-sm text-secondary-foreground">
-                  Proj. var debt:{" "}
-                  {dn.format(projectedVarRateDebt, {
-                    digits: 2,
-                  })}{" "}
-                  {props.market.loanToken.symbol}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm text-secondary-foreground">
-                  Coverage period
-                </p>
-
-                <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
-                  {termLength?.value}{" "}
-                  <span className="text-md font-normal">
-                    {termLength?.scale}
-                  </span>
-                </p>
-
-                {/* TODO */}
-                <p className="text-sm text-secondary-foreground">
-                  Coverage ends: 20-May-2025
-                </p>
-              </div>
-            </div>
+            <p className="flex items-baseline gap-x-1 font-mono text-h3">
+              {formattedRateQuote}%
+              <span className="text-md font-normal">APY</span>
+            </p>
           </div>
 
-          <Card>
-            <CardContent className="grid h-full max-w-5xl grid-cols-3 rounded border bg-card p-6">
-              <div className="col-span-2 hidden md:block">
-                <img src="/image.png" className="h-[440px]" />
-              </div>
+          <div className="space-y-1">
+            <p className="text-sm text-secondary-foreground">Current Debt</p>
 
-              <div className="col-span-3 flex flex-col gap-y-12 md:col-span-1">
-                <div className="space-y-4">
-                  <p className="text-sm text-secondary-foreground">
-                    Debt being locked at{" "}
-                    {rateQuote
-                      ? dn.format([rateQuote, 16], {
-                          digits: 2,
-                        })
-                      : "N/A"}
-                    %
-                  </p>
-                  <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
-                    {dn.format([amountAsBigInt ?? 0n, loanDecimals], 2)}{" "}
-                    <span className="text-md font-normal">
-                      {props.market.loanToken.symbol}
-                    </span>
-                  </p>
+            <p className="flex items-baseline gap-x-1 font-mono text-h3">
+              {formattedTotalDebt}
+              <span className="text-md font-normal">
+                {props.market.loanToken.symbol}
+              </span>
+            </p>
+          </div>
 
-                  <Collapsible
-                    open={isOpen}
-                    onOpenChange={setIsOpen}
-                    className="w-full space-y-2 border-y py-4"
-                  >
-                    <CollapsibleTrigger className="flex w-full items-center text-start">
-                      <p className="inline font-medium text-secondary-foreground">
-                        Protect less or more than total debt
-                      </p>
-                      <ChevronDown className="ml-auto inline h-4 w-4 text-secondary-foreground" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-2">
-                      <p className="text-base">
-                        How much debt would you like to cover?
-                      </p>
+          <div className="space-y-1">
+            <p className="text-sm text-secondary-foreground">Coverage period</p>
 
-                      <Input
-                        className="rounded-[8px] font-mono placeholder:text-secondary-foreground"
-                        placeholder="0.00"
-                        type="number"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                      />
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-secondary-foreground">Cost of Coverage</p>
-                  <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
-                    {dn.format(
-                      [costOfCoverage?.traderDeposit ?? 0n, loanDecimals],
-                      2
-                    )}{" "}
-                    <span className="text-md font-normal">
-                      {props.market.loanToken.symbol}
-                    </span>
-                  </p>
-
-                  <div className="flex items-center gap-x-1">
-                    <p className="text-secondary-foreground">
-                      What am I paying for?
-                    </p>
-
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info
-                            className="text-secondary-foreground"
-                            size={14}
-                          />
-                        </TooltipTrigger>
-
-                        {/* TODO  */}
-                        <TooltipContent className="max-w-64 space-y-4">
-                          <p>
-                            Your variable borrow costs on Morpho will be offset
-                            by the variable interest earned on Hyperdrive,
-                            resulting in a borrow rate with a fixed upper bound.
-                          </p>
-                          <p>Upfront payment on Hyperdrive: 12,734.50 USDC</p>
-                          <p>
-                            Max net variable interest incurred after 1 Yr:
-                            5,629.27 USDC Result of the full variable borrow
-                            interest payable on Morpho less the variable
-                            interest earned on Hyperdrive.
-                          </p>
-
-                          <p>
-                            Max total interest paid at the end of the coverage
-                            period: 12,734.50 USDC + 5,629.27 USDC = 18,363.77
-                            USDC (10.70%)
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Button
-                    variant="secondary"
-                    className="w-full px-4 text-sm font-light"
-                  >
-                    Preview Position
-                  </Button>
-                  <Button className="w-full" onClick={() => setStep("cover")}>
-                    Pay from wallet
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            <p className="flex items-baseline gap-x-1 font-mono text-h3">
+              {termLength?.value}{" "}
+              <span className="text-md font-normal">{termLength?.scale}</span>
+            </p>
+          </div>
         </div>
-      )
-    })
-    .with("cover", () => {
-      return (
-        <div className="flex w-full flex-col items-center gap-16 bg-transparent px-8">
-          <div className="space-y-8 text-center">
-            <h3 className="gradient-text font-chakra font-semibold">
-              Lock in your rate
-            </h3>
+      </div>
 
-            <p className="text-lg text-secondary-foreground">
-              Acquire coverage for your borrow position and get peace of mind
-              and predictability. Lock in <br /> your current borrow rate for
-              the next 90 days. If the rate goes lower, you’ll benefit from that
-              too.
-            </p>
-
-            <div className="flex flex-wrap justify-between gap-8 text-left">
-              <div className="space-y-1">
-                <p className="text-sm text-secondary-foreground">
-                  Lock in max rate
-                </p>
-
-                <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
-                  {rateQuote
-                    ? dn.format([rateQuote, 16], {
-                        digits: 2,
-                      })
-                    : "N/A"}
-                  % <span className="text-md font-normal">APY</span>
-                </p>
-
-                <p className="text-sm text-secondary-foreground">
-                  Current rate:{" "}
-                  {dn.format(dn.from([props.position.currentRate, 16]), {
-                    digits: 2,
-                  })}
-                  % APY
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm text-secondary-foreground">
-                  Fixed rate debt 1yr
-                </p>
-
-                <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
-                  {dn.format(projectedFixRateDebt, {
-                    digits: 2,
-                  })}
-                  <span className="text-md font-normal">
-                    {props.market.loanToken.symbol}
-                  </span>
-                </p>
-
-                <p className="text-sm text-secondary-foreground">
-                  Proj. var debt:{" "}
-                  {dn.format(projectedVarRateDebt, {
-                    digits: 2,
-                  })}{" "}
-                  {props.market.loanToken.symbol}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm text-secondary-foreground">
-                  Coverage period
-                </p>
-
-                <p className="flex items-baseline gap-x-1 font-mono text-h3 font-medium">
-                  {termLength?.value}{" "}
-                  <span className="text-md font-normal">
-                    {termLength?.scale}
-                  </span>
-                </p>
-
-                {/* TODO */}
-                <p className="text-sm text-secondary-foreground">
-                  Coverage ends: 20-May-2025
-                </p>
-              </div>
-            </div>
+      <Card>
+        <CardContent className="grid grid-cols-[1fr_1fr_420px] gap-4 rounded border bg-card p-6">
+          <div className="col-span-2 hidden md:block">
+            <img src="/image.png" className="h-[440px]" />
           </div>
 
-          <Card className="w-full sm:max-w-[500px]">
-            <CardContent className="flex w-full flex-col gap-8 p-6">
-              <div className="m-auto w-min rounded bg-accent p-2">
-                <ShieldCheck className="text-secondary-foreground" />
-              </div>
-
-              <div className="flex flex-col items-center gap-4">
-                <p className="text-sm text-secondary-foreground">
-                  Cost of coverage
+          <div className="col-span-3 flex flex-col gap-y-6 md:col-span-1">
+            <div className="space-y-4">
+              <div className="space-y-4">
+                <p className="text-secondary-foreground">
+                  Morpho Debt being covered
                 </p>
-                <h3 className="flex items-baseline gap-x-1 font-mono font-medium">
-                  {dn.format(
-                    [costOfCoverage?.traderDeposit ?? 0n, loanDecimals],
-                    2
-                  )}{" "}
-                  <span className="text-md">
-                    {props.market.loanToken.symbol}
-                  </span>
-                </h3>
-              </div>
 
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <p>Pay from wallet</p>
-
+                <div className="flex h-16 items-center rounded-sm border border-primary font-mono text-[24px]">
                   <Input
-                    className="rounded-sm border-primary font-mono"
-                    value={"12,734.50"}
+                    className="h-full rounded-sm border-none font-mono text-[24px]"
+                    placeholder="0.00"
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
                   />
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-x-2">
-                      <Button className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
-                        25%
-                      </Button>
-                      <Button className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
-                        50%
-                      </Button>
-                      <Button className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
-                        75%
-                      </Button>
-                      <Button className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
-                        MAX
-                      </Button>
-                    </div>
-                    <p className="font-mono text-xs text-secondary-foreground">
-                      Balance 800,888 USDC
-                    </p>
-                  </div>
+                  <Badge className="m-2 h-6">USDC</Badge>
                 </div>
 
-                <Separator />
-
-                <div className="space-y-6 text-sm">
-                  <div className="flex justify-between">
-                    <p className="text-secondary-foreground">
-                      Total debt protected
-                    </p>
-                    <p className="font-mono">171,624.00 USDC</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-x-2">
+                    <Button className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
+                      25%
+                    </Button>
+                    <Button className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
+                      50%
+                    </Button>
+                    <Button className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
+                      75%
+                    </Button>
+                    <Button className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
+                      MAX
+                    </Button>
                   </div>
 
-                  <div className="flex justify-between">
-                    <p className="text-secondary-foreground">
-                      Projected Max Borrow APY
-                    </p>
-                    <p className="font-mono">10.70%</p>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <p className="text-secondary-foreground">Protection Cost</p>
-                    <p className="font-mono">12,734.50 USDC</p>
-                  </div>
+                  <Badge className="flex items-center gap-1 rounded-[4px] bg-primary/20 font-mono text-xs text-primary">
+                    <CircleCheck className="size-3" /> Fully Covered
+                  </Badge>
                 </div>
-
-                <Collapsible className="w-full border-t py-4">
-                  <CollapsibleTrigger className="flex w-full items-center text-start">
-                    <p className="text-sm font-medium text-secondary-foreground">
-                      More Details
-                    </p>
-                    <ChevronDown className="ml-auto inline h-4 w-4 text-secondary-foreground" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-6 space-y-6 text-sm">
-                    <div className="flex justify-between">
-                      <p className="text-secondary-foreground">
-                        Current Borrow APY
-                      </p>
-                      <p className="font-mono">9.31%</p>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <p className="text-secondary-foreground">Slippage</p>
-                      <p className="font-mono">~0.5%</p>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                <div className="grid grid-cols-2 rounded border p-4">
-                  <div className="space-y-2">
-                    <Clock size={16} className="text-secondary-foreground" />
-
-                    <p className="text-sm text-secondary-foreground">
-                      Coverage ends
-                    </p>
-
-                    <p className="font-mono text-lg font-medium">
-                      June 02, 2024
-                    </p>
-
-                    <p className="h-min w-min whitespace-nowrap rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
-                      180 days
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Fuel size={16} className="text-secondary-foreground" />
-
-                    <p className="text-sm text-secondary-foreground">
-                      Est. Gas Cost
-                    </p>
-
-                    <p className="font-mono text-lg font-medium">~5 USD</p>
-
-                    <p className="h-min w-min whitespace-nowrap rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground">
-                      0.0001 ETH
-                    </p>
-                  </div>
-                </div>
-
-                <Button size="lg" className="w-full">
-                  Approve USDC 1/2
-                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      )
-    })
-    .exhaustive()
+            </div>
+
+            <Separator />
+
+            <div className="flex justify-between text-sm">
+              <p className="text-secondary-foreground">
+                Your Projected Max Borrow APY
+              </p>
+              <div className="space-y-1 text-right">
+                <p className="font-mono">{formatttedNetRate}%</p>
+                <Badge
+                  variant="secondary"
+                  className="rounded-[4px] bg-popover font-mono text-xs text-secondary-foreground"
+                >
+                  Rate Impact 0.0001%{" "}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="flex justify-between text-sm">
+              <p className="text-secondary-foreground">You Pay</p>
+              <div className="space-y-1 text-right">
+                <p className="font-mono">
+                  {fixed(
+                    costOfCoverage?.traderDeposit ?? 0n,
+                    props.market.loanToken.decimals
+                  ).format({
+                    decimals: 4,
+                  })}{" "}
+                  USDC{" "}
+                </p>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="flex items-center gap-1 text-secondary-foreground">
+                      <p>What am I paying for?</p>
+                      <Info className="text-secondary-foreground" size={14} />
+                    </TooltipTrigger>
+
+                    <TooltipContent className="max-w-64 space-y-4">
+                      N/A
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <Button
+                size="lg"
+                variant="secondary"
+                className="w-full px-4 text-sm font-light"
+              >
+                Preview Position
+              </Button>
+              <Button size="lg" className="w-full">
+                Pay from wallet
+              </Button>
+            </div>
+
+            <Separator />
+
+            <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+              <CollapsibleTrigger className="-mt-2 flex w-full items-center text-start text-secondary-foreground">
+                Details
+                <ChevronDown className="ml-auto inline h-4 w-4 text-secondary-foreground" />
+              </CollapsibleTrigger>
+
+              <CollapsibleContent className="mt-4 space-y-4">
+                <div className="flex justify-between text-sm">
+                  <p className="text-secondary-foreground">
+                    Your Projected Max Borrow APY
+                  </p>
+                  <p className="font-mono">10.70%</p>
+                </div>
+
+                <div className="flex justify-between text-sm">
+                  <p className="text-secondary-foreground">Maturity Date</p>
+                  <p className="font-mono">31-Aug-2025</p>
+                </div>
+
+                <div className="flex justify-between text-sm">
+                  <p className="text-secondary-foreground">
+                    Projected Max Fixed Debt (365 days)
+                  </p>
+                  <p className="font-mono">189,987.77 USDC</p>
+                </div>
+
+                <div className="flex justify-between text-sm">
+                  <p className="text-secondary-foreground">
+                    Current Borrow APY (Morpho)
+                  </p>
+                  <p className="font-mono">9.31%</p>
+                </div>
+
+                <div className="flex justify-between text-sm">
+                  <p className="text-secondary-foreground">Slippage</p>
+                  <p className="font-mono">~0.5%</p>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
 }
