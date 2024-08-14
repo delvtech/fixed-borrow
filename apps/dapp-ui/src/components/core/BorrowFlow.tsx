@@ -1,5 +1,5 @@
 import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
-import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
+import { ReadHyperdrive, ReadWriteHyperdrive } from "@delvtech/hyperdrive-viem"
 import { useQuery } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
@@ -24,7 +24,14 @@ import { isNil } from "lodash-es"
 import { ChevronDown, CircleCheck, Info } from "lucide-react"
 import { useState } from "react"
 import { formatTermLength } from "utils/formatTermLength"
-import { useChainId, usePublicClient } from "wagmi"
+import {
+  Address,
+  encodePacked,
+  fromHex,
+  maxUint256,
+  toFunctionSelector,
+} from "viem"
+import { useAccount, useChainId, usePublicClient, useWalletClient } from "wagmi"
 import { SupportedChainId } from "~/constants"
 import { BorrowPosition, Market } from "../../types"
 import { FAQ } from "./FAQ"
@@ -109,6 +116,7 @@ function useBorrowRateQuote(market: Market, spotRateOverride?: bigint) {
 
 export function BorrowFlow(props: BorrowFlowProps) {
   const client = usePublicClient()
+  const { address: account } = useAccount()
   const decimals = props.market.loanToken.decimals
 
   const [isOpen, setIsOpen] = useState(false)
@@ -206,6 +214,67 @@ export function BorrowFlow(props: BorrowFlowProps) {
     const totalDebt = fixed(borrowPositionDebt).mul(parseFixed(weight))
 
     setAmount(totalDebt.toString())
+  }
+  const { data: walletClient } = useWalletClient()
+
+  const handleOpenShort = async () => {
+    if (
+      !client ||
+      !walletClient ||
+      !account ||
+      !amountAsBigInt ||
+      !rateQuoteAfterOpen
+    )
+      return
+
+    const writeHyperdrive = new ReadWriteHyperdrive({
+      address: props.market.hyperdrive,
+      publicClient: client,
+      walletClient: walletClient,
+    })
+
+    console.log(rateQuoteAfterOpen)
+    // this is a uint256 and has 18 decimals
+
+    // lets reduce to 4 decimals
+    const reduced = fixed(rateQuoteAfterOpen).divUp(parseFixed(1e12)).bigint
+    const storedQuote = fixed(reduced, 4)
+
+    console.log(storedQuote)
+
+    const encodedRate = encodePacked(
+      ["bytes4", "uint24"],
+      [
+        toFunctionSelector("frb(uint24)"),
+        Number(storedQuote),
+        // numberToHex(storedQuote, {
+        //   size: 24,
+        // }),
+      ]
+    )
+
+    console.log(encodedRate)
+
+    const selector = encodedRate.slice(0, 10)
+    const quote = "0x" + encodedRate.slice(10)
+
+    console.log("...")
+    console.log(selector, quote)
+
+    console.log(toFunctionSelector("frb(uint24)") === (selector as Address))
+    console.log(fromHex(quote as Address, "bigint"))
+
+    const hash = await writeHyperdrive.openShort({
+      // TODO implement slippage control
+      args: {
+        destination: account,
+        minVaultSharePrice: 0n,
+        maxDeposit: maxUint256,
+        bondAmount: amountAsBigInt / 2n,
+        asBase: true,
+        extraData: "" as Address,
+      },
+    })
   }
 
   return (
@@ -386,7 +455,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
               >
                 Preview Position
               </Button>
-              <Button size="lg" className="w-full">
+              <Button size="lg" className="w-full" onClick={handleOpenShort}>
                 Pay from wallet
               </Button>
             </div>
