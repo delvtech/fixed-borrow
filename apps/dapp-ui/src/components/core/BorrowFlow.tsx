@@ -9,7 +9,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "components/base/collapsible"
-import { Input } from "components/base/input"
 import { Separator } from "components/base/separator"
 import {
   Tooltip,
@@ -17,7 +16,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "components/base/tooltip"
-import * as dn from "dnum"
 import { useNumericInput } from "hooks/base/useNumericInput"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { ChevronDown, CircleCheck, Info } from "lucide-react"
@@ -31,8 +29,6 @@ interface BorrowFlowProps {
   market: Market
   position: BorrowPosition
 }
-
-type BorrowFlowStep = "review" | "cover"
 
 function useBorrowRateQuote(market: Market) {
   const chainId = useChainId()
@@ -61,10 +57,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
   const { data: rateQuote } = useBorrowRateQuote(props.market)
 
   const borrowPositionDebt = props.position.totalDebt
-  const projectedFixRateDebt = dn.mul(
-    [borrowPositionDebt, 18],
-    dn.add(dn.from(1, 18), [rateQuote ?? 0n, 18])
-  )
 
   const { amount, amountAsBigInt, setAmount } = useNumericInput({
     decimals,
@@ -81,7 +73,8 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
       const maxShort = await readHyperdrive.getMaxShort()
 
-      if (maxShort.maxBondsOut < amountAsBigInt!) return
+      if (maxShort.maxBondsOut < amountAsBigInt!)
+        console.warn("Not enough liquidity")
 
       return readHyperdrive.previewOpenShort({
         amountOfBondsToShort: amountAsBigInt!,
@@ -167,7 +160,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
       </div>
 
       <Card>
-        <CardContent className="grid grid-cols-[1fr_1fr_420px] gap-4 rounded border bg-card p-6">
+        <CardContent className="grid grid-cols-[1fr_1fr_420px] gap-8 rounded border bg-card p-8">
           <div className="col-span-2 hidden md:block">
             <img src="/image.png" className="h-[440px]" />
           </div>
@@ -179,16 +172,22 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   Morpho Debt being covered
                 </p>
 
-                <div className="flex h-16 items-center rounded-sm border border-primary font-mono text-[24px]">
-                  <Input
-                    className="h-full rounded-sm border-none font-mono text-[24px]"
-                    placeholder="0.00"
+                <div className="flex h-16 items-center rounded-sm bg-background font-mono text-[24px]">
+                  <input
+                    className="h-full rounded-sm border-none bg-background p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    placeholder="0"
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                   />
 
-                  <Badge className="m-2 h-6">USDC</Badge>
+                  <Badge className="m-2 flex h-6 items-center gap-1 border-none bg-card p-2 py-4 font-sans font-medium">
+                    <img
+                      src={props.market.loanToken.iconUrl}
+                      className="size-4"
+                    />{" "}
+                    {props.market.loanToken.symbol}
+                  </Badge>
                 </div>
 
                 <div className="flex items-center justify-between">
