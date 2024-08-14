@@ -105,7 +105,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
     costOfCoverage?.spotRateAfterOpen ?? 0n,
     16
   ).format({
-    decimals: 4,
+    decimals: 2,
   })
   // const formattedRateImpact = fixed( costOfCoverage?.spotRateAfterOpen)
   const formattedTotalDebt = fixed(props.position.totalDebt, decimals).format({
@@ -220,7 +220,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 Your Projected Max Borrow APY
               </p>
               <div className="space-y-1 text-right">
-                <p className="font-mono">{formatttedNetRate}%</p>
+                <p className="font-mono text-lg">{formatttedNetRate}%</p>
                 <Badge
                   variant="secondary"
                   className="rounded-[4px] bg-popover font-mono text-xs text-secondary-foreground"
@@ -233,12 +233,12 @@ export function BorrowFlow(props: BorrowFlowProps) {
             <div className="flex justify-between text-sm">
               <p className="text-secondary-foreground">You Pay</p>
               <div className="space-y-1 text-right">
-                <p className="font-mono">
+                <p className="font-mono text-lg">
                   {fixed(
                     costOfCoverage?.traderDeposit ?? 0n,
                     props.market.loanToken.decimals
                   ).format({
-                    decimals: 4,
+                    decimals: 2,
                   })}{" "}
                   USDC{" "}
                 </p>
