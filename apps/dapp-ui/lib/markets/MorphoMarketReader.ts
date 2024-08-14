@@ -601,9 +601,10 @@ export class MorphoMarketReader extends MarketReader {
    * AdaptiveCurveIRM Math Reference: {@link https://docs.morpho.org/morpho-blue/contracts/irm/}
    *
    * @param market - Morpho market.
+   * @param spotRate - An optional override from the current Hyperdrive fixed spot rate.
    * @returns The worse-case rate quote.
    */
-  async quoteRate(market: Market): Promise<bigint> {
+  async quoteRate(market: Market, spotRate?: bigint): Promise<bigint> {
     // Ensure all required variables are present.
     if (!market.metadata) throw new Error("No IRM")
 
@@ -613,7 +614,7 @@ export class MorphoMarketReader extends MarketReader {
     })
 
     // Fetch hyperdrive spot rate.
-    const fixedRate = await hyperdrive.getFixedApr()
+    const fixedRate = spotRate ?? (await hyperdrive.getFixedApr())
 
     // Fetch the rateAtTarget for the target Morpho market.
     const rateAtTarget = await this.client.readContract({
