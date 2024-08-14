@@ -27,6 +27,7 @@ import { formatTermLength } from "utils/formatTermLength"
 import { useChainId, usePublicClient } from "wagmi"
 import { SupportedChainId } from "~/constants"
 import { BorrowPosition, Market } from "../../types"
+import { FAQ } from "./FAQ"
 
 interface BorrowFlowProps {
   market: Market
@@ -88,19 +89,19 @@ function CoveredBadge({ base, amount, tolerance }: CoveredBadgeProps) {
   )
 }
 
-function useBorrowRateQuote(market: Market) {
+function useBorrowRateQuote(market: Market, spotRateOverride?: bigint) {
   const chainId = useChainId()
   const client = usePublicClient()
 
   return useQuery({
-    queryKey: ["borrow-rate-quote", chainId],
+    queryKey: ["borrow-rate-quote", chainId, spotRateOverride?.toString()],
     queryFn: async () => {
       const reader = new MorphoMarketReader(
         client!,
         chainId as SupportedChainId
       )
 
-      return reader.quoteRate(market)
+      return reader.quoteRate(market, spotRateOverride)
     },
     enabled: !!chainId && !!client,
   })
@@ -141,6 +142,10 @@ export function BorrowFlow(props: BorrowFlowProps) {
     },
     enabled: !!client && !!amountAsBigInt,
   })
+  const { data: rateQuoteAfterOpen } = useBorrowRateQuote(
+    props.market,
+    costOfCoverage?.spotRateAfterOpen
+  )
 
   const { data: termLength } = useQuery({
     queryKey: ["term-length", props.market.hyperdrive],
@@ -159,12 +164,12 @@ export function BorrowFlow(props: BorrowFlowProps) {
   const formattedRateQuote = fixed(rateQuote ?? 0n, decimals - 2).format({
     decimals: 2,
   })
-  const formattedNetRate = costOfCoverage
-    ? fixed(costOfCoverage.spotRateAfterOpen, 16).format({
-        decimals: 2,
-      }) + "%"
-    : "n/a"
-  // const formattedRateImpact = fixed( costOfCoverage?.spotRateAfterOpen)
+  const formattedNetRate =
+    costOfCoverage && rateQuoteAfterOpen && rateQuote
+      ? fixed(rateQuoteAfterOpen, 16).format({
+          decimals: 2,
+        }) + "%"
+      : undefined
   const formattedTotalDebt = fixed(props.position.totalDebt, decimals).format({
     decimals: 2,
   })
@@ -178,12 +183,22 @@ export function BorrowFlow(props: BorrowFlowProps) {
       " " +
       props.market.loanToken.symbol
     : "n/a"
+  const rateImpact =
+    costOfCoverage &&
+    rateQuoteAfterOpen &&
+    rateQuote &&
+    // TODO investigate why this is needed
+    rateQuoteAfterOpen > rateQuote
+      ? "+" +
+        fixed(rateQuoteAfterOpen)
+          .sub(fixed(rateQuote))
+          .mul(parseFixed(100))
+          .format({
+            decimals: 2,
+          }) +
+        "%"
+      : undefined
 
-  const coverState = amountAsBigInt
-    ? computeCoverState(borrowPositionDebt, amountAsBigInt)
-    : undefined
-
-  console.log(coverState)
   const handleQuickTokenInput: React.MouseEventHandler<HTMLButtonElement> = (
     event
   ) => {
@@ -196,9 +211,9 @@ export function BorrowFlow(props: BorrowFlowProps) {
   return (
     <div className="flex w-full flex-col items-center gap-16 bg-transparent px-8">
       <div className="max-w-3xl space-y-8 text-center">
-        <h3 className="gradient-text font-chakra font-semibold">
+        <h2 className="gradient-text font-chakra font-medium">
           Lock in your rate
-        </h3>
+        </h2>
 
         <p className="max-w-4xl text-lg text-secondary-foreground">
           Acquire coverage for your borrow position and get peace of mind and
@@ -212,7 +227,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
               Lock in max rate
             </p>
 
-            <p className="flex items-baseline gap-x-1 font-mono text-h3">
+            <p className="flex items-baseline gap-x-1 font-mono text-h4">
               {formattedRateQuote}%
               <span className="text-md font-normal">APY</span>
             </p>
@@ -221,7 +236,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
           <div className="space-y-1">
             <p className="text-sm text-secondary-foreground">Current Debt</p>
 
-            <p className="flex items-baseline gap-x-1 font-mono text-h3">
+            <p className="flex items-baseline gap-x-1 font-mono text-h4">
               {formattedTotalDebt}
               <span className="text-md font-normal">
                 {props.market.loanToken.symbol}
@@ -232,7 +247,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
           <div className="space-y-1">
             <p className="text-sm text-secondary-foreground">Coverage period</p>
 
-            <p className="flex items-baseline gap-x-1 font-mono text-h3">
+            <p className="flex items-baseline gap-x-1 font-mono text-h4">
               {termLength?.value}{" "}
               <span className="text-md font-normal">{termLength?.scale}</span>
             </p>
@@ -319,17 +334,21 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 Your Projected Max Borrow APY
               </p>
               <div className="space-y-1 text-right">
-                {!costOfCoverageLoading ? (
+                {formattedNetRate ? (
                   <p className="font-mono text-lg">{formattedNetRate}</p>
                 ) : (
-                  <Skeleton className="h-[22px] bg-background" />
+                  <Skeleton className="h-[22px] bg-white/10" />
                 )}
-                <Badge
-                  variant="secondary"
-                  className="rounded-[4px] bg-popover font-mono text-xs text-secondary-foreground hover:bg-popover"
-                >
-                  Rate Impact 0.0001%{" "}
-                </Badge>
+                {rateImpact ? (
+                  <Badge
+                    variant="secondary"
+                    className="rounded-[4px] bg-popover font-mono text-xs text-secondary-foreground hover:bg-popover"
+                  >
+                    Rate Impact {rateImpact}
+                  </Badge>
+                ) : (
+                  <Skeleton className="h-[24.4px] w-[147.1px] bg-white/10" />
+                )}
               </div>
             </div>
 
@@ -339,7 +358,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 {!costOfCoverageLoading ? (
                   <p className="font-mono text-lg">{formattedCostOfCoverage}</p>
                 ) : (
-                  <Skeleton className="h-[22px] bg-background" />
+                  <Skeleton className="h-[22px] bg-white/10" />
                 )}
                 <TooltipProvider>
                   <Tooltip>
@@ -416,6 +435,8 @@ export function BorrowFlow(props: BorrowFlowProps) {
           </div>
         </CardContent>
       </Card>
+
+      <FAQ />
     </div>
   )
 }
