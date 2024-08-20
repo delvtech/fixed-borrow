@@ -30,7 +30,7 @@ function App() {
             fontStack: "system",
           })}
         >
-          <div className="min-h-screen">
+          <div className="min-h-screen bg-gradient-to-b from-[#0F1117] to-[#05060B]">
             <Navbar />
             <Switch>
               <Route path="/" component={HomePage} />
