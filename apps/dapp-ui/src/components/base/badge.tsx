@@ -8,7 +8,7 @@ import { cn } from "components/utils"
 }
 
 const badgeVariants = cva(
-  "inline-flex items-center gap-1 rounded-[4px] border py-[4px] px-[8px] text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-default",
+  "inline-flex items-center gap-1 rounded-[4px] border py-[4px] px-[8px] text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-default whitespace-nowrap",
   {
     variants: {
       variant: {

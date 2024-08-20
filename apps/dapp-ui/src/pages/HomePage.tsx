@@ -18,17 +18,19 @@ export function HomePage() {
     useAllBorrowPositions(account)
 
   return (
-    <main className="m-auto flex max-w-3xl flex-col gap-y-36 py-8">
-      <div className="m-auto w-[766px] space-y-24">
+    <main className="m-auto flex max-w-3xl flex-col gap-y-36 px-4 py-8">
+      <div className="m-auto max-w-[766px] space-y-24">
         <div className="flex flex-col items-center gap-4">
-          <h1 className="gradient-text font-chakra">Fix your borrow</h1>
+          <h1 className="gradient-text font-chakra text-h2 md:text-h1">
+            Fix your borrow
+          </h1>
 
           <p className="max-w-xl text-center font-light text-secondary-foreground">
             Keep all the best parts of your Borrow position while gaining peace
             of mind with a predictable interest rate.
           </p>
 
-          <div className="flex w-full justify-between">
+          <div className="flex w-full justify-between gap-2">
             <Badge className="font-light">
               <Check size={16} className="mr-1 stroke-primary" /> Protect
               against high future rates
