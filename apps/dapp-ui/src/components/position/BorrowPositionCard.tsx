@@ -113,7 +113,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
 
           <BorrowPositionCardStat
             title="Your Borrowing Rate"
-            value={fixed(props.currentRate, 18).format({
+            value={currentRate.format({
               decimals: 2,
               percent: true,
             })}

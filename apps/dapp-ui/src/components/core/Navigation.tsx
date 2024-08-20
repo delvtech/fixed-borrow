@@ -1,12 +1,9 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { getAppConfig } from "utils/getAppConfig"
-import { useChainId } from "wagmi"
 import { Link } from "wouter"
-import { SupportedChainId } from "~/constants"
 
 export function Navbar() {
-  const chainId = useChainId()
-  const market = getAppConfig(chainId as SupportedChainId).morphoMarkets.at(0)!
+  // const chainId = useChainId()
+  // const market = getAppConfig(chainId as SupportedChainId).morphoMarkets.at(0)!
   // const { mutate: mint, status } = useTestPosition(market)
 
   return (
