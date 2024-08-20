@@ -11,11 +11,11 @@ import { faqData } from "static/faqData"
 
 export function FAQ(): ReactElement {
   return (
-    <div className="mt-8 flex w-full flex-col items-center">
+    <div className="mt-8 flex flex-col items-center">
       <h2 className="gradient-text mb-8 text-center font-chakra">
         Frequently Asked Questions
       </h2>
-      <div className="mx-8 flex flex-row gap-6 rounded-[2rem] bg-secondary p-12 lg:w-[1200px]">
+      <div className="mx-8 flex w-full flex-row gap-6 rounded-[2rem] bg-secondary p-12">
         <FAQEntries />
       </div>
     </div>
@@ -29,8 +29,8 @@ export function FAQEntries(): JSX.Element {
 
   if (isTailwindSmallScreen) {
     return (
-      <div className="flex flex-col gap-y-2">
-        <Accordion type="single" collapsible>
+      <div>
+        <Accordion type="single" collapsible className="space-y-4">
           {faqData.map(({ question, key, answer }) => (
             <AccordionItem value={key} key={key}>
               <AccordionTrigger className="text-left text-secondary-foreground">
