@@ -41,7 +41,7 @@ export function Navbar() {
           Learn how fixed rates work
         </Button> */}
 
-        <div className="w-max">
+        <div className="min-h-[40px] w-max">
           <ConnectButton showBalance={false} />
         </div>
       </div>
