@@ -1,3 +1,4 @@
+import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Skeleton } from "components/base/skeleton"
@@ -11,7 +12,7 @@ import { sepolia } from "viem/chains"
 import { useAccount, useChainId } from "wagmi"
 
 export function HomePage() {
-  const { address: account } = useAccount()
+  const { address: account, isConnected } = useAccount()
   const chainId = useChainId()
 
   const { data: borrowPositions, status: allBorrowPositionsQueryStatus } =
@@ -111,12 +112,26 @@ export function HomePage() {
               ))
             })
             .with("pending", () => {
-              return Array.from({ length: 2 }, (_, index) => (
-                <Skeleton
-                  key={index}
-                  className="h-[290px] w-full rounded-xl bg-popover"
-                />
-              ))
+              if (isConnected) {
+                return Array.from({ length: 2 }, (_, index) => (
+                  <Skeleton
+                    key={index}
+                    className="h-[290px] w-full rounded-xl bg-popover"
+                  />
+                ))
+              }
+
+              return (
+                <div className="space-y-6 text-center">
+                  <h3 className="font-chakra font-light">
+                    Connect wallet to view your positions
+                  </h3>
+
+                  <div className="flex justify-center gap-6">
+                    <ConnectButton />
+                  </div>
+                </div>
+              )
             })
             .with("error", () => {
               return (
