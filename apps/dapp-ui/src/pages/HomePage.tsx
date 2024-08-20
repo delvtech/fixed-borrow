@@ -15,7 +15,7 @@ export function HomePage() {
     useAllBorrowPositions(account)
 
   return (
-    <main className="m-auto flex flex-col gap-y-24 py-8">
+    <main className="m-auto flex max-w-3xl flex-col gap-y-24 py-8">
       <div className="m-auto w-[766px] space-y-24">
         <div className="flex flex-col items-center gap-4">
           <h1 className="gradient-text font-chakra">Fix your borrow</h1>
@@ -78,17 +78,15 @@ export function HomePage() {
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-y-4 px-12">
+      <div className="flex flex-col items-center gap-y-4">
         <img
-          className="h-12 rounded bg-[#0F1117] p-2"
+          className="size-12 rounded p-2"
           src="logos/morpho-logo-dark.svg"
           alt="Morpho logo"
         />
 
         <div className="space-y-4 text-center">
-          <h2 className="text-4xl font-chakra">
-            Available Morpho Blue Markets
-          </h2>
+          <h2 className="text-4xl font-chakra">Available Morpho Markets</h2>
 
           <p className="text-secondary-foreground">
             Open a supported position on Morpho Blue and fix your rate in one
