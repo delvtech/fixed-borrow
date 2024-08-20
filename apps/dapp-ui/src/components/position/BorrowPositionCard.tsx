@@ -5,13 +5,12 @@ import { Card, CardContent, CardHeader } from "components/base/card"
 import { Separator } from "components/base/separator"
 import { ChevronDown } from "lucide-react"
 import { ReactNode } from "react"
-import { formatRate } from "utils/base/formatRate"
 import { Link } from "wouter"
 import { BorrowPosition } from "../../types"
 
 interface BorrowPositionCardStatProps {
   title: string
-  value: string
+  value: ReactNode
   subValue?: string
   secondaryValue?: ReactNode
 }
@@ -41,8 +40,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
   const decimals = props.market.loanToken.decimals
 
   const currentRate = fixed(props.currentRate ?? 0n, decimals)
-
-  console.log(props.rates)
+  const currentFixedRate = fixed(props.fixedRate)
 
   // const averageRate = parseFixed(props.rates?.averageRate ?? 0n, decimals)
   // const rateDelta = currentRate.sub(averageRate)
@@ -120,29 +118,22 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
               percent: true,
             })}
             subValue={props.market.loanToken.symbol}
-            // secondaryValue={
-            //   <Badge
-            //     className="w-fit rounded-[4px] px-[4px] py-[2px] text-xs"
-            //     variant="destructive"
-            //   >
-            //     {rateDelta.gt(0n) ? "+" : ""}
-            //     {rateDelta.format({
-            //       decimals: 2,
-            //       percent: true,
-            //     })}{" "}
-            //     (30d)
-            //   </Badge>
-            // }
+          />
+
+          <BorrowPositionCardStat
+            title="Volitility"
+            value={<p className="text-md font-light text-primary/90">Low</p>}
           />
         </CardContent>
       </Card>
 
       <div className="-ml-8 flex flex-col items-center gap-5 rounded-[32px] rounded-l-none border-y border-r bg-background p-6 pl-16">
-        <div className="w-full">
+        <div className="flex w-full grow flex-col justify-between">
           <div className="space-y-2 text-center">
             <p className="text-sm font-medium text-secondary-foreground">
               Variable Rate
             </p>
+
             {props.rates ? (
               <p className="font-chakra text-h4 text-[#D3DAEB]">
                 {`${parseFixed(props.rates.lowestRate).format({
@@ -172,7 +163,11 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
             </p>
 
             <p className="gradient-text font-chakra text-h3 font-medium">
-              {formatRate(props.fixedRate)}
+              {currentFixedRate.format({
+                decimals: 2,
+                trailingZeros: true,
+                percent: true,
+              })}
             </p>
           </div>
         </div>
