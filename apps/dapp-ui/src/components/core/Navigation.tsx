@@ -1,7 +1,5 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { Button } from "components/base/button"
 import { getAppConfig } from "utils/getAppConfig"
-import { useTestPosition } from "utils/test/createTestPosition"
 import { useChainId } from "wagmi"
 import { Link } from "wouter"
 import { SupportedChainId } from "~/constants"
@@ -9,7 +7,7 @@ import { SupportedChainId } from "~/constants"
 export function Navbar() {
   const chainId = useChainId()
   const market = getAppConfig(chainId as SupportedChainId).morphoMarkets.at(0)!
-  const { mutate: mint, status } = useTestPosition(market)
+  // const { mutate: mint, status } = useTestPosition(market)
 
   return (
     <div className="grid grid-cols-3 items-center border-b px-8 py-4">
@@ -32,17 +30,19 @@ export function Navbar() {
       <div></div>
 
       <div className="flex items-center gap-x-2 justify-self-end">
-        <Button
+        {/* <Button
           size="sm"
           className="hidden md:block"
           onClick={() => mint()}
           disabled={status === "pending"}
+          variant="secondary"
         >
           Create Test Position
-        </Button>
-        <Button size="sm" variant="secondary" className="hidden md:block">
+        </Button> */}
+
+        {/* <Button size="sm" variant="secondary" className="hidden md:block">
           Learn how fixed rates work
-        </Button>
+        </Button> */}
 
         <div className="w-max">
           <ConnectButton showBalance={false} />
