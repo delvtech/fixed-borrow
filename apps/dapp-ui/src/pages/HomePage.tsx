@@ -57,7 +57,7 @@ export function HomePage() {
               return Array.from({ length: 2 }, (_, index) => (
                 <Skeleton
                   key={index}
-                  className="h-[396px] w-full max-w-screen-lg rounded-lg"
+                  className="h-[290px] w-full rounded-xl bg-popover"
                 />
               ))
             })
