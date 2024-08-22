@@ -115,8 +115,9 @@ supportedChainIds.forEach(async (chainId) => {
         address: market.hyperdrive,
       });
 
-      const termLength = (await readHyperdrive.getPoolConfig())
-        .positionDuration;
+      const duration = (
+        await readHyperdrive.getPoolConfig()
+      ).positionDuration.toString();
 
       return {
         id: market.morphoId,
@@ -126,7 +127,7 @@ supportedChainIds.forEach(async (chainId) => {
         oracle,
         irm,
         lltv: lltv.toString(),
-        termLength: termLength.toString(),
+        duration,
       };
     }),
   );

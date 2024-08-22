@@ -12,6 +12,7 @@ export type Config = {
   morphoMarkets: {
     id: string;
     hyperdrive: string;
+    duration: string;
     loanToken: {
       address: string;
       symbol: string;
@@ -29,7 +30,6 @@ export type Config = {
     oracle: `0x${string}`;
     irm: `0x${string}`;
     lltv: string;
-    termLength: string;
   }[];
 };
 
