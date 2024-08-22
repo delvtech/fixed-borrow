@@ -29,7 +29,6 @@ import { useNumericInput } from "hooks/base/useNumericInput"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { ChevronDown, Info, Settings } from "lucide-react"
 import { useState } from "react"
-import { formatTermLength } from "utils/formatTermLength"
 import { useChainId, usePublicClient } from "wagmi"
 import { SupportedChainId } from "~/constants"
 import { BorrowPosition, Market } from "../../types"
@@ -63,9 +62,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
   const [isOpen, setIsOpen] = useState(false)
 
-  const { data: rateQuote, isLoading: rateQuoteLoading } = useBorrowRateQuote(
-    props.market
-  )
+  const { data: rateQuote } = useBorrowRateQuote(props.market)
 
   const borrowPositionDebt = props.position.totalDebt
 
@@ -99,23 +96,23 @@ export function BorrowFlow(props: BorrowFlowProps) {
     costOfCoverage?.spotRateAfterOpen
   )
 
-  const { data: termLength } = useQuery({
-    queryKey: ["term-length", props.market.hyperdrive],
-    queryFn: async () => {
-      const readHyperdrive = new ReadHyperdrive({
-        address: props.market.hyperdrive,
-        publicClient: client!,
-      })
+  // const { data: termLength } = useQuery({
+  //   queryKey: ["term-length", props.market.hyperdrive],
+  //   queryFn: async () => {
+  //     const readHyperdrive = new ReadHyperdrive({
+  //       address: props.market.hyperdrive,
+  //       publicClient: client!,
+  //     })
 
-      const poolConfig = await readHyperdrive.getPoolConfig()
-      return formatTermLength(poolConfig.positionDuration)
-    },
-    enabled: !!client,
-  })
+  //     const poolConfig = await readHyperdrive.getPoolConfig()
+  //     return formatTermLength(poolConfig.positionDuration)
+  //   },
+  //   enabled: !!client,
+  // })
 
-  const formattedRateQuote = fixed(rateQuote ?? 0n, decimals - 2).format({
-    decimals: 2,
-  })
+  // const formattedRateQuote = fixed(rateQuote ?? 0n, decimals - 2).format({
+  //   decimals: 2,
+  // })
 
   const pickRateQuoteValue = () => {
     if (amountAsBigInt === 0n) {
@@ -134,9 +131,9 @@ export function BorrowFlow(props: BorrowFlowProps) {
       }) + "%"
     : undefined
 
-  const formattedTotalDebt = fixed(props.position.totalDebt, decimals).format({
-    decimals: 2,
-  })
+  // const formattedTotalDebt = fixed(props.position.totalDebt, decimals).format({
+  //   decimals: 2,
+  // })
 
   const formattedCostOfCoverage = costOfCoverage?.traderDeposit
     ? fixed(
