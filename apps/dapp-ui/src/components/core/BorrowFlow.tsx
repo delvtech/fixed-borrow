@@ -252,7 +252,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   }}
                 />
 
-                <Badge className="m-2 flex h-6 items-center gap-1 border-none bg-accent p-2 py-4 font-sans font-medium hover:bg-none">
+                <Badge className="m-2 flex h-6 items-center justify-center gap-1 border-none bg-accent p-2 py-4 font-sans font-medium hover:bg-none">
                   <img
                     src={props.market.loanToken.iconUrl}
                     className="size-4"
@@ -293,7 +293,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   </Button>
                 </div>
 
-                <p className="text-sm text-secondary-foreground">
+                <p className="text-right text-sm text-secondary-foreground">
                   Total Debt: {formattedTotalDebt}
                 </p>
               </div>
