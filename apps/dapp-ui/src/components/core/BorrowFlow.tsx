@@ -88,8 +88,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
   const { data: rateQuote } = useBorrowRateQuote(props.market)
 
-  const borrowPositionDebt = props.position.totalDebt
-
   const { data: costOfCoverage, isLoading: costOfCoverageLoading } = useQuery({
     queryKey: [
       "cost-coverage",
