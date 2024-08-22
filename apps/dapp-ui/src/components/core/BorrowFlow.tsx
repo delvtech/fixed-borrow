@@ -1,5 +1,5 @@
 import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
-import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
+import { ReadHyperdrive, ReadWriteHyperdrive } from "@delvtech/hyperdrive-viem"
 import { useQuery } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
@@ -25,54 +25,77 @@ import {
   TooltipTrigger,
 } from "components/base/tooltip"
 import { MarketHeader } from "components/markets/MarketHeader"
-import { useNumericInput } from "hooks/base/useNumericInput"
-import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
+import { useApproval } from "hooks/base/useApproval"
+import { useBorrowRateQuote } from "hooks/borrow/useBorrowRateQuote"
+import { isNil } from "lodash-es"
 import { ChevronDown, Info, Settings } from "lucide-react"
-import { useState } from "react"
-import { useChainId, usePublicClient } from "wagmi"
-import { SupportedChainId } from "~/constants"
+import { useReducer, useState } from "react"
+import { formatTermLength } from "utils/formatTermLength"
+import { maxUint256 } from "viem"
+import { useAccount, usePublicClient, useWalletClient } from "wagmi"
 import { BorrowPosition, Market } from "../../types"
+
+type State = {
+  step: "buy" | "reciept"
+  decimals: number
+  bondAmount: bigint
+}
+
+type Action = {
+  type: "bondAmountInput"
+  payload: {
+    amount: string
+    // allowance: bigint
+  }
+}
+
+const reducer = (state: State, action: Action): State => {
+  const { type, payload } = action
+
+  switch (type) {
+    case "bondAmountInput": {
+      const parsedAmount = parseFixed(payload.amount, state.decimals).bigint
+
+      return {
+        ...state,
+        bondAmount: parsedAmount,
+      }
+    }
+    default: {
+      return state
+    }
+  }
+}
 
 interface BorrowFlowProps {
   market: Market
   position: BorrowPosition
 }
 
-function useBorrowRateQuote(market: Market, spotRateOverride?: bigint) {
-  const chainId = useChainId()
-  const client = usePublicClient()
-
-  return useQuery({
-    queryKey: ["borrow-rate-quote", chainId, spotRateOverride?.toString()],
-    queryFn: async () => {
-      const reader = new MorphoMarketReader(
-        client!,
-        chainId as SupportedChainId
-      )
-
-      return reader.quoteRate(market, spotRateOverride)
-    },
-    enabled: !!chainId && !!client,
-  })
-}
-
 export function BorrowFlow(props: BorrowFlowProps) {
-  const client = usePublicClient()
   const decimals = props.market.loanToken.decimals
 
+  const client = usePublicClient()
+  const { address: account } = useAccount()
+  const { data: walletClient } = useWalletClient()
+
+  const [state, dispatch] = useReducer(reducer, {
+    step: "buy",
+    bondAmount: 0n,
+    decimals: props.market.loanToken.decimals,
+  })
   const [isOpen, setIsOpen] = useState(false)
 
   const { data: rateQuote } = useBorrowRateQuote(props.market)
 
   const borrowPositionDebt = props.position.totalDebt
 
-  const { amount, amountAsBigInt, setAmount } = useNumericInput({
-    decimals,
-    defaultValue: 0n,
-  })
-
   const { data: costOfCoverage, isLoading: costOfCoverageLoading } = useQuery({
-    queryKey: ["cost-coverage", amount, props.market.hyperdrive],
+    queryKey: [
+      "cost-coverage",
+      state.bondAmount.toString(),
+      props.market.hyperdrive,
+    ],
     queryFn: async () => {
       const readHyperdrive = new ReadHyperdrive({
         address: props.market.hyperdrive,
@@ -81,59 +104,50 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
       const maxShort = await readHyperdrive.getMaxShort()
 
-      if (maxShort.maxBondsOut < amountAsBigInt!)
+      if (maxShort.maxBondsOut < state.bondAmount!)
         console.warn("Not enough liquidity")
 
       return readHyperdrive.previewOpenShort({
-        amountOfBondsToShort: amountAsBigInt!,
+        amountOfBondsToShort: state.bondAmount!,
         asBase: true,
       })
     },
-    enabled: !!client && !!amountAsBigInt,
+    enabled: !!client && !!state.bondAmount,
   })
   const { data: rateQuoteAfterOpen } = useBorrowRateQuote(
     props.market,
     costOfCoverage?.spotRateAfterOpen
   )
 
-  // const { data: termLength } = useQuery({
-  //   queryKey: ["term-length", props.market.hyperdrive],
-  //   queryFn: async () => {
-  //     const readHyperdrive = new ReadHyperdrive({
-  //       address: props.market.hyperdrive,
-  //       publicClient: client!,
-  //     })
+  const { needsApproval, approve, allowance } = useApproval(
+    props.market.loanToken.address,
+    props.market.hyperdrive,
+    costOfCoverage?.traderDeposit
+  )
 
-  //     const poolConfig = await readHyperdrive.getPoolConfig()
-  //     return formatTermLength(poolConfig.positionDuration)
-  //   },
-  //   enabled: !!client,
-  // })
-
-  // const formattedRateQuote = fixed(rateQuote ?? 0n, decimals - 2).format({
-  //   decimals: 2,
-  // })
+  const { value: durationValue, scale: durationScale } = formatTermLength(
+    props.market.duration
+  )
+  const formattedDuration = durationValue + " " + durationScale
 
   const pickRateQuoteValue = () => {
-    if (amountAsBigInt === 0n) {
+    if (state.bondAmount === 0n) {
       // return the spot rate
       return rateQuote
     } else {
       return rateQuoteAfterOpen
     }
   }
-
   const pickedRateQuote = pickRateQuoteValue()
-
   const formattedNetRate = pickedRateQuote
     ? fixed(pickedRateQuote, 16).format({
         decimals: 2,
       }) + "%"
     : undefined
 
-  // const formattedTotalDebt = fixed(props.position.totalDebt, decimals).format({
-  //   decimals: 2,
-  // })
+  const formattedTotalDebt = fixed(props.position.totalDebt, decimals).format({
+    decimals: 2,
+  })
 
   const formattedCostOfCoverage = costOfCoverage?.traderDeposit
     ? fixed(
@@ -147,8 +161,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
     : "0 " + props.market.loanToken.symbol
 
   const computeRateImpact = () => {
-    console.log(amountAsBigInt)
-    if (amountAsBigInt === 0n) {
+    if (state.bondAmount === 0n) {
       return "0.00%"
     }
 
@@ -165,18 +178,41 @@ export function BorrowFlow(props: BorrowFlowProps) {
       )
     }
   }
-
   const rateImpact = computeRateImpact()
 
-  console.log(rateImpact)
+  // TODO
+  const handleQuickTokenInput: React.MouseEventHandler<
+    HTMLButtonElement
+  > = () => {
+    // const weight = Number(event.currentTarget.value)
+    // const totalDebt = fixed(borrowPositionDebt).mul(parseFixed(weight))
+    // // setAmount(totalDebt.toString())
+  }
 
-  const handleQuickTokenInput: React.MouseEventHandler<HTMLButtonElement> = (
-    event
-  ) => {
-    const weight = Number(event.currentTarget.value)
-    const totalDebt = fixed(borrowPositionDebt).mul(parseFixed(weight))
+  const transactionButtonDisabled = state.bondAmount === 0n
 
-    setAmount(totalDebt.toString())
+  const handleOpenShort = async () => {
+    // early termination
+    if (isNil(state.bondAmount) || isNil(walletClient) || isNil(client)) return
+    if (state.bondAmount <= 0n) return
+    if (!account) return
+
+    const writeHyperdrive = new ReadWriteHyperdrive({
+      address: props.market.hyperdrive,
+      publicClient: client,
+      walletClient,
+    })
+
+    await writeHyperdrive.openShort({
+      args: {
+        destination: account,
+        minVaultSharePrice: 0n,
+        maxDeposit: maxUint256,
+        asBase: true,
+        bondAmount: state.bondAmount,
+        extraData: "0x",
+      },
+    })
   }
 
   return (
@@ -204,11 +240,18 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
               <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
                 <input
-                  className="h-full grow rounded-sm border-none bg-popover p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="h-full w-full grow rounded-sm border-none bg-popover p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   placeholder="0"
                   type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  disabled={isNil(allowance)}
+                  onChange={(e) => {
+                    dispatch({
+                      type: "bondAmountInput",
+                      payload: {
+                        amount: e.target.value ?? "0",
+                      },
+                    })
+                  }}
                 />
 
                 <Badge className="m-2 flex h-6 items-center gap-1 border-none bg-accent p-2 py-4 font-sans font-medium hover:bg-none">
@@ -251,18 +294,24 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     MAX
                   </Button>
                 </div>
+
+                <p className="text-sm text-secondary-foreground">
+                  Total Debt: {formattedTotalDebt}
+                </p>
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
             <p className="text-sm text-secondary-foreground">Duration</p>
-            <Select defaultValue="365" disabled>
+            <Select defaultValue={formattedDuration} disabled>
               <SelectTrigger className="h-12 w-full rounded-sm bg-accent text-lg">
                 <SelectValue placeholder="Select term duration..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="365">365 days</SelectItem>
+                <SelectItem value={formattedDuration}>
+                  {formattedDuration}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -324,9 +373,25 @@ export function BorrowFlow(props: BorrowFlowProps) {
           </div>
 
           <div className="space-y-2">
-            <Button size="lg" className="h-12 w-full text-lg font-normal">
-              Lock in your rate
-            </Button>
+            {needsApproval ? (
+              <Button
+                size="lg"
+                className="h-12 w-full text-lg font-normal"
+                disabled={transactionButtonDisabled}
+                onClick={approve}
+              >
+                Approve {props.market.loanToken.symbol}
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                className="h-12 w-full text-lg font-normal"
+                disabled={transactionButtonDisabled}
+                onClick={handleOpenShort}
+              >
+                Lock in your rate
+              </Button>
+            )}
           </div>
 
           <Separator />
