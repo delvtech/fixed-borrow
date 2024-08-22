@@ -17,7 +17,7 @@ export function useNumericInput({
   defaultValue,
 }: UseNumericInputProps): UseNumericInputResult {
   const [amount, setAmount] = useState<string>(
-    defaultValue ? formatUnits(defaultValue, decimals) : ""
+    defaultValue !== undefined ? formatUnits(defaultValue, decimals) : ""
   )
   const amountAsBigInt = amount
     ? parseUnits(amount as `${number}`, decimals)

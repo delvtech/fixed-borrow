@@ -37,8 +37,8 @@ export interface Market {
   /** Hyperdrive contract address */
   hyperdrive: Address
 
-  /** Hyperdrive term length */
-  termLength: bigint
+  /** Hyperdrive term duration */
+  duration: bigint
 
   /** Special metadata related to the market, this can differ
    * in structure depending on the market type.
