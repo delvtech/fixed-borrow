@@ -1,11 +1,10 @@
 import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
-import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
 import { Separator } from "components/base/separator"
+import { MarketHeader } from "components/markets/MarketHeader"
 import { ChevronDown } from "lucide-react"
 import { ReactNode } from "react"
-import { MorphoLogo } from "static/images/MorphoLogo"
 import { Link } from "wouter"
 import { BorrowPosition } from "../../types"
 
@@ -25,35 +24,8 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
   return (
     <div className="grid w-full grid-cols-2">
       <Card className="z-10 rounded-xl">
-        <CardHeader className="flex space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="flex">
-              <img
-                src={props.market.collateralToken.iconUrl}
-                className="size-6"
-              />
-              <img
-                src={props.market.loanToken.iconUrl}
-                className="-ml-3 size-6"
-              />
-            </div>
-
-            <h4 className="font-chakra font-semibold">
-              {props.market.collateralToken.symbol}/
-              {props.market.loanToken.symbol}
-            </h4>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="font-mono text-xs">
-              <MorphoLogo />
-              Morpho
-            </Badge>
-
-            <Badge variant="secondary" className="ont-mono text-xs">
-              LLTV: 86%
-            </Badge>
-          </div>
+        <CardHeader>
+          <MarketHeader market={props.market} />
         </CardHeader>
 
         <CardContent className="grid grid-rows-3 gap-5">
