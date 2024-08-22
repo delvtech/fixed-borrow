@@ -49,7 +49,7 @@ export function BorrowPage() {
   }
 
   return (
-    <main className="my-16 flex flex-col gap-y-24">
+    <main className="my-8 flex flex-col gap-y-24">
       <div className="flex flex-col gap-y-12">
         {market && position ? (
           <BorrowFlow market={market} position={position} />

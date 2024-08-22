@@ -189,7 +189,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
       <Card>
         <CardHeader>
           <p className="gradient-text w-fit font-chakra text-h4 font-semibold">
-            Add Coverage
+            Buy Coverage
           </p>
         </CardHeader>
         <CardContent className="grid gap-8 rounded-xl bg-card">
@@ -205,7 +205,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 </Button>
               </div>
 
-              <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-[0.5px] focus-within:outline-primary">
+              <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
                 <input
                   className="h-full grow rounded-sm border-none bg-popover p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   placeholder="0"
