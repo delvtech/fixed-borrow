@@ -183,7 +183,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
   }
 
   return (
-    <div className="m-auto flex w-full max-w-xl flex-col gap-8 bg-transparent px-8">
+    <div className="m-auto flex w-full max-w-xl flex-col gap-8 bg-transparent">
       <MarketHeader market={props.market} />
 
       <Card>
@@ -193,135 +193,99 @@ export function BorrowFlow(props: BorrowFlowProps) {
           </p>
         </CardHeader>
         <CardContent className="grid gap-8 rounded-xl bg-card">
-          <div className="col-span-3 flex flex-col gap-y-6 xl:col-span-1">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-secondary-foreground">Amount</p>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-secondary-foreground">Amount</p>
+                <Button
+                  variant="ghost"
+                  className="h-min rounded-[4px] p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
+                >
+                  <Settings size={16} />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-[0.5px] focus-within:outline-primary">
+                <input
+                  className="h-full grow rounded-sm border-none bg-popover p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  placeholder="0"
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+
+                <Badge className="m-2 flex h-6 items-center gap-1 border-none bg-accent p-2 py-4 font-sans font-medium hover:bg-none">
+                  <img
+                    src={props.market.loanToken.iconUrl}
+                    className="size-4"
+                  />{" "}
+                  {props.market.loanToken.symbol}
+                </Badge>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex gap-x-2">
                   <Button
-                    variant="ghost"
-                    className="h-min rounded-[4px] p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
+                    value={0.25}
+                    onClick={handleQuickTokenInput}
+                    className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
                   >
-                    <Settings size={16} />
+                    25%
+                  </Button>
+                  <Button
+                    value={0.5}
+                    onClick={handleQuickTokenInput}
+                    className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
+                  >
+                    50%
+                  </Button>
+                  <Button
+                    value={0.75}
+                    onClick={handleQuickTokenInput}
+                    className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
+                  >
+                    75%
+                  </Button>
+                  <Button
+                    value={1}
+                    onClick={handleQuickTokenInput}
+                    className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
+                  >
+                    MAX
                   </Button>
                 </div>
-
-                <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-[0.5px] focus-within:outline-primary">
-                  <input
-                    className="h-full grow rounded-sm border-none bg-popover p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                    placeholder="0"
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                  />
-
-                  <Badge className="m-2 flex h-6 items-center gap-1 border-none bg-accent p-2 py-4 font-sans font-medium hover:bg-none">
-                    <img
-                      src={props.market.loanToken.iconUrl}
-                      className="size-4"
-                    />{" "}
-                    {props.market.loanToken.symbol}
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-x-2">
-                    <Button
-                      value={0.25}
-                      onClick={handleQuickTokenInput}
-                      className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                    >
-                      25%
-                    </Button>
-                    <Button
-                      value={0.5}
-                      onClick={handleQuickTokenInput}
-                      className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                    >
-                      50%
-                    </Button>
-                    <Button
-                      value={0.75}
-                      onClick={handleQuickTokenInput}
-                      className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                    >
-                      75%
-                    </Button>
-                    <Button
-                      value={1}
-                      onClick={handleQuickTokenInput}
-                      className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                    >
-                      MAX
-                    </Button>
-                  </div>
-                </div>
               </div>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <p className="text-sm text-secondary-foreground">Duration</p>
-              <Select defaultValue="365" disabled>
-                <SelectTrigger className="text-h w-full bg-accent">
-                  <SelectValue placeholder="Select term duration..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="365">365 days</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <p className="text-sm text-secondary-foreground">Duration</p>
+            <Select defaultValue="365" disabled>
+              <SelectTrigger className="h-12 w-full rounded-sm bg-accent text-lg">
+                <SelectValue placeholder="Select term duration..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="365">365 days</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <Separator />
-
-            <div className="grid grid-cols-2">
-              <div className="flex flex-col gap-2 text-sm">
-                <p className="text-secondary-foreground">Your Fixed Rate</p>
-                <div className="space-y-1">
-                  {!!formattedNetRate ? (
-                    <p className="w-fit font-mono text-h4">
-                      {formattedNetRate}
-                    </p>
-                  ) : (
-                    <Skeleton className="h-[30px] w-[70px] rounded-sm bg-white/10" />
-                  )}
-                  {!!rateImpact ? (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger className="flex items-center gap-1 text-xs text-secondary-foreground">
-                          <p className="font-mono text-xs text-secondary-foreground">
-                            Rate Impact {rateImpact}
-                          </p>
-                          <Info
-                            className="text-secondary-foreground"
-                            size={14}
-                          />
-                        </TooltipTrigger>
-
-                        <TooltipContent className="max-w-64 space-y-4">
-                          N/A
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : (
-                    <Skeleton className="h-[14px] rounded-sm bg-white/10" />
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col items-end gap-2 text-sm">
-                <p className="text-secondary-foreground">You Pay</p>
-                <div className="space-y-1">
-                  {!costOfCoverageLoading ? (
-                    <p className="text-right font-mono text-h4">
-                      {formattedCostOfCoverage}
-                    </p>
-                  ) : (
-                    <Skeleton className="h-[30px] rounded-sm bg-white/10" />
-                  )}
+          <div className="grid grid-cols-2">
+            <div className="flex flex-col gap-2 text-sm">
+              <p className="text-secondary-foreground">Your Fixed Rate</p>
+              <div className="space-y-1">
+                {!!formattedNetRate ? (
+                  <p className="w-fit font-mono text-h4">{formattedNetRate}</p>
+                ) : (
+                  <Skeleton className="h-[30px] w-[70px] rounded-sm bg-white/10" />
+                )}
+                {!!rateImpact ? (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger className="flex items-center gap-1 text-xs text-secondary-foreground">
-                        <p>What am I paying for?</p>
+                        <p className="font-mono text-xs text-secondary-foreground">
+                          Rate Impact {rateImpact}
+                        </p>
                         <Info className="text-secondary-foreground" size={14} />
                       </TooltipTrigger>
 
@@ -330,58 +294,85 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                </div>
+                ) : (
+                  <Skeleton className="h-[14px] rounded-sm bg-white/10" />
+                )}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Button size="lg" className="h-12 w-full text-lg font-normal">
-                Lock in your rate
-              </Button>
+            <div className="flex flex-col items-end gap-2 text-sm">
+              <p className="text-secondary-foreground">You Pay</p>
+              <div className="space-y-1">
+                {!costOfCoverageLoading ? (
+                  <p className="text-right font-mono text-h4">
+                    {formattedCostOfCoverage}
+                  </p>
+                ) : (
+                  <Skeleton className="h-[30px] rounded-sm bg-white/10" />
+                )}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="flex items-center gap-1 text-xs text-secondary-foreground">
+                      <p>What am I paying for?</p>
+                      <Info className="text-secondary-foreground" size={14} />
+                    </TooltipTrigger>
+
+                    <TooltipContent className="max-w-64 space-y-4">
+                      N/A
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
-
-            <Separator />
-
-            <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-              <CollapsibleTrigger className="-mt-2 flex w-full items-center text-start text-secondary-foreground">
-                Details
-                <ChevronDown className="ml-auto inline h-4 w-4 text-secondary-foreground" />
-              </CollapsibleTrigger>
-
-              <CollapsibleContent className="mt-4 space-y-4">
-                <div className="flex justify-between text-sm">
-                  <p className="text-secondary-foreground">
-                    Your Projected Max Borrow APY
-                  </p>
-                  <p className="font-mono">10.70%</p>
-                </div>
-
-                <div className="flex justify-between text-sm">
-                  <p className="text-secondary-foreground">Maturity Date</p>
-                  <p className="font-mono">31-Aug-2025</p>
-                </div>
-
-                <div className="flex justify-between text-sm">
-                  <p className="text-secondary-foreground">
-                    Projected Max Fixed Debt (365 days)
-                  </p>
-                  <p className="font-mono">189,987.77 USDC</p>
-                </div>
-
-                <div className="flex justify-between text-sm">
-                  <p className="text-secondary-foreground">
-                    Current Borrow APY (Morpho)
-                  </p>
-                  <p className="font-mono">9.31%</p>
-                </div>
-
-                <div className="flex justify-between text-sm">
-                  <p className="text-secondary-foreground">Slippage</p>
-                  <p className="font-mono">~0.5%</p>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
           </div>
+
+          <div className="space-y-2">
+            <Button size="lg" className="h-12 w-full text-lg font-normal">
+              Lock in your rate
+            </Button>
+          </div>
+
+          <Separator />
+
+          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger className="-mt-2 flex w-full items-center text-start text-sm text-secondary-foreground">
+              Details
+              <ChevronDown className="ml-auto inline h-4 w-4 text-secondary-foreground" />
+            </CollapsibleTrigger>
+
+            <CollapsibleContent className="mt-4 space-y-4">
+              <div className="flex justify-between text-sm">
+                <p className="text-secondary-foreground">
+                  Your Projected Max Borrow APY
+                </p>
+                <p className="font-mono">10.70%</p>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <p className="text-secondary-foreground">Maturity Date</p>
+                <p className="font-mono">31-Aug-2025</p>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <p className="text-secondary-foreground">
+                  Projected Max Fixed Debt (365 days)
+                </p>
+                <p className="font-mono">189,987.77 USDC</p>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <p className="text-secondary-foreground">
+                  Current Borrow APY (Morpho)
+                </p>
+                <p className="font-mono">9.31%</p>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <p className="text-secondary-foreground">Slippage</p>
+                <p className="font-mono">~0.5%</p>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </CardContent>
       </Card>
     </div>

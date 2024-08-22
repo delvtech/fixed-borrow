@@ -7,7 +7,7 @@ export function Navbar() {
   // const { mutate: mint, status } = useTestPosition(market)
 
   return (
-    <div className="grid grid-cols-3 items-center border-b px-8 py-4">
+    <div className="grid grid-cols-3 items-center px-8 py-4">
       <div>
         <Link href="/">
           <svg
