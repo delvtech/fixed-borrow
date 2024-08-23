@@ -226,11 +226,11 @@ export function BorrowFlow(props: BorrowFlowProps) {
   }
 
   const quickAmountValues = quickTokenAmountWeights.map((weight) => {
-    const totalDebt = fixed(props.position.totalDebt).mul(parseFixed(weight))
+    const amount = fixed(props.position.totalDebt).mul(parseFixed(weight))
 
     return {
       weight,
-      amount: totalDebt,
+      amount,
     }
   })
 
