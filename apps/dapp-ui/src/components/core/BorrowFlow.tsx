@@ -26,13 +26,14 @@ import {
 } from "components/base/tooltip"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { useApproval } from "hooks/base/useApproval"
-import { useBorrowRateQuote } from "hooks/borrow/useBorrowRateQuote"
+import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { isNil } from "lodash-es"
 import { ChevronDown, Info, Settings } from "lucide-react"
 import { useReducer, useState } from "react"
 import { formatTermLength } from "utils/formatTermLength"
 import { maxUint256 } from "viem"
-import { useAccount, usePublicClient, useWalletClient } from "wagmi"
+import { useAccount, useChainId, usePublicClient, useWalletClient } from "wagmi"
+import { SupportedChainId } from "~/constants"
 import { BorrowPosition, Market } from "../../types"
 
 type State = {
@@ -72,6 +73,60 @@ interface BorrowFlowProps {
   position: BorrowPosition
 }
 
+function useBorrowFlowData(market: Market, bondAmount: bigint) {
+  const client = usePublicClient()
+  const chainId = useChainId()
+
+  return useQuery({
+    queryKey: [
+      "fixed-borrowing-cost",
+      bondAmount.toString(),
+      market.hyperdrive,
+      chainId,
+    ],
+    enabled: !!client && !isNil(bondAmount),
+
+    queryFn: async () => {
+      const readHyperdrive = new ReadHyperdrive({
+        address: market.hyperdrive,
+        publicClient: client!,
+      })
+
+      const reader = new MorphoMarketReader(
+        client!,
+        chainId as SupportedChainId
+      )
+
+      // const maxShort = await readHyperdrive.getMaxShort()
+
+      let rateQuote = fixed(await reader.quoteRate(market))
+      let rateImpact = fixed(0)
+      let traderDeposit = fixed(0)
+
+      if (bondAmount > 0n) {
+        const previewShortResult = await readHyperdrive.previewOpenShort({
+          amountOfBondsToShort: bondAmount!,
+          asBase: true,
+        })
+
+        traderDeposit = fixed(previewShortResult.traderDeposit)
+
+        rateImpact = fixed(previewShortResult.spotRateAfterOpen).sub(rateQuote)
+
+        rateQuote = fixed(
+          await reader.quoteRate(market, previewShortResult.spotRateAfterOpen)
+        )
+      }
+
+      return {
+        rateQuote,
+        rateImpact,
+        traderDeposit,
+      }
+    },
+  })
+}
+
 export function BorrowFlow(props: BorrowFlowProps) {
   const decimals = props.market.loanToken.decimals
 
@@ -86,41 +141,13 @@ export function BorrowFlow(props: BorrowFlowProps) {
   })
   const [isOpen, setIsOpen] = useState(false)
 
-  const { data: rateQuote } = useBorrowRateQuote(props.market)
-
-  const { data: costOfCoverage, isLoading: costOfCoverageLoading } = useQuery({
-    queryKey: [
-      "cost-coverage",
-      state.bondAmount.toString(),
-      props.market.hyperdrive,
-    ],
-    queryFn: async () => {
-      const readHyperdrive = new ReadHyperdrive({
-        address: props.market.hyperdrive,
-        publicClient: client!,
-      })
-
-      const maxShort = await readHyperdrive.getMaxShort()
-
-      if (maxShort.maxBondsOut < state.bondAmount!)
-        console.warn("Not enough liquidity")
-
-      return readHyperdrive.previewOpenShort({
-        amountOfBondsToShort: state.bondAmount!,
-        asBase: true,
-      })
-    },
-    enabled: !!client && !!state.bondAmount,
-  })
-  const { data: rateQuoteAfterOpen } = useBorrowRateQuote(
-    props.market,
-    costOfCoverage?.spotRateAfterOpen
-  )
+  const { data: borrowFlowData, isLoading: borrowFlowDataLoading } =
+    useBorrowFlowData(props.market, state.bondAmount)
 
   const { needsApproval, approve, allowance } = useApproval(
     props.market.loanToken.address,
     props.market.hyperdrive,
-    costOfCoverage?.traderDeposit
+    borrowFlowData?.traderDeposit.bigint
   )
 
   const { value: durationValue, scale: durationScale } = formatTermLength(
@@ -128,28 +155,20 @@ export function BorrowFlow(props: BorrowFlowProps) {
   )
   const formattedDuration = durationValue + " " + durationScale
 
-  const pickRateQuoteValue = () => {
-    if (state.bondAmount === 0n) {
-      // return the spot rate
-      return rateQuote
-    } else {
-      return rateQuoteAfterOpen
-    }
-  }
-  const pickedRateQuote = pickRateQuoteValue()
-  const formattedNetRate = pickedRateQuote
-    ? fixed(pickedRateQuote, 16).format({
+  const formattedRateQuote = borrowFlowData?.rateQuote
+    ? borrowFlowData.rateQuote.format({
         decimals: 2,
-      }) + "%"
+        percent: true,
+      })
     : undefined
 
   const formattedTotalDebt = fixed(props.position.totalDebt, decimals).format({
     decimals: 2,
   })
 
-  const formattedCostOfCoverage = costOfCoverage?.traderDeposit
+  const formattedCostOfCoverage = borrowFlowData?.traderDeposit
     ? fixed(
-        costOfCoverage.traderDeposit,
+        borrowFlowData.traderDeposit,
         props.market.loanToken.decimals
       ).format({
         decimals: 2,
@@ -158,25 +177,12 @@ export function BorrowFlow(props: BorrowFlowProps) {
       props.market.loanToken.symbol
     : "0 " + props.market.loanToken.symbol
 
-  const computeRateImpact = () => {
-    if (state.bondAmount === 0n) {
-      return "0.00%"
-    }
-
-    if (rateQuote && rateQuoteAfterOpen && rateQuoteAfterOpen > rateQuote) {
-      return (
-        "+" +
-        fixed(rateQuoteAfterOpen)
-          .sub(fixed(rateQuote))
-          .mul(parseFixed(100))
-          .format({
-            decimals: 2,
-            percent: true,
-          })
-      )
-    }
-  }
-  const rateImpact = computeRateImpact()
+  const formattedRateImpact = borrowFlowData
+    ? borrowFlowData.rateImpact.format({
+        decimals: 2,
+        percent: true,
+      })
+    : undefined
 
   // TODO
   const handleQuickTokenInput: React.MouseEventHandler<
@@ -318,17 +324,19 @@ export function BorrowFlow(props: BorrowFlowProps) {
             <div className="flex flex-col gap-2 text-sm">
               <p className="text-secondary-foreground">Your Fixed Rate</p>
               <div className="space-y-1">
-                {!!formattedNetRate ? (
-                  <p className="w-fit font-mono text-h4">{formattedNetRate}</p>
+                {!!formattedRateQuote ? (
+                  <p className="w-fit font-mono text-h4">
+                    {formattedRateQuote}
+                  </p>
                 ) : (
                   <Skeleton className="h-[30px] w-[70px] rounded-sm bg-white/10" />
                 )}
-                {!!rateImpact ? (
+                {!!formattedRateImpact ? (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger className="flex items-center gap-1 text-xs text-secondary-foreground">
                         <p className="font-mono text-xs text-secondary-foreground">
-                          Rate Impact {rateImpact}
+                          Rate Impact {formattedRateImpact}
                         </p>
                         <Info className="text-secondary-foreground" size={14} />
                       </TooltipTrigger>
@@ -347,7 +355,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
             <div className="flex flex-col items-end gap-2 text-sm">
               <p className="text-secondary-foreground">You Pay</p>
               <div className="space-y-1">
-                {!costOfCoverageLoading ? (
+                {!borrowFlowDataLoading ? (
                   <p className="text-right font-mono text-h4">
                     {formattedCostOfCoverage}
                   </p>
