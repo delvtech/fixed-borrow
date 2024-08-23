@@ -1,4 +1,4 @@
-import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
+import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
 import { ReadHyperdrive, ReadWriteHyperdrive } from "@delvtech/hyperdrive-viem"
 import { useQuery } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
@@ -25,6 +25,7 @@ import {
   TooltipTrigger,
 } from "components/base/tooltip"
 import { MarketHeader } from "components/markets/MarketHeader"
+import { cn } from "components/utils"
 import { useApproval } from "hooks/base/useApproval"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { isNil } from "lodash-es"
@@ -35,6 +36,8 @@ import { maxUint256 } from "viem"
 import { useAccount, useChainId, usePublicClient, useWalletClient } from "wagmi"
 import { SupportedChainId } from "~/constants"
 import { BorrowPosition, Market } from "../../types"
+
+const quickTokenAmountWeights = [0.25, 0.5, 0.75, 1] as const
 
 type State = {
   step: "buy" | "reciept"
@@ -184,19 +187,14 @@ export function BorrowFlow(props: BorrowFlowProps) {
       })
     : undefined
 
-  const handleQuickTokenInput: React.MouseEventHandler<HTMLButtonElement> = (
-    event
-  ) => {
-    const weight = Number(event.currentTarget.value)
-    const totalDebt = fixed(props.position.totalDebt).mul(parseFixed(weight))
-
+  const handleQuickAmountAction = (amount: FixedPoint) => {
     const input = document.getElementById("bondAmountInput") as HTMLInputElement
-    input.value = totalDebt.toString()
+    input.value = amount.toString()
 
     dispatch({
       type: "bondAmountInput",
       payload: {
-        amount: totalDebt.toString(),
+        amount: amount.toString(),
       },
     })
   }
@@ -226,6 +224,15 @@ export function BorrowFlow(props: BorrowFlowProps) {
       },
     })
   }
+
+  const quickAmountValues = quickTokenAmountWeights.map((weight) => {
+    const totalDebt = fixed(props.position.totalDebt).mul(parseFixed(weight))
+
+    return {
+      weight,
+      amount: totalDebt,
+    }
+  })
 
   return (
     <div className="m-auto flex w-full max-w-xl flex-col gap-8 bg-transparent">
@@ -278,34 +285,24 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
               <div className="flex items-center justify-between">
                 <div className="flex gap-x-2">
-                  <Button
-                    value={0.25}
-                    onClick={handleQuickTokenInput}
-                    className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                  >
-                    25%
-                  </Button>
-                  <Button
-                    value={0.5}
-                    onClick={handleQuickTokenInput}
-                    className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                  >
-                    50%
-                  </Button>
-                  <Button
-                    value={0.75}
-                    onClick={handleQuickTokenInput}
-                    className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                  >
-                    75%
-                  </Button>
-                  <Button
-                    value={1}
-                    onClick={handleQuickTokenInput}
-                    className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                  >
-                    MAX
-                  </Button>
+                  {quickAmountValues.map((quickAction) => (
+                    <Button
+                      onClick={() =>
+                        handleQuickAmountAction(quickAction.amount)
+                      }
+                      className={cn(
+                        "h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground",
+                        {
+                          "text-foreground/75 hover:text-foreground/75":
+                            state.bondAmount === quickAction.amount.bigint,
+                        }
+                      )}
+                    >
+                      {quickAction.weight === 1
+                        ? "Max"
+                        : `${quickAction.weight * 100}%`}
+                    </Button>
+                  ))}
                 </div>
 
                 <p className="text-right text-sm text-secondary-foreground">
