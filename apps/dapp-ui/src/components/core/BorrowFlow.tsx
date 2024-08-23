@@ -1,4 +1,4 @@
-import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
+import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
 import { ReadHyperdrive, ReadWriteHyperdrive } from "@delvtech/hyperdrive-viem"
 import { useQuery } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
@@ -25,6 +25,7 @@ import {
   TooltipTrigger,
 } from "components/base/tooltip"
 import { MarketHeader } from "components/markets/MarketHeader"
+import { cn } from "components/utils"
 import { useApproval } from "hooks/base/useApproval"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { isNil } from "lodash-es"
@@ -35,6 +36,8 @@ import { maxUint256 } from "viem"
 import { useAccount, useChainId, usePublicClient, useWalletClient } from "wagmi"
 import { SupportedChainId } from "~/constants"
 import { BorrowPosition, Market } from "../../types"
+
+const quickTokenAmountWeights = [0.25, 0.5, 0.75, 1] as const
 
 type State = {
   step: "buy" | "reciept"
@@ -184,13 +187,16 @@ export function BorrowFlow(props: BorrowFlowProps) {
       })
     : undefined
 
-  // TODO
-  const handleQuickTokenInput: React.MouseEventHandler<
-    HTMLButtonElement
-  > = () => {
-    // const weight = Number(event.currentTarget.value)
-    // const totalDebt = fixed(borrowPositionDebt).mul(parseFixed(weight))
-    // // setAmount(totalDebt.toString())
+  const handleQuickAmountAction = (amount: FixedPoint) => {
+    const input = document.getElementById("bondAmountInput") as HTMLInputElement
+    input.value = amount.toString()
+
+    dispatch({
+      type: "bondAmountInput",
+      payload: {
+        amount: amount.toString(),
+      },
+    })
   }
 
   const transactionButtonDisabled = state.bondAmount === 0n
@@ -218,6 +224,15 @@ export function BorrowFlow(props: BorrowFlowProps) {
       },
     })
   }
+
+  const quickAmountValues = quickTokenAmountWeights.map((weight) => {
+    const amount = fixed(props.position.totalDebt).mul(parseFixed(weight))
+
+    return {
+      weight,
+      amount,
+    }
+  })
 
   return (
     <div className="m-auto flex w-full max-w-xl flex-col gap-8 bg-transparent">
@@ -247,6 +262,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   className="h-full w-full grow rounded-sm border-none bg-popover p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   placeholder="0"
                   type="number"
+                  id="bondAmountInput"
                   disabled={isNil(allowance)}
                   onChange={(e) => {
                     dispatch({
@@ -269,34 +285,24 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
               <div className="flex items-center justify-between">
                 <div className="flex gap-x-2">
-                  <Button
-                    value={0.25}
-                    onClick={handleQuickTokenInput}
-                    className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                  >
-                    25%
-                  </Button>
-                  <Button
-                    value={0.5}
-                    onClick={handleQuickTokenInput}
-                    className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                  >
-                    50%
-                  </Button>
-                  <Button
-                    value={0.75}
-                    onClick={handleQuickTokenInput}
-                    className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                  >
-                    75%
-                  </Button>
-                  <Button
-                    value={1}
-                    onClick={handleQuickTokenInput}
-                    className="h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                  >
-                    MAX
-                  </Button>
+                  {quickAmountValues.map((quickAction) => (
+                    <Button
+                      onClick={() =>
+                        handleQuickAmountAction(quickAction.amount)
+                      }
+                      className={cn(
+                        "h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground",
+                        {
+                          "text-foreground/75 hover:text-foreground/75":
+                            state.bondAmount === quickAction.amount.bigint,
+                        }
+                      )}
+                    >
+                      {quickAction.weight === 1
+                        ? "Max"
+                        : `${quickAction.weight * 100}%`}
+                    </Button>
+                  ))}
                 </div>
 
                 <p className="text-right text-sm text-secondary-foreground">
@@ -382,7 +388,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
             {needsApproval ? (
               <Button
                 size="lg"
-                className="h-12 w-full text-lg font-normal"
+                className="h-12 w-full text-lg"
                 disabled={transactionButtonDisabled}
                 onClick={approve}
               >
@@ -391,7 +397,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
             ) : (
               <Button
                 size="lg"
-                className="h-12 w-full text-lg font-normal"
+                className="h-12 w-full text-lg"
                 disabled={transactionButtonDisabled}
                 onClick={handleOpenShort}
               >
