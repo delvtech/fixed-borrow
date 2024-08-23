@@ -18,7 +18,7 @@ export function useApproval(
   })
 
   const needsApproval =
-    enabled && allowance && amount ? allowance >= amount : false
+    enabled && allowance && amount ? allowance < amount : false
 
   const approve = () => {
     if (enabled && amount && amount > 0n) {

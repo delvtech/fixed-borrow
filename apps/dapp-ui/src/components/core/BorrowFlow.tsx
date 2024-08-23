@@ -184,13 +184,21 @@ export function BorrowFlow(props: BorrowFlowProps) {
       })
     : undefined
 
-  // TODO
-  const handleQuickTokenInput: React.MouseEventHandler<
-    HTMLButtonElement
-  > = () => {
-    // const weight = Number(event.currentTarget.value)
-    // const totalDebt = fixed(borrowPositionDebt).mul(parseFixed(weight))
-    // // setAmount(totalDebt.toString())
+  const handleQuickTokenInput: React.MouseEventHandler<HTMLButtonElement> = (
+    event
+  ) => {
+    const weight = Number(event.currentTarget.value)
+    const totalDebt = fixed(props.position.totalDebt).mul(parseFixed(weight))
+
+    const input = document.getElementById("bondAmountInput") as HTMLInputElement
+    input.value = totalDebt.toString()
+
+    dispatch({
+      type: "bondAmountInput",
+      payload: {
+        amount: totalDebt.toString(),
+      },
+    })
   }
 
   const transactionButtonDisabled = state.bondAmount === 0n
@@ -247,6 +255,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   className="h-full w-full grow rounded-sm border-none bg-popover p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   placeholder="0"
                   type="number"
+                  id="bondAmountInput"
                   disabled={isNil(allowance)}
                   onChange={(e) => {
                     dispatch({
@@ -382,7 +391,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
             {needsApproval ? (
               <Button
                 size="lg"
-                className="h-12 w-full text-lg font-normal"
+                className="h-12 w-full text-lg"
                 disabled={transactionButtonDisabled}
                 onClick={approve}
               >
@@ -391,7 +400,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
             ) : (
               <Button
                 size="lg"
-                className="h-12 w-full text-lg font-normal"
+                className="h-12 w-full text-lg"
                 disabled={transactionButtonDisabled}
                 onClick={handleOpenShort}
               >
