@@ -1,0 +1,25 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "dotenv.enableAutocloaking": false,
+  "cSpell.words": [
+    "chainlog",
+    "delv",
+    "delvtech",
+    "dnum",
+    "fixedpointmath",
+    "hyperwasm",
+    "ihyperdrive",
+    "mintable",
+    "numberish",
+    "pageview",
+    "pageviews",
+    "reimagined",
+    "signale",
+    "tanstack",
+    "thiserror",
+    "viem"
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib"
+}

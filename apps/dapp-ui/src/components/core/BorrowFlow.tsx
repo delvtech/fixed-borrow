@@ -171,8 +171,8 @@ export function BorrowFlow(props: BorrowFlowProps) {
           .mul(parseFixed(100))
           .format({
             decimals: 2,
-          }) +
-        "%"
+            percent: true,
+          })
       )
     }
   }

@@ -46,10 +46,10 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
             })}
           />
 
-          <BorrowPositionCardStat
+          {/* <BorrowPositionCardStat
             title="Volitility"
             value={<p className="text-md font-light text-primary/90">Low</p>}
-          />
+          /> */}
         </CardContent>
       </Card>
 

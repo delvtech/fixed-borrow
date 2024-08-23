@@ -1,6 +1,6 @@
+import { fixed } from "@delvtech/fixed-point-wasm"
 import { useMutation } from "@tanstack/react-query"
 import { MorphoBlueAbi } from "lib/morpho/abi/MorphoBlueAbi"
-import { wMulDown } from "lib/morpho/utils"
 import { erc20Abi, maxUint256, parseAbi } from "viem"
 import {
   useAccount,
@@ -161,7 +161,7 @@ export function useTestPosition(market?: Market) {
             collateralToken: market.collateralToken.address,
             loanToken: market.loanToken.address,
           },
-          wMulDown(maxMintAmount, market.lltv),
+          fixed(maxMintAmount).mul(85, 2).bigint,
           0n,
           destination,
           destination,
