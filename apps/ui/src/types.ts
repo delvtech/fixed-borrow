@@ -60,15 +60,15 @@ export interface Token {
   iconUrl?: string
 }
 
+export interface RateHistory {
+  lowestRate: bigint
+  highestRate: bigint
+  averageRate: bigint
+}
+
 export interface BorrowPosition {
   /** The underlying market. */
   market: Market
-
-  /** Total collateral in 18 decimals. */
-  totalCollateral: bigint
-
-  /** Total collateral priced in USD. */
-  totalCollateralUsd?: string
 
   /** Total debt in 18 point decimal. */
   totalDebt: bigint
@@ -76,22 +76,12 @@ export interface BorrowPosition {
   /** Total debt priced in USD. */
   totalDebtUsd?: string
 
-  /** Loan to value. */
-  ltv: number
-
-  /** Price of one unit of collateral in which a liquidation will be triggered. */
-  liquidationPrice?: bigint
-
   fixedRate: bigint
 
   /** Current borrow APY as a decimal ex .12 = 12% */
   currentRate: bigint
 
-  rates?: {
-    highestRate: number
-    lowestRate: number
-    averageRate: number
-  }
+  rates?: RateHistory
 }
 
 export type ArrayElement<A> = A extends readonly (infer T)[] ? T : never
