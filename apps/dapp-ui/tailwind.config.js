@@ -91,6 +91,9 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        skyBlue: {
+          DEFAULT: "hsl(var(--sky-blue))",
+        },
       },
       borderRadius: {
         xl: "calc(var(--radius) * 2)",

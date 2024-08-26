@@ -1,6 +1,6 @@
 import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
 import { ReadHyperdrive, ReadWriteHyperdrive } from "@delvtech/hyperdrive-viem"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
@@ -29,29 +29,42 @@ import { cn } from "components/utils"
 import { useApproval } from "hooks/base/useApproval"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { isNil } from "lodash-es"
-import { ChevronDown, Info, Settings } from "lucide-react"
+import { ChevronDown, ExternalLink, Info, Settings } from "lucide-react"
 import { useReducer, useState } from "react"
+import { match } from "ts-pattern"
 import { formatTermLength } from "utils/formatTermLength"
-import { maxUint256 } from "viem"
+import { Address, maxUint256 } from "viem"
 import { useAccount, useChainId, usePublicClient, useWalletClient } from "wagmi"
+import { Link } from "wouter"
 import { SupportedChainId } from "~/constants"
 import { BorrowPosition, Market } from "../../types"
 
 const quickTokenAmountWeights = [0.25, 0.5, 0.75, 1] as const
 
 type State = {
-  step: "buy" | "reciept"
+  step: "buy" | "loading" | "receipt"
   decimals: number
   bondAmount: bigint
+  hash?: Address
 }
 
-type Action = {
-  type: "bondAmountInput"
-  payload: {
-    amount: string
-    // allowance: bigint
-  }
-}
+type Action =
+  | {
+      type: "bondAmountInput"
+      payload: {
+        amount: string
+      }
+    }
+  | {
+      type: "transactionSent"
+      payload: {
+        hash: Address
+      }
+    }
+  | {
+      type: "transactionComplete"
+      payload: {}
+    }
 
 const reducer = (state: State, action: Action): State => {
   const { type, payload } = action
@@ -65,6 +78,22 @@ const reducer = (state: State, action: Action): State => {
         bondAmount: parsedAmount,
       }
     }
+
+    case "transactionSent": {
+      return {
+        ...state,
+        step: "loading",
+        hash: payload.hash,
+      }
+    }
+
+    case "transactionComplete": {
+      return {
+        ...state,
+        step: "receipt",
+      }
+    }
+
     default: {
       return state
     }
@@ -105,27 +134,68 @@ function useBorrowFlowData(market: Market, bondAmount: bigint) {
       let rateQuote = fixed(await reader.quoteRate(market))
       let rateImpact = fixed(0)
       let traderDeposit = fixed(0)
+      let error: string | null = null
 
       if (bondAmount > 0n) {
-        const previewShortResult = await readHyperdrive.previewOpenShort({
-          amountOfBondsToShort: bondAmount!,
-          asBase: true,
-        })
+        try {
+          const previewShortResult = await readHyperdrive.previewOpenShort({
+            amountOfBondsToShort: bondAmount!,
+            asBase: true,
+          })
 
-        traderDeposit = fixed(previewShortResult.traderDeposit)
+          traderDeposit = fixed(previewShortResult.traderDeposit)
 
-        rateImpact = fixed(previewShortResult.spotRateAfterOpen).sub(rateQuote)
+          rateImpact = fixed(previewShortResult.spotRateAfterOpen).sub(
+            rateQuote
+          )
 
-        rateQuote = fixed(
-          await reader.quoteRate(market, previewShortResult.spotRateAfterOpen)
-        )
+          rateQuote = fixed(
+            await reader.quoteRate(market, previewShortResult.spotRateAfterOpen)
+          )
+        } catch (e) {
+          // Possibly not always the case
+          error = "Not Enough Liquidity"
+        }
       }
 
       return {
         rateQuote,
         rateImpact,
         traderDeposit,
+        error,
       }
+    },
+  })
+}
+
+function useOpenShort() {
+  const client = usePublicClient()
+  const { address: account } = useAccount()
+  const { data: walletClient } = useWalletClient()
+
+  return useMutation({
+    mutationFn: async (vars: { bondAmount: bigint; hyperdrive: Address }) => {
+      // early termination
+      if (isNil(vars.bondAmount) || isNil(walletClient) || isNil(client)) return
+      if (vars.bondAmount <= 0n) return
+      if (!account) return
+
+      const writeHyperdrive = new ReadWriteHyperdrive({
+        address: vars.hyperdrive,
+        publicClient: client,
+        walletClient,
+      })
+
+      return await writeHyperdrive.openShort({
+        args: {
+          destination: account,
+          minVaultSharePrice: 0n,
+          maxDeposit: maxUint256,
+          asBase: true,
+          bondAmount: vars.bondAmount,
+          extraData: "0x",
+        },
+      })
     },
   })
 }
@@ -134,8 +204,8 @@ export function BorrowFlow(props: BorrowFlowProps) {
   const decimals = props.market.loanToken.decimals
 
   const client = usePublicClient()
-  const { address: account } = useAccount()
-  const { data: walletClient } = useWalletClient()
+  // const { address: account } = useAccount()
+  // const { data: walletClient } = useWalletClient()
 
   const [state, dispatch] = useReducer(reducer, {
     step: "buy",
@@ -152,6 +222,34 @@ export function BorrowFlow(props: BorrowFlowProps) {
     props.market.hyperdrive,
     borrowFlowData?.traderDeposit.bigint
   )
+
+  const { mutateAsync: openShort } = useOpenShort()
+  const handleOpenShort = async () => {
+    if (state.bondAmount <= 0 || !client) return
+
+    const hash = await openShort({
+      bondAmount: state.bondAmount,
+      hyperdrive: props.market.hyperdrive,
+    })
+
+    if (hash) {
+      dispatch({
+        type: "transactionSent",
+        payload: {
+          hash,
+        },
+      })
+
+      await client.waitForTransactionReceipt({
+        hash,
+      })
+
+      dispatch({
+        type: "transactionComplete",
+        payload: {},
+      })
+    }
+  }
 
   const { value: durationValue, scale: durationScale } = formatTermLength(
     props.market.duration
@@ -178,7 +276,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
       }) +
       " " +
       props.market.loanToken.symbol
-    : "0 " + props.market.loanToken.symbol
+    : undefined
 
   const formattedRateImpact = borrowFlowData
     ? borrowFlowData.rateImpact.format({
@@ -201,30 +299,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
   const transactionButtonDisabled = state.bondAmount === 0n
 
-  const handleOpenShort = async () => {
-    // early termination
-    if (isNil(state.bondAmount) || isNil(walletClient) || isNil(client)) return
-    if (state.bondAmount <= 0n) return
-    if (!account) return
-
-    const writeHyperdrive = new ReadWriteHyperdrive({
-      address: props.market.hyperdrive,
-      publicClient: client,
-      walletClient,
-    })
-
-    await writeHyperdrive.openShort({
-      args: {
-        destination: account,
-        minVaultSharePrice: 0n,
-        maxDeposit: maxUint256,
-        asBase: true,
-        bondAmount: state.bondAmount,
-        extraData: "0x",
-      },
-    })
-  }
-
   const quickAmountValues = quickTokenAmountWeights.map((weight) => {
     const amount = fixed(props.position.totalDebt).mul(parseFixed(weight))
 
@@ -239,182 +313,293 @@ export function BorrowFlow(props: BorrowFlowProps) {
       <MarketHeader market={props.market} />
 
       <Card>
-        <CardHeader>
-          <p className="gradient-text w-fit font-chakra text-h4 font-semibold">
-            Buy Coverage
-          </p>
-        </CardHeader>
-        <CardContent className="grid gap-8 rounded-xl bg-card">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-secondary-foreground">Amount</p>
-                <Button
-                  variant="ghost"
-                  className="h-min rounded-[4px] p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                >
-                  <Settings size={16} />
-                </Button>
-              </div>
+        {state.step === "buy" && (
+          <CardHeader>
+            <p className="gradient-text w-fit font-chakra text-h4 font-semibold">
+              Buy Coverage
+            </p>
+          </CardHeader>
+        )}
 
-              <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
-                <input
-                  className="h-full w-full grow rounded-sm border-none bg-popover p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  placeholder="0"
-                  type="number"
-                  id="bondAmountInput"
-                  disabled={isNil(allowance)}
-                  onChange={(e) => {
-                    dispatch({
-                      type: "bondAmountInput",
-                      payload: {
-                        amount: e.target.value ?? "0",
-                      },
-                    })
-                  }}
-                />
-
-                <Badge className="m-2 flex h-6 items-center justify-center gap-1 border-none bg-accent p-2 py-4 font-sans font-medium hover:bg-none">
-                  <img
-                    src={props.market.loanToken.iconUrl}
-                    className="size-4"
-                  />{" "}
-                  {props.market.loanToken.symbol}
-                </Badge>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex gap-x-2">
-                  {quickAmountValues.map((quickAction) => (
+        {match(state.step)
+          .with("buy", () => (
+            <CardContent className="grid gap-8 rounded-xl bg-card">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-secondary-foreground">Amount</p>
                     <Button
-                      onClick={() =>
-                        handleQuickAmountAction(quickAction.amount)
-                      }
-                      className={cn(
-                        "h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground",
-                        {
-                          "text-foreground/75 hover:text-foreground/75":
-                            state.bondAmount === quickAction.amount.bigint,
-                        }
-                      )}
+                      variant="ghost"
+                      className="h-min rounded-[4px] p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
                     >
-                      {quickAction.weight === 1
-                        ? "Max"
-                        : `${quickAction.weight * 100}%`}
+                      <Settings size={16} />
                     </Button>
-                  ))}
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
+                    <input
+                      className="h-full w-full grow rounded-sm border-none bg-popover p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      placeholder="0"
+                      type="number"
+                      id="bondAmountInput"
+                      disabled={isNil(allowance)}
+                      onChange={(e) => {
+                        dispatch({
+                          type: "bondAmountInput",
+                          payload: {
+                            amount: e.target.value ?? "0",
+                          },
+                        })
+                      }}
+                    />
+
+                    <Badge className="m-2 flex h-6 items-center justify-center gap-1 border-none bg-accent p-2 py-4 font-sans font-medium hover:bg-none">
+                      <img
+                        src={props.market.loanToken.iconUrl}
+                        className="size-4"
+                      />{" "}
+                      {props.market.loanToken.symbol}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-x-2">
+                      {quickAmountValues.map((quickAction) => (
+                        <Button
+                          key={`quick-action-${quickAction.weight}`}
+                          onClick={() =>
+                            handleQuickAmountAction(quickAction.amount)
+                          }
+                          className={cn(
+                            "h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground",
+                            {
+                              "text-foreground/75 hover:text-foreground/75":
+                                state.bondAmount === quickAction.amount.bigint,
+                            }
+                          )}
+                        >
+                          {quickAction.weight === 1
+                            ? "Max"
+                            : `${quickAction.weight * 100}%`}
+                        </Button>
+                      ))}
+                    </div>
+
+                    <p className="text-right text-sm text-secondary-foreground">
+                      Total Debt: {formattedTotalDebt}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm text-secondary-foreground">Duration</p>
+                <Select defaultValue={formattedDuration} disabled>
+                  <SelectTrigger className="h-12 w-full rounded-sm bg-accent text-lg">
+                    <SelectValue placeholder="Select term duration..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={formattedDuration}>
+                      {formattedDuration}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {!borrowFlowData?.error && (
+                <div className="grid grid-cols-2">
+                  <div className="flex flex-col gap-2 text-sm">
+                    <p className="text-secondary-foreground">Your Fixed Rate</p>
+                    <div className="space-y-1">
+                      {!isNil(formattedRateQuote) ? (
+                        <p className="w-fit font-mono text-h4">
+                          {formattedRateQuote}
+                        </p>
+                      ) : (
+                        <Skeleton className="h-[30px] w-[70px] rounded-sm bg-white/10" />
+                      )}
+                      {!!formattedRateImpact ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger className="flex items-center gap-1 text-xs text-secondary-foreground">
+                              <p className="font-mono text-xs text-secondary-foreground">
+                                Rate Impact {formattedRateImpact}
+                              </p>
+                              <Info
+                                className="text-secondary-foreground"
+                                size={14}
+                              />
+                            </TooltipTrigger>
+
+                            <TooltipContent className="max-w-64 space-y-4">
+                              N/A
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <Skeleton className="h-[14px] rounded-sm bg-white/10" />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-2 text-sm">
+                    <p className="text-secondary-foreground">You Pay</p>
+                    <div className="space-y-1">
+                      {!borrowFlowDataLoading ? (
+                        <p className="text-right font-mono text-h4">
+                          {formattedCostOfCoverage}
+                        </p>
+                      ) : (
+                        <Skeleton className="h-[30px] rounded-sm bg-white/10" />
+                      )}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger className="flex items-center gap-1 text-xs text-secondary-foreground">
+                            <p>What am I paying for?</p>
+                            <Info
+                              className="text-secondary-foreground"
+                              size={14}
+                            />
+                          </TooltipTrigger>
+
+                          <TooltipContent className="max-w-64 space-y-4">
+                            N/A
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                {needsApproval ? (
+                  <Button
+                    size="lg"
+                    className="h-12 w-full text-lg"
+                    disabled={transactionButtonDisabled}
+                    onClick={approve}
+                  >
+                    Approve {props.market.loanToken.symbol}
+                  </Button>
+                ) : borrowFlowData?.error ? (
+                  <Button
+                    size="lg"
+                    className="h-12 w-full text-lg"
+                    disabled
+                    onClick={handleOpenShort}
+                  >
+                    Not Enough Liquidity
+                  </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    className="h-12 w-full text-lg"
+                    disabled={transactionButtonDisabled}
+                    onClick={handleOpenShort}
+                  >
+                    Lock in your rate
+                  </Button>
+                )}
+              </div>
+
+              <Separator />
+
+              <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+                <CollapsibleTrigger className="-mt-2 flex w-full items-center text-start text-sm text-secondary-foreground">
+                  Details
+                  <ChevronDown className="ml-auto inline h-4 w-4 text-secondary-foreground" />
+                </CollapsibleTrigger>
+
+                <CollapsibleContent className="mt-4 space-y-4">
+                  <div className="flex justify-between text-sm">
+                    <p className="text-secondary-foreground">
+                      Your Projected Max Borrow APY
+                    </p>
+                    <p className="font-mono">10.70%</p>
+                  </div>
+
+                  <div className="flex justify-between text-sm">
+                    <p className="text-secondary-foreground">Maturity Date</p>
+                    <p className="font-mono">31-Aug-2025</p>
+                  </div>
+
+                  <div className="flex justify-between text-sm">
+                    <p className="text-secondary-foreground">
+                      Projected Max Fixed Debt (365 days)
+                    </p>
+                    <p className="font-mono">189,987.77 USDC</p>
+                  </div>
+
+                  <div className="flex justify-between text-sm">
+                    <p className="text-secondary-foreground">
+                      Current Borrow APY (Morpho)
+                    </p>
+                    <p className="font-mono">9.31%</p>
+                  </div>
+
+                  <div className="flex justify-between text-sm">
+                    <p className="text-secondary-foreground">Slippage</p>
+                    <p className="font-mono">~0.5%</p>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </CardContent>
+          ))
+          .with("loading", () => (
+            <CardContent className="grid gap-8 rounded-xl bg-card pt-6">
+              <div className="flex flex-col items-center space-y-2">
+                <div className="w-min rounded-full bg-accent p-4">
+                  <svg
+                    className="animate-spin"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 1.43099e-07C18.6274 2.2213e-07 24 5.37258 24 12C24 18.6274 18.6274 24 12 24C5.37258 24 6.40674e-08 18.6274 1.43099e-07 12C2.2213e-07 5.37258 5.37258 6.40674e-08 12 1.43099e-07ZM12 20.04C16.4404 20.04 20.04 16.4404 20.04 12C20.04 7.55963 16.4404 3.96 12 3.96C7.55963 3.96 3.96 7.55963 3.96 12C3.96 16.4404 7.55963 20.04 12 20.04Z"
+                      fill="url(#paint0_angular_153_1604)"
+                    />
+
+                    <defs>
+                      <radialGradient
+                        id="paint0_angular_153_1604"
+                        cx="0"
+                        cy="0"
+                        r="1.25"
+                        gradientUnits="userSpaceOnUse"
+                        gradientTransform="translate(36 36) scale(36)"
+                      >
+                        <stop stop-color="#15ffab" />
+                        <stop
+                          offset="1"
+                          stop-color="#14D0F9"
+                          stop-opacity="0.4"
+                        />
+                      </radialGradient>
+                    </defs>
+                  </svg>
                 </div>
 
-                <p className="text-right text-sm text-secondary-foreground">
-                  Total Debt: {formattedTotalDebt}
-                </p>
-              </div>
-            </div>
-          </div>
+                <h5 className="font-chakra font-medium">
+                  Transaction Pending...
+                </h5>
 
-          <div className="space-y-2">
-            <p className="text-sm text-secondary-foreground">Duration</p>
-            <Select defaultValue={formattedDuration} disabled>
-              <SelectTrigger className="h-12 w-full rounded-sm bg-accent text-lg">
-                <SelectValue placeholder="Select term duration..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={formattedDuration}>
-                  {formattedDuration}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2">
-            <div className="flex flex-col gap-2 text-sm">
-              <p className="text-secondary-foreground">Your Fixed Rate</p>
-              <div className="space-y-1">
-                {!!formattedRateQuote ? (
-                  <p className="w-fit font-mono text-h4">
-                    {formattedRateQuote}
+                <a
+                  href="https://www.etherscan.com"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <p className="text-skyBlue flex items-center gap-1 text-sm hover:underline">
+                    View on Explorer <ExternalLink size={14} />
                   </p>
-                ) : (
-                  <Skeleton className="h-[30px] w-[70px] rounded-sm bg-white/10" />
-                )}
-                {!!formattedRateImpact ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger className="flex items-center gap-1 text-xs text-secondary-foreground">
-                        <p className="font-mono text-xs text-secondary-foreground">
-                          Rate Impact {formattedRateImpact}
-                        </p>
-                        <Info className="text-secondary-foreground" size={14} />
-                      </TooltipTrigger>
-
-                      <TooltipContent className="max-w-64 space-y-4">
-                        N/A
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <Skeleton className="h-[14px] rounded-sm bg-white/10" />
-                )}
+                </a>
               </div>
-            </div>
 
-            <div className="flex flex-col items-end gap-2 text-sm">
-              <p className="text-secondary-foreground">You Pay</p>
-              <div className="space-y-1">
-                {!borrowFlowDataLoading ? (
-                  <p className="text-right font-mono text-h4">
-                    {formattedCostOfCoverage}
-                  </p>
-                ) : (
-                  <Skeleton className="h-[30px] rounded-sm bg-white/10" />
-                )}
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger className="flex items-center gap-1 text-xs text-secondary-foreground">
-                      <p>What am I paying for?</p>
-                      <Info className="text-secondary-foreground" size={14} />
-                    </TooltipTrigger>
+              <p className="font-medium">Summary</p>
 
-                    <TooltipContent className="max-w-64 space-y-4">
-                      N/A
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            {needsApproval ? (
-              <Button
-                size="lg"
-                className="h-12 w-full text-lg"
-                disabled={transactionButtonDisabled}
-                onClick={approve}
-              >
-                Approve {props.market.loanToken.symbol}
-              </Button>
-            ) : (
-              <Button
-                size="lg"
-                className="h-12 w-full text-lg"
-                disabled={transactionButtonDisabled}
-                onClick={handleOpenShort}
-              >
-                Lock in your rate
-              </Button>
-            )}
-          </div>
-
-          <Separator />
-
-          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-            <CollapsibleTrigger className="-mt-2 flex w-full items-center text-start text-sm text-secondary-foreground">
-              Details
-              <ChevronDown className="ml-auto inline h-4 w-4 text-secondary-foreground" />
-            </CollapsibleTrigger>
-
-            <CollapsibleContent className="mt-4 space-y-4">
               <div className="flex justify-between text-sm">
                 <p className="text-secondary-foreground">
                   Your Projected Max Borrow APY
@@ -445,9 +630,89 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 <p className="text-secondary-foreground">Slippage</p>
                 <p className="font-mono">~0.5%</p>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </CardContent>
+            </CardContent>
+          ))
+          .with("receipt", () => (
+            <CardContent className="grid gap-8 rounded-xl bg-card pt-6">
+              <div className="flex flex-col items-center space-y-2">
+                <div className="w-min rounded-full bg-accent p-4">
+                  <svg
+                    width="26"
+                    height="24"
+                    viewBox="0 0 26 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M24.5908 4.79934L9.78382 19.5307L1.40967 11.1993L2.54685 10.068L9.78382 17.268L23.4537 3.66797L24.5908 4.79934Z"
+                      fill="#36D399"
+                    />
+                  </svg>
+                </div>
+
+                <h5 className="font-chakra font-medium">
+                  Transaction confirmed...
+                </h5>
+
+                <a
+                  href="https://www.etherscan.com"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <p className="text-skyBlue flex items-center gap-1 text-sm hover:underline">
+                    View on Explorer <ExternalLink size={14} />
+                  </p>
+                </a>
+              </div>
+              <p className="font-medium">Summary</p>
+
+              <div className="flex justify-between text-sm">
+                <p className="text-secondary-foreground">
+                  Your Projected Max Borrow APY
+                </p>
+                <p className="font-mono">10.70%</p>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <p className="text-secondary-foreground">Maturity Date</p>
+                <p className="font-mono">31-Aug-2025</p>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <p className="text-secondary-foreground">
+                  Projected Max Fixed Debt (365 days)
+                </p>
+                <p className="font-mono">189,987.77 USDC</p>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <p className="text-secondary-foreground">
+                  Current Borrow APY (Morpho)
+                </p>
+                <p className="font-mono">9.31%</p>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <p className="text-secondary-foreground">Slippage</p>
+                <p className="font-mono">~0.5%</p>
+              </div>
+
+              <div className="w-full space-y-2">
+                <Link href="/positions" asChild>
+                  <Button className="w-full">View My Position</Button>
+                </Link>
+
+                <Link href="/" asChild>
+                  <Button variant="secondary" className="w-full">
+                    Close Receipt
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          ))
+          .exhaustive()}
       </Card>
     </div>
   )
