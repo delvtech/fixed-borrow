@@ -1,5 +1,5 @@
 {
-  "name": "@hyperdrive-borrow/artifacts",
+  "name": "artifacts",
   "version": "0.0.1",
   "private": true,
   "type": "module",

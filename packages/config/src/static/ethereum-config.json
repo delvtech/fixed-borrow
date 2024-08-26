@@ -12,7 +12,7 @@
       "symbol": "sUSDe",
       "name": "Staked USDe",
       "decimals": 18,
-      "iconUrl": "https://assets.coingecko.com/coins/images/33669/large/sUSDe-Symbol-Color.png"
+      "iconUrl": "https://cdn.morpho.org/assets/logos/usde.svg"
     }
   ],
   "morphoMarkets": [
@@ -31,7 +31,7 @@
         "symbol": "sUSDe",
         "name": "Staked USDe",
         "decimals": 18,
-        "iconUrl": "https://assets.coingecko.com/coins/images/33669/large/sUSDe-Symbol-Color.png"
+        "iconUrl": "https://cdn.morpho.org/assets/logos/usde.svg"
       },
       "oracle": "0x5D916980D5Ae1737a8330Bf24dF812b2911Aae25",
       "irm": "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
