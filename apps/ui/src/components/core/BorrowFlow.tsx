@@ -130,7 +130,6 @@ function useBorrowFlowData(market: Market, bondAmount: bigint) {
       )
 
       // const maxShort = await readHyperdrive.getMaxShort()
-
       let rateQuote = fixed(await reader.quoteRate(market))
       let rateImpact = fixed(0)
       let traderDeposit = fixed(0)
@@ -592,7 +591,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   target="_blank"
                   rel="noopener"
                 >
-                  <p className="text-skyBlue flex items-center gap-1 text-sm hover:underline">
+                  <p className="flex items-center gap-1 text-sm text-skyBlue hover:underline">
                     View on Explorer <ExternalLink size={14} />
                   </p>
                 </a>
@@ -661,7 +660,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   target="_blank"
                   rel="noopener"
                 >
-                  <p className="text-skyBlue flex items-center gap-1 text-sm hover:underline">
+                  <p className="flex items-center gap-1 text-sm text-skyBlue hover:underline">
                     View on Explorer <ExternalLink size={14} />
                   </p>
                 </a>

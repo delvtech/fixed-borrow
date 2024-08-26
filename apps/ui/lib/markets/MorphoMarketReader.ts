@@ -1,4 +1,4 @@
-import { fixed } from "@delvtech/fixed-point-wasm"
+import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
 import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import {
   AccrualPosition,
@@ -7,7 +7,6 @@ import {
   MarketUtils,
   Market as MorphoMarket,
 } from "@morpho-org/blue-sdk"
-import "@morpho-org/blue-sdk-viem/lib/augment/Position"
 import { AdaptiveCurveIrmAbi } from "lib/morpho/abi/AdaptiveCurveIrmAbi"
 import { MorphoBlueAbi } from "lib/morpho/abi/MorphoBlueAbi"
 import { OracleAbi } from "lib/morpho/abi/OracleAbi"
@@ -146,11 +145,7 @@ export class MorphoMarketReader extends MarketReader {
         )
       : undefined
 
-    const hyperdrive = new ReadHyperdrive({
-      address: market.hyperdrive,
-      publicClient: this.client,
-    })
-    const fixedRate = await hyperdrive.getFixedApr()
+    const fixedRate = await this.quoteRate(market)
 
     const totalDebt = position.borrowAssets
     const totalDebtUsd = fixed(position.borrowAssets)
@@ -451,19 +446,19 @@ export class MorphoMarketReader extends MarketReader {
     })
 
     // Constants numbers represented in 18 decimals.
-    const ONE = fixed(1)
+    const ONE = parseFixed(1)
 
     /**
      * 0.35 is the worst-case utilization rate
      * Reference: {@link https://hackmd.io/1hfGguwoTMiT4L2kCSAnAQ}
      */
     const borrowRate = AdaptiveCurveIrmLib.getBorrowRate(
-      fixed(0.35).bigint,
+      parseFixed(0.35).bigint,
       rateAtTarget,
       0
     )
     const supplyRate = MarketUtils.getSupplyRate(borrowRate.avgBorrowRate, {
-      utilization: fixed(0.35).bigint,
+      utilization: parseFixed(0.35).bigint,
       fee: 0n,
     })
     const borrowApy = MarketUtils.getApy(borrowRate.avgBorrowRate)
