@@ -9,6 +9,9 @@ interface DebtCardProps {
   position: BorrowPosition
 }
 
+/**
+ * @deprecated
+ */
 export function DebtCard({ position }: DebtCardProps) {
   const coveredDebt = 0n
   const outstandingDebt = 0n
