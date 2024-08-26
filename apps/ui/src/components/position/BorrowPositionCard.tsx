@@ -13,8 +13,6 @@ type BorrowPositionCardProps = BorrowPosition
 export function BorrowPositionCard(props: BorrowPositionCardProps) {
   const decimals = props.market.loanToken.decimals
 
-  console.log(props.currentRate)
-
   const currentRate = fixed(props.currentRate ?? 0n)
   const currentFixedRate = fixed(props.fixedRate)
 
