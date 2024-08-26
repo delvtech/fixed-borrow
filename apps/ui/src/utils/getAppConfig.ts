@@ -1,7 +1,7 @@
 import { Address } from "viem"
 import { SupportedChainId } from "../constants"
 
-import { mainnetConfig, sepoliaConfig } from "@hyperdrive-borrow/config"
+import { mainnetConfig, sepoliaConfig } from "config"
 import { mainnet } from "viem/chains"
 import { ArrayElement, Market } from "../types"
 

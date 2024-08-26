@@ -39,8 +39,18 @@ export const whitelistedMetaMorphoMarketsByChain: Record<
   [sepolia.id]: [
     {
       morphoId:
+        "0xb9049de02baa044eb4bf58fc00f772c310bac9e9d1857c3517aa9d41b12fe762",
+      hyperdrive: "0x00583284597c48A5de4753A2374076C289B93505",
+    },
+    {
+      morphoId:
         "0x25265c1600f7ba171c1037d6a3b431516e817efa9b580d8089cdb51ba719da96",
       hyperdrive: "0xE352F4D16C7Ee4162d1aa54b77A15d4DA8f35f4b",
+    },
+    {
+      morphoId:
+        "0x3ac16258a0f8e99f393bf117c45048187f87beacc8d7873d52436a003726b2d5",
+      hyperdrive: "0x0399BBA8DE5959007148a95ADaaD04eA3172513E",
     },
   ],
 };
@@ -48,6 +58,8 @@ export const whitelistedMetaMorphoMarketsByChain: Record<
 export const tokenIconBySymbol: Record<string, string> = {
   DAI: "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.svg?v=032",
   SDAI: "https://1827921443-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FjvdfbhgN5UCpMtP1l8r5%2Fuploads%2Fgit-blob-9873db4416f6c6f7f29d9be3ead28f5317f3dfa3%2FBadge_Dai%202.svg?alt=media",
-  sUSDe:
-    "https://assets.coingecko.com/coins/images/33669/large/sUSDe-Symbol-Color.png",
+  sUSDe: "https://cdn.morpho.org/assets/logos/usde.svg",
+  USDe: "https://cdn.morpho.org/assets/logos/susde.svg",
+  wstETH: "https://cdn.morpho.org/assets/logos/wsteth.svg",
+  USDC: "https://cryptologos.cc/logos/usd-coin-usdc-logo.svg?v=033",
 };
