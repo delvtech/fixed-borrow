@@ -198,39 +198,84 @@ export class MorphoMarketReader extends MarketReader {
     )
 
     const marketParams = markets.map((market) => ({
+      id: market.metadata.id as MarketId,
       loanToken: market.loanToken.address,
       collateralToken: market.collateralToken.address,
       oracle: market.metadata.oracle,
       irm: market.metadata.irm,
       lltv: market.lltv,
+      liquidationIncentiveFactor: 0n,
     }))
 
     if (morphoMarketStates.length !== marketParams.length)
       throw new Error("getAllMarketsInfo fetching failed: Invalid sizes.")
 
-    const morphoMarketBorrowRates = await Promise.all(
-      morphoMarketStates.map(
-        async (state, i) =>
+    const morphoMarkets = await Promise.all(
+      markets.map(async (market) => {
+        const marketConfig = {
+          id: market.metadata.id as MarketId,
+          loanToken: market.loanToken.address,
+          collateralToken: market.collateralToken.address,
+          oracle: market.collateralToken.address,
+          irm: market.metadata.irm,
+          lltv: market.lltv,
+          liquidationIncentiveFactor: 1n,
+        }
+
+        // Fetch market state.
+        const [
+          totalSupplyAssets,
+          totalSupplyShares,
+          totalBorrowAssets,
+          totalBorrowShares,
+          lastUpdate,
+          fee,
+        ] = await this.client.readContract({
+          abi: MorphoBlueAbi,
+          address: this.morphoBlueAddress,
+          functionName: "market",
+          args: [market.metadata.id],
+        })
+
+        const [price, rateAtTarget] = await Promise.all([
+          this.client.readContract({
+            abi: OracleAbi,
+            address: market.metadata.oracle,
+            functionName: "price",
+          }),
           await this.client.readContract({
             abi: AdaptiveCurveIrmAbi,
             address: this.irmAddress,
             functionName: "borrowRateView",
             args: [
-              marketParams[i],
+              marketConfig,
               {
-                totalBorrowAssets: state.totalBorrowAssets,
-                totalBorrowShares: state.totalBorrowShares,
-                totalSupplyAssets: state.totalSupplyAssets,
-                totalSupplyShares: state.totalSupplyShares,
-                fee: state.fee,
-                lastUpdate: state.lastUpdate,
+                totalBorrowAssets,
+                totalBorrowShares,
+                totalSupplyAssets,
+                totalSupplyShares,
+                fee,
+                lastUpdate,
               },
             ],
-          })
-      )
+          }),
+        ])
+
+        return new MorphoMarket({
+          config: marketConfig,
+          totalSupplyAssets,
+          totalSupplyShares,
+          totalBorrowAssets,
+          totalBorrowShares,
+          lastUpdate,
+          fee,
+          price,
+          rateAtTarget,
+        })
+      })
     )
 
-    const apys = morphoMarketBorrowRates.map((rate) => MarketUtils.getApy(rate))
+    const apys = morphoMarkets.map((m) => m.borrowApy)
 
     return Promise.all(
       markets.map(async (market, i) => {
