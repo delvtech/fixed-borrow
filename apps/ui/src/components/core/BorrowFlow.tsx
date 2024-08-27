@@ -148,9 +148,12 @@ function useBorrowFlowData(market: Market, bondAmount: bigint) {
 
           traderDeposit = fixed(previewShortResult.traderDeposit)
 
-          rateImpact = fixed(previewShortResult.spotRateAfterOpen).sub(
-            rateQuote
+          const rateQuoteAfterOpen = await reader.quoteRate(
+            market,
+            previewShortResult.spotRateAfterOpen
           )
+
+          rateImpact = fixed(rateQuoteAfterOpen).sub(rateQuote)
 
           rateQuote = fixed(
             await reader.quoteRate(market, previewShortResult.spotRateAfterOpen)

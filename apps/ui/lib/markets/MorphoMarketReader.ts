@@ -51,7 +51,7 @@ export class MorphoMarketReader extends MarketReader {
   async getBorrowPosition(
     account: Address,
     market: Market
-  ): Promise<BorrowPosition | undefined> {
+  ): Promise<BorrowPosition> {
     const marketConfig = {
       id: market.metadata.id as MarketId,
       loanToken: market.loanToken.address,
@@ -72,9 +72,9 @@ export class MorphoMarketReader extends MarketReader {
       })
 
     // Early termination if no borrow position exists.
-    if (borrowShares <= 0) {
-      return Promise.resolve(undefined)
-    }
+    // if (borrowShares <= 0) {
+    //   return Promise.resolve(undefined)
+    // }
 
     // Fetch the market state.
     const [
@@ -101,18 +101,8 @@ export class MorphoMarketReader extends MarketReader {
       await this.client.readContract({
         abi: AdaptiveCurveIrmAbi,
         address: this.irmAddress,
-        functionName: "borrowRateView",
-        args: [
-          marketConfig,
-          {
-            totalBorrowAssets,
-            totalBorrowShares,
-            totalSupplyAssets,
-            totalSupplyShares,
-            fee,
-            lastUpdate,
-          },
-        ],
+        functionName: "rateAtTarget",
+        args: [marketConfig.id],
       }),
     ])
 
@@ -127,6 +117,8 @@ export class MorphoMarketReader extends MarketReader {
       price,
       rateAtTarget,
     })
+
+    console.log(morphoMarket.borrowApy, morphoMarket.rateAtTarget)
 
     const position = new AccrualPosition(
       {
@@ -263,18 +255,8 @@ export class MorphoMarketReader extends MarketReader {
           await this.client.readContract({
             abi: AdaptiveCurveIrmAbi,
             address: this.irmAddress,
-            functionName: "borrowRateView",
-            args: [
-              marketConfig,
-              {
-                totalBorrowAssets,
-                totalBorrowShares,
-                totalSupplyAssets,
-                totalSupplyShares,
-                fee,
-                lastUpdate,
-              },
-            ],
+            functionName: "rateAtTarget",
+            args: [marketConfig.id],
           }),
         ])
 
