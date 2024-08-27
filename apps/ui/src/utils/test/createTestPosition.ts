@@ -77,8 +77,6 @@ export function useTestPosition(market?: Market) {
           ? maxMintAmountCollateral
           : maxMintAmountLoan
 
-      console.log(maxMintAmountLoan, maxMintAmountCollateral)
-
       let hash = await walletClient.writeContract({
         abi: parseAbi([
           "function mint(address destination, uint256 mintAmount)",

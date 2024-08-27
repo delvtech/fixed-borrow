@@ -13,6 +13,7 @@ import {
 } from "@tanstack/react-table"
 import * as React from "react"
 
+import { fixed } from "@delvtech/fixed-point-wasm"
 import { Badge } from "components/base/badge"
 import {
   Table,
@@ -162,7 +163,10 @@ const columns: ColumnDef<MarketInfo>[] = [
     header: () => <div className="text-right">Borrow Rate</div>,
     cell: ({ row }) => (
       <div className="text-right font-mono lowercase">
-        {formatRate(row.getValue("borrowRate"))}
+        {fixed(row.getValue("borrowRate")).format({
+          decimals: 2,
+          percent: true,
+        })}
       </div>
     ),
   },

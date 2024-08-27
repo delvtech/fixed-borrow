@@ -9,8 +9,10 @@ import {
   tokenIconBySymbol,
   whitelistedMetaMorphoMarketsByChain,
 } from "./constants";
-import { MorphoBlueAbi } from "@hyperdrive-borrow/artifacts/morpho/MorphoBlueAbi";
-import { ERC20Abi } from "@hyperdrive-borrow/artifacts/base/ERC20";
+import { MorphoBlueAbi } from "artifacts/morpho/MorphoBlueAbi";
+import { ERC20Abi } from "artifacts/base/ERC20";
+
+// TODO @cashd: Improve performance of this script with batching RPC calls with Promise.all.
 
 export interface Token {
   symbol: string;
@@ -129,7 +131,7 @@ supportedChainIds.forEach(async (chainId) => {
         lltv: lltv.toString(),
         duration,
       };
-    }),
+    })
   );
 
   fs.writeFileSync(
@@ -137,6 +139,6 @@ supportedChainIds.forEach(async (chainId) => {
     JSON.stringify({
       tokens,
       morphoMarkets,
-    }),
+    })
   );
 });

@@ -1,25 +1,23 @@
+import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
 import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
-import * as dn from "dnum"
+import {
+  AccrualPosition,
+  AdaptiveCurveIrmLib,
+  MarketId,
+  MarketUtils,
+  Market as MorphoMarket,
+} from "@morpho-org/blue-sdk"
 import { AdaptiveCurveIrmAbi } from "lib/morpho/abi/AdaptiveCurveIrmAbi"
 import { MorphoBlueAbi } from "lib/morpho/abi/MorphoBlueAbi"
 import { OracleAbi } from "lib/morpho/abi/OracleAbi"
-import {
-  ORACLE_PRICE_SCALE,
-  SECONDS_PER_YEAR,
-  mulDivDown,
-  toAssetsUp,
-  wDivDown,
-  wMulDown,
-  wTaylorCompounded,
-} from "lib/morpho/utils"
-import {
-  Address,
-  ContractFunctionParameters,
-  PublicClient,
-  formatUnits,
-} from "viem"
+import { Address, PublicClient } from "viem"
 import { SupportedChainId, morphoAddressesByChain } from "../../src/constants"
-import { BorrowPosition, Market, MarketInfo } from "../../src/types"
+import {
+  BorrowPosition,
+  Market,
+  MarketInfo,
+  RateHistory,
+} from "../../src/types"
 import { getAppConfig } from "../../src/utils/getAppConfig"
 import { getTokenUsdPrice } from "../../src/utils/getTokenUsdPrice"
 import { MarketReader } from "./MarketsReader"
@@ -34,41 +32,51 @@ interface MorphoMarketState {
   fee: bigint
 }
 
-interface MorphoMarketRateHistory {
-  lowestRate: number
-  highestRate: number
-  averageRate: number
-}
-
 export class MorphoMarketReader extends MarketReader {
-  private morphoBlueAddress: Address
+  private morphoAddress: Address
   private irmAddress: Address
 
   constructor(client: PublicClient, chainId: SupportedChainId) {
     super(client, chainId)
-    this.morphoBlueAddress = morphoAddressesByChain[chainId].blue
+    this.morphoAddress = morphoAddressesByChain[chainId].blue
     this.irmAddress = morphoAddressesByChain[chainId].irm
   }
 
+  /**
+   * Implements fetching borrow position data from the Morpho Protocol.
+   * @param account The account with the loan..
+   * @param market The market that originates the loan.
+   * @returns {BorrowPosition}
+   */
   async getBorrowPosition(
     account: Address,
     market: Market
   ): Promise<BorrowPosition | undefined> {
-    // Fetch position shares
-    const [, borrowShares, collateral] = await this.client.readContract({
-      abi: MorphoBlueAbi,
-      address: this.morphoBlueAddress,
-      functionName: "position",
-      args: [market.metadata.id, account],
-    })
+    const marketConfig = {
+      id: market.metadata.id as MarketId,
+      loanToken: market.loanToken.address,
+      collateralToken: market.collateralToken.address,
+      oracle: market.collateralToken.address,
+      irm: market.metadata.irm,
+      lltv: market.lltv,
+      liquidationIncentiveFactor: 1n, // not used
+    }
 
-    // Early termination if the connect account does not have a borrow
-    // position open.
+    // Fetch the position owned by the user.
+    const [supplyShares, borrowShares, collateral] =
+      await this.client.readContract({
+        abi: MorphoBlueAbi,
+        address: this.morphoAddress,
+        functionName: "position",
+        args: [market.metadata.id, account],
+      })
+
+    // Early termination if no borrow position exists.
     if (borrowShares <= 0) {
       return Promise.resolve(undefined)
     }
 
-    // Fetch market state.
+    // Fetch the market state.
     const [
       totalSupplyAssets,
       totalSupplyShares,
@@ -78,75 +86,66 @@ export class MorphoMarketReader extends MarketReader {
       fee,
     ] = await this.client.readContract({
       abi: MorphoBlueAbi,
-      address: this.morphoBlueAddress,
+      address: this.morphoAddress,
       functionName: "market",
       args: [market.metadata.id],
     })
 
-    const borrowRate = await this.client.readContract({
-      abi: AdaptiveCurveIrmAbi,
-      address: this.irmAddress,
-      functionName: "borrowRateView",
-      args: [
-        {
-          loanToken: market.loanToken.address,
-          collateralToken: market.collateralToken.address,
-          oracle: market.collateralToken.address,
-          irm: market.metadata.irm,
-          lltv: market.lltv,
-        },
-        {
-          totalSupplyShares,
-          totalSupplyAssets,
-          totalBorrowAssets,
-          totalBorrowShares,
-          lastUpdate,
-          fee,
-        },
-      ],
-    })
+    // Batch RPC call the oracle price and rateAtTarget from the IRM.
+    const [price, rateAtTarget] = await Promise.all([
+      this.client.readContract({
+        abi: OracleAbi,
+        address: market.metadata.oracle,
+        functionName: "price",
+      }),
+      await this.client.readContract({
+        abi: AdaptiveCurveIrmAbi,
+        address: this.irmAddress,
+        functionName: "borrowRateView",
+        args: [
+          marketConfig,
+          {
+            totalBorrowAssets,
+            totalBorrowShares,
+            totalSupplyAssets,
+            totalSupplyShares,
+            fee,
+            lastUpdate,
+          },
+        ],
+      }),
+    ])
 
-    const borrowAssetsUser = toAssetsUp(
-      borrowShares,
+    const morphoMarket = new MorphoMarket({
+      config: marketConfig,
+      totalSupplyAssets,
+      totalSupplyShares,
       totalBorrowAssets,
-      totalBorrowShares
-    )
-
-    const borrowAPY = wTaylorCompounded(borrowRate, BigInt(SECONDS_PER_YEAR))
-
-    const oraclePrice = await this.client.readContract({
-      abi: OracleAbi,
-      address: market.metadata.oracle,
-      functionName: "price",
+      totalBorrowShares,
+      lastUpdate,
+      fee,
+      price,
+      rateAtTarget,
     })
 
-    const ltv = wDivDown(
-      borrowAssetsUser,
-      mulDivDown(collateral, oraclePrice, ORACLE_PRICE_SCALE)
+    const position = new AccrualPosition(
+      {
+        user: account,
+        supplyShares,
+        borrowShares,
+        collateral,
+      },
+      morphoMarket
     )
 
-    const collateralPrice = mulDivDown(
-      collateral,
-      oraclePrice,
-      ORACLE_PRICE_SCALE
-    )
-
-    const liqPrice = wDivDown(
-      borrowAssetsUser,
-      wMulDown(market.lltv, collateralPrice)
-    )
-
-    const collateralTokenPriceUsd = await getTokenUsdPrice(
-      this.chainId,
-      market.collateralToken.address
-    )
-
+    // Fetch an off-chain estimated token price of one base asset.
     const loanTokenPriceUsd = await getTokenUsdPrice(
       this.chainId,
       market.loanToken.address
     )
-    const pastBlock = await super.getPastBlock(Date.now() / 1000 - 2592000)
 
+    // Fetch the rate history and range going back an estimated 30 days.
+    const pastBlock = await super.getPastBlock(Date.now() / 1000 - 2592000)
     const rateHistory = pastBlock.number
       ? await this.getMarketRateHistory(
           market.metadata.id,
@@ -154,280 +153,145 @@ export class MorphoMarketReader extends MarketReader {
         )
       : undefined
 
-    const hyperdrive = new ReadHyperdrive({
-      address: market.hyperdrive,
-      publicClient: this.client,
-    })
+    // Fetch the current spot FRB rate.
+    const fixedRate = await this.quoteRate(market)
 
-    const fixedRate = await hyperdrive.getFixedApr()
+    const totalDebt = position.borrowAssets
+    const totalDebtUsd = fixed(position.borrowAssets)
+      .mul(loanTokenPriceUsd ?? 0n)
+      .formatCurrency()
+    const currentRate = morphoMarket.borrowApy
+    const rates = rateHistory
+      ? {
+          lowestRate: rateHistory.lowestRate,
+          highestRate: rateHistory.highestRate,
+          averageRate: rateHistory.averageRate,
+        }
+      : undefined
 
     return {
       market,
-      totalCollateral: collateral,
-      totalCollateralUsd: collateralTokenPriceUsd?.toString()
-        ? dn.format(
-            [
-              wMulDown(collateralTokenPriceUsd, collateral),
-              market.collateralToken.decimals,
-            ],
-            {
-              digits: 2,
-              trailingZeros: true,
-            }
-          )
-        : undefined,
-      totalDebt: borrowAssetsUser,
-      totalDebtUsd: loanTokenPriceUsd?.toString()
-        ? dn.format(
-            [
-              wMulDown(loanTokenPriceUsd, borrowAssetsUser),
-              market.loanToken.decimals,
-            ],
-            {
-              digits: 2,
-              trailingZeros: true,
-            }
-          )
-        : undefined,
+      totalDebt,
+      totalDebtUsd,
       fixedRate,
-      currentRate: borrowAPY,
-      rates: rateHistory
-        ? {
-            lowestRate: rateHistory.lowestRate,
-            highestRate: rateHistory.highestRate,
-            averageRate: rateHistory.averageRate,
-          }
-        : undefined,
-      ltv: Number(dn.format([ltv, 18], 2)),
-      liquidationPrice: liqPrice,
+      currentRate,
+      rates,
     }
   }
 
+  /**
+   * Fetches borrow positions from an account for all Hyperdrive supported
+   * Morpho markets.
+   * @param account The account with the loan..
+   * @returns {BorrowPosition}
+   */
   async getBorrowPositions(account: Address): Promise<BorrowPosition[]> {
+    // Get all supported Morpho markets from the config.
     const markets = getAppConfig(this.chainId).morphoMarkets
 
+    // Batch fetch using our atomic getBorrowPosition function and filter
+    // out markets without a user position.
     const accountBorrowPositions = (
       await Promise.all(
-        markets.map(async (market) => {
-          // Fetch position shares
-          const [, borrowShares, collateral] = await this.client.readContract({
-            abi: MorphoBlueAbi,
-            address: this.morphoBlueAddress,
-            functionName: "position",
-            args: [market.metadata.id, account],
-          })
-
-          // Early termination if the connect account does not have a borrow
-          // position open.
-          if (borrowShares <= 0) {
-            return Promise.resolve(undefined)
-          }
-
-          // Fetch market state.
-          const [
-            totalSupplyAssets,
-            totalSupplyShares,
-            totalBorrowAssets,
-            totalBorrowShares,
-            lastUpdate,
-            fee,
-          ] = await this.client.readContract({
-            abi: MorphoBlueAbi,
-            address: this.morphoBlueAddress,
-            functionName: "market",
-            args: [market.metadata.id],
-          })
-
-          // const [loanToken, collateralToken, oracle, irm, lltv] =
-          //   await this.client.readContract({
-          //     abi: MorphoBlueAbi,
-          //     address: this.morphoBlueAddress,
-          //     functionName: "idToMarketParams",
-          //     args: [market.metadata.id],
-          //   })
-
-          const borrowRate = await this.client.readContract({
-            abi: AdaptiveCurveIrmAbi,
-            address: this.irmAddress,
-            functionName: "borrowRateView",
-            args: [
-              {
-                loanToken: market.loanToken.address,
-                collateralToken: market.collateralToken.address,
-                oracle: market.collateralToken.address,
-                irm: market.metadata.irm,
-                lltv: market.lltv,
-              },
-              {
-                totalSupplyShares,
-                totalSupplyAssets,
-                totalBorrowAssets,
-                totalBorrowShares,
-                lastUpdate,
-                fee,
-              },
-            ],
-          })
-
-          const borrowAssetsUser = toAssetsUp(
-            borrowShares,
-            totalBorrowAssets,
-            totalBorrowShares
-          )
-
-          const borrowAPY = wTaylorCompounded(
-            borrowRate,
-            BigInt(SECONDS_PER_YEAR)
-          )
-
-          const oraclePrice = await this.client.readContract({
-            abi: OracleAbi,
-            address: market.metadata.oracle,
-            functionName: "price",
-          })
-
-          // todo fix ltv calcuation if user does not have position, maybe early return
-
-          const ltv = wDivDown(
-            borrowAssetsUser,
-            mulDivDown(collateral, oraclePrice, ORACLE_PRICE_SCALE)
-          )
-
-          const collateralPrice = mulDivDown(
-            collateral,
-            oraclePrice,
-            ORACLE_PRICE_SCALE
-          )
-
-          const liqPrice = wDivDown(
-            borrowAssetsUser,
-            wMulDown(market.lltv, collateralPrice)
-          )
-
-          const collateralTokenPriceUsd = await getTokenUsdPrice(
-            this.chainId,
-            market.collateralToken.address
-          )
-
-          const loanTokenPriceUsd = await getTokenUsdPrice(
-            this.chainId,
-            market.loanToken.address
-          )
-          const pastBlock = await super.getPastBlock(
-            Date.now() / 1000 - 2592000
-          )
-
-          const rateHistory = pastBlock.number
-            ? await this.getMarketRateHistory(
-                market.metadata.id,
-                BigInt(pastBlock.number)
-              )
-            : undefined
-
-          const hyperdrive = new ReadHyperdrive({
-            address: market.hyperdrive,
-            publicClient: this.client,
-          })
-
-          const fixedRate = await hyperdrive.getFixedApr()
-
-          return {
-            market,
-            totalCollateral: collateral,
-            totalCollateralUsd: collateralTokenPriceUsd
-              ? dn.format(
-                  [
-                    wMulDown(collateralTokenPriceUsd, collateral),
-                    market.collateralToken.decimals,
-                  ],
-                  {
-                    digits: 2,
-                    trailingZeros: true,
-                  }
-                )
-              : undefined,
-            totalDebt: borrowAssetsUser,
-            totalDebtUsd: loanTokenPriceUsd
-              ? dn.format(
-                  [
-                    wMulDown(loanTokenPriceUsd, borrowAssetsUser),
-                    market.loanToken.decimals,
-                  ],
-                  {
-                    digits: 2,
-                    trailingZeros: true,
-                  }
-                )
-              : undefined,
-            fixedRate,
-            currentRate: borrowAPY,
-            rates: rateHistory
-              ? {
-                  lowestRate: rateHistory.lowestRate,
-                  highestRate: rateHistory.highestRate,
-                  averageRate: rateHistory.averageRate,
-                }
-              : undefined,
-            ltv: Number(dn.format([ltv, 18], 2)),
-            liquidationPrice: liqPrice,
-          }
-        })
+        markets.map(async (market) => this.getBorrowPosition(account, market))
       )
     ).filter(Boolean) as BorrowPosition[]
 
     return accountBorrowPositions
   }
 
+  /**
+   * @notice This function can be more optimized.
+   * @returns {Promise<MarketInfo[]>}
+   */
   async getAllMarketsInfo(): Promise<MarketInfo[]> {
-    // Get whitelisted Morpho Blue markets from AppConfig
+    // Get all supported Morpho markets from the config.
     const appConfig = getAppConfig(this.chainId)
     const markets = appConfig.morphoMarkets
 
     const morphoMarketStates = await this.getMarketStateBatch(
       markets.map((market) => market.metadata.id),
-      this.morphoBlueAddress
+      this.morphoAddress
     )
 
-    const makeCall = (
-      params: {
-        loanToken: Address
-        collateralToken: Address
-        oracle: Address
-        irm: Address
-        lltv: bigint
-      },
-      state: MorphoMarketState
-    ): ContractFunctionParameters<
-      typeof AdaptiveCurveIrmAbi,
-      "view",
-      "borrowRateView"
-    > => {
-      return {
-        abi: AdaptiveCurveIrmAbi,
-        address: this.irmAddress,
-        functionName: "borrowRateView",
-        args: [params, state],
-      }
-    }
-
     const marketParams = markets.map((market) => ({
+      id: market.metadata.id as MarketId,
       loanToken: market.loanToken.address,
       collateralToken: market.collateralToken.address,
       oracle: market.metadata.oracle,
       irm: market.metadata.irm,
       lltv: market.lltv,
+      liquidationIncentiveFactor: 0n, // not used
     }))
 
-    const morphoMarketBorrowRates = (
-      await this.client.multicall({
-        contracts: morphoMarketStates.map((state, i) =>
-          makeCall(marketParams[i], state)
-        ),
-        allowFailure: false,
-      })
-    ).map((rate) => wTaylorCompounded(rate, BigInt(SECONDS_PER_YEAR)))
+    // Ensure that our two data-structures have the same length.
+    if (morphoMarketStates.length !== marketParams.length)
+      throw new Error("getAllMarketsInfo fetching failed: Invalid sizes.")
 
-    // ensure all data is same length
+    const morphoMarkets = await Promise.all(
+      markets.map(async (market) => {
+        const marketConfig = {
+          id: market.metadata.id as MarketId,
+          loanToken: market.loanToken.address,
+          collateralToken: market.collateralToken.address,
+          oracle: market.collateralToken.address,
+          irm: market.metadata.irm,
+          lltv: market.lltv,
+          liquidationIncentiveFactor: 1n,
+        }
+
+        const [
+          totalSupplyAssets,
+          totalSupplyShares,
+          totalBorrowAssets,
+          totalBorrowShares,
+          lastUpdate,
+          fee,
+        ] = await this.client.readContract({
+          abi: MorphoBlueAbi,
+          address: this.morphoAddress,
+          functionName: "market",
+          args: [market.metadata.id],
+        })
+
+        const [price, rateAtTarget] = await Promise.all([
+          this.client.readContract({
+            abi: OracleAbi,
+            address: market.metadata.oracle,
+            functionName: "price",
+          }),
+          await this.client.readContract({
+            abi: AdaptiveCurveIrmAbi,
+            address: this.irmAddress,
+            functionName: "borrowRateView",
+            args: [
+              marketConfig,
+              {
+                totalBorrowAssets,
+                totalBorrowShares,
+                totalSupplyAssets,
+                totalSupplyShares,
+                fee,
+                lastUpdate,
+              },
+            ],
+          }),
+        ])
+
+        return new MorphoMarket({
+          config: marketConfig,
+          totalSupplyAssets,
+          totalSupplyShares,
+          totalBorrowAssets,
+          totalBorrowShares,
+          lastUpdate,
+          fee,
+          price,
+          rateAtTarget,
+        })
+      })
+    )
+    const apys = morphoMarkets.map((m) => m.borrowApy)
 
     return Promise.all(
       markets.map(async (market, i) => {
@@ -438,7 +302,7 @@ export class MorphoMarketReader extends MarketReader {
         const liquidity = await hyperdrive.getPresentValue()
         const fixedRate = await hyperdrive.getFixedApr()
 
-        const borrowRate = morphoMarketBorrowRates[i]
+        const borrowRate = apys[i]
 
         return {
           market: {
@@ -469,23 +333,18 @@ export class MorphoMarketReader extends MarketReader {
    */
   async getMarketStateBatch(
     morphoIds: Address[],
-    morphoBlueAddress: Address
+    morphoAddress: Address
   ): Promise<Array<MorphoMarketState>> {
-    const makeCall = (
-      id: Address
-    ): ContractFunctionParameters<typeof MorphoBlueAbi, "view", "market"> => {
-      return {
-        abi: MorphoBlueAbi,
-        address: morphoBlueAddress,
-        functionName: "market",
-        args: [id],
-      }
-    }
-
-    const results = await this.client.multicall({
-      contracts: morphoIds.map(makeCall),
-      allowFailure: false,
-    })
+    const results = await Promise.all(
+      morphoIds.map((id) =>
+        this.client.readContract({
+          abi: MorphoBlueAbi,
+          address: morphoAddress,
+          functionName: "market",
+          args: [id],
+        })
+      )
+    )
 
     return results.map((result, i) => {
       const [
@@ -510,26 +369,9 @@ export class MorphoMarketReader extends MarketReader {
   }
 
   /**
-   * @description Utility function formats the borrow rate fetched from the
-   * AdaptiveCurveIRM smart contract to a human readable rate.
-   *
-   * @param borrowRate - Borrow rate from the IRM as a BigNumber
-   */
-  getFormattedRateFromBorrowRate(borrowRate: bigint): number {
-    return (
-      Number(
-        formatUnits(
-          wTaylorCompounded(BigInt(borrowRate), BigInt(SECONDS_PER_YEAR)),
-          18
-        )
-      ) * 100
-    )
-  }
-
-  /**
    * @description Utility function to return market rate history such as
    * the lowest, highest, and average rates for a period. It's possible that
-   * this function returns undefined. This scenerio is usually caused by
+   * this function returns undefined. This scenario is usually caused by
    * no rate data existing from the `fromBlock` to the current block.
    *
    * @param marketId - Morpho market id.
@@ -538,7 +380,7 @@ export class MorphoMarketReader extends MarketReader {
   async getMarketRateHistory(
     marketId: Address,
     fromBlock: bigint
-  ): Promise<MorphoMarketRateHistory | undefined> {
+  ): Promise<RateHistory | undefined> {
     // Fetch contract logs from RPC.
     const rateData = await this.client.getContractEvents({
       abi: AdaptiveCurveIrmAbi,
@@ -587,9 +429,9 @@ export class MorphoMarketReader extends MarketReader {
       }, 0n) / BigInt(rates.length)
 
     return {
-      lowestRate: this.getFormattedRateFromBorrowRate(lowestRate),
-      highestRate: this.getFormattedRateFromBorrowRate(highestRate),
-      averageRate: this.getFormattedRateFromBorrowRate(averageRate),
+      lowestRate: MarketUtils.getApy(lowestRate),
+      highestRate: MarketUtils.getApy(highestRate),
+      averageRate: MarketUtils.getApy(averageRate),
     }
   }
 
@@ -624,60 +466,31 @@ export class MorphoMarketReader extends MarketReader {
       args: [market.metadata.id],
     })
 
-    // Constants numbers represented in 18 decimals.
-    const one = dn.from(1, 18)
-    const zero = dn.from(0, 18)
-    const k = dn.from(4, 18)
-
-    const curve = (currentUtilization: number) => {
-      /** Current utilization represented in 18 decimals. */
-      const u = dn.from(currentUtilization, 18)
-
-      /** Target utilization represented in 18 decimals.  */
-      const u_target = dn.from(market.lltv, 18)
-
-      // u > u_target ? 1 - u_target : u_target
-      const error_norm = dn.greaterThan(u, u_target)
-        ? dn.sub(one, u_target)
-        : u_target
-
-      // (u - u_target) / error_norm
-      const error = dn.div(dn.sub(u, u_target), error_norm)
-
-      // error < 0 ? 1 - (1 / k) : k - 1
-      const c_norm = dn.lessThan(error, zero)
-        ? dn.sub(one, dn.div(one, k))
-        : dn.sub(k, 1)
-
-      // (c_norm * error) + 1
-      return dn.add(dn.mul(c_norm, error), one)
-    }
+    // One represented with 18 decimals.
+    const ONE = parseFixed(1)
 
     /**
      * 0.35 is the worst-case utilization rate
      * Reference: {@link https://hackmd.io/1hfGguwoTMiT4L2kCSAnAQ}
      */
-    const worst_u = dn.from(0.35, 18)
-
-    // Annualize the current rate at target.
-    const compoundedRateAtTarget = wTaylorCompounded(
+    const borrowRate = AdaptiveCurveIrmLib.getBorrowRate(
+      parseFixed(0.35).bigint,
       rateAtTarget,
-      BigInt(SECONDS_PER_YEAR)
+      0
     )
-
-    /** Borrow rate at the worst-case utilization. */
-    const borrow = dn.mul([compoundedRateAtTarget, 18], curve(0.35))
-
-    /** Supply rate at the worst-case utilization. */
-    const supply = dn.mul(borrow, worst_u)
-
-    const gap = dn.sub(borrow, supply)
+    const supplyRate = MarketUtils.getSupplyRate(borrowRate.avgBorrowRate, {
+      utilization: parseFixed(0.35).bigint,
+      fee: 0n,
+    })
+    const borrowApy = MarketUtils.getApy(borrowRate.avgBorrowRate)
+    const supplyApy = MarketUtils.getApy(supplyRate)
+    const gapApy = borrowApy - supplyApy
 
     // 1 - (1 / (1 + fixedRate))
-    const shortRate = dn.sub(one, dn.div(one, dn.add(one, [fixedRate, 18])))
+    const shortRate = ONE.sub(ONE.div(ONE.add(fixedRate)))
 
     // Add the gap and shortRate together for the rate quote.
-    const [quoteRate] = dn.add(shortRate, gap)
-    return quoteRate
+    const quoteRate = shortRate.add(gapApy)
+    return quoteRate.bigint
   }
 }

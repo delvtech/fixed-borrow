@@ -1,4 +1,4 @@
-import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
+import { fixed } from "@delvtech/fixed-point-wasm"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
 import { Separator } from "components/base/separator"
@@ -13,13 +13,13 @@ type BorrowPositionCardProps = BorrowPosition
 export function BorrowPositionCard(props: BorrowPositionCardProps) {
   const decimals = props.market.loanToken.decimals
 
-  const currentRate = fixed(props.currentRate ?? 0n, decimals)
+  const currentRate = fixed(props.currentRate ?? 0n)
   const currentFixedRate = fixed(props.fixedRate)
 
   const totalDebt = fixed(props.totalDebt, decimals)
 
-  const highestRate = parseFixed(props.rates?.highestRate ?? 0n, decimals)
-  const lowestRate = parseFixed(props.rates?.lowestRate ?? 0n, decimals)
+  const highestRate = fixed(props.rates?.highestRate ?? 0n)
+  const lowestRate = fixed(props.rates?.lowestRate ?? 0n)
 
   return (
     <div className="grid w-full grid-cols-2">
@@ -35,7 +35,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
               decimals: 2,
               compactDisplay: "short",
             })} ${props.market.loanToken.symbol}`}
-            secondaryValue={`$${props.totalDebtUsd}`}
+            secondaryValue={props.totalDebtUsd}
           />
 
           <BorrowPositionCardStat
