@@ -35,6 +35,16 @@ export const whitelistedMetaMorphoMarketsByChain: Record<
         "0x39d11026eae1c6ec02aa4c0910778664089cdd97c3fd23f68f7cd05e2e95af48",
       hyperdrive: "0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30",
     },
+    {
+      morphoId:
+        "0x8e6aeb10c401de3279ac79b4b2ea15fc94b7d9cfc098d6c2a1ff7b2b26d9d02c",
+      hyperdrive: "0xA29A771683b4857bBd16e1e4f27D5B6bfF53209B",
+    },
+    {
+      morphoId:
+        "0xd0e50cdac92fe2172043f5e0c36532c6369d24947e40968f34a5e8819ca9ec5d",
+      hyperdrive: "0xc8D47DE20F7053Cc02504600596A647A482Bbc46",
+    },
   ],
   [sepolia.id]: [
     {
@@ -62,4 +72,5 @@ export const tokenIconBySymbol: Record<string, string> = {
   USDe: "https://cdn.morpho.org/assets/logos/susde.svg",
   wstETH: "https://cdn.morpho.org/assets/logos/wsteth.svg",
   USDC: "https://cryptologos.cc/logos/usd-coin-usdc-logo.svg?v=033",
+  WETH: "https://cdn.morpho.org/assets/logos/weth.svg",
 };
