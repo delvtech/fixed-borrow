@@ -109,6 +109,10 @@ function useBorrowFlowData(market: Market, bondAmount: bigint) {
   const client = usePublicClient()
   const chainId = useChainId()
 
+  const shouldEnable = () => {
+    return !!client && !isNil(bondAmount)
+  }
+
   return useQuery({
     queryKey: [
       "fixed-borrowing-cost",
@@ -116,7 +120,7 @@ function useBorrowFlowData(market: Market, bondAmount: bigint) {
       market.hyperdrive,
       chainId,
     ],
-    enabled: !!client && !isNil(bondAmount),
+    enabled: shouldEnable(),
 
     queryFn: async () => {
       const readHyperdrive = new ReadHyperdrive({
@@ -129,7 +133,7 @@ function useBorrowFlowData(market: Market, bondAmount: bigint) {
         chainId as SupportedChainId
       )
 
-      // const maxShort = await readHyperdrive.getMaxShort()
+      const maxShort = await readHyperdrive.getMaxShort()
       let rateQuote = fixed(await reader.quoteRate(market))
       let rateImpact = fixed(0)
       let traderDeposit = fixed(0)
@@ -152,8 +156,20 @@ function useBorrowFlowData(market: Market, bondAmount: bigint) {
             await reader.quoteRate(market, previewShortResult.spotRateAfterOpen)
           )
         } catch (e) {
-          // Possibly not always the case
-          error = "Not Enough Liquidity"
+          if (e instanceof Error) {
+            if (e.message.includes("MinimumTransactionAmount")) {
+              error = "Amount too small"
+            }
+
+            const maxBaseIn = maxShort.maxBaseIn
+
+            if (maxBaseIn < bondAmount) {
+              error = "Not Enough Liquidity"
+            }
+          } else {
+            // Placeholder for unidentified error
+            error = "Error"
+          }
         }
       }
 
@@ -488,7 +504,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     disabled
                     onClick={handleOpenShort}
                   >
-                    Not Enough Liquidity
+                    {borrowFlowData.error}
                   </Button>
                 ) : (
                   <Button
