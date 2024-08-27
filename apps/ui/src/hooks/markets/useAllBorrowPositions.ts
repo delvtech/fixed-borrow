@@ -7,6 +7,7 @@ import { SupportedChainId } from "~/constants"
 export function useAllBorrowPositions(account?: Address) {
   const chainId = useChainId()
   const client = usePublicClient()
+
   return useQuery({
     queryKey: ["all-borrow-positions", account, chainId],
     queryFn: async () => {
@@ -17,7 +18,5 @@ export function useAllBorrowPositions(account?: Address) {
       return await reader.getBorrowPositions(account!)
     },
     enabled: !!account && !!client,
-    refetchOnWindowFocus: false,
-    throwOnError: true,
   })
 }

@@ -105,7 +105,7 @@ export function HomePage() {
 
               return borrowPositions!.map((position) => (
                 <BorrowPositionCard
-                  key={`${position.market.loanToken}${position.market.collateralToken}`}
+                  key={position.market.hyperdrive}
                   {...position}
                 />
               ))
