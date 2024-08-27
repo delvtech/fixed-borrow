@@ -20,7 +20,7 @@ export abstract class MarketReader {
 
   /**
    * @description Abstract that function that when implemented, returns
-   * all current bororw positions from a Hyperdrive supported lending protocol.
+   * all current borrow positions from a Hyperdrive supported lending protocol.
    *
    * @param account - Address of the borrower or connected account.
    */
@@ -50,7 +50,7 @@ export abstract class MarketReader {
   protected async getPastBlock(timestamp: number): Promise<Block> {
     const blockExplorerUrl = this.client.chain?.blockExplorers?.default.apiUrl
 
-    // Throw error is the chain does not have a registred block explorer API.
+    // Throw error is the chain does not have a registered block explorer API.
     if (!blockExplorerUrl)
       throw new Error("Chain does not have block explorer api.")
 

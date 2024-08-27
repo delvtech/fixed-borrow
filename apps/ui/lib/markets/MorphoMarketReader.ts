@@ -33,15 +33,21 @@ interface MorphoMarketState {
 }
 
 export class MorphoMarketReader extends MarketReader {
-  private morphoBlueAddress: Address
+  private morphoAddress: Address
   private irmAddress: Address
 
   constructor(client: PublicClient, chainId: SupportedChainId) {
     super(client, chainId)
-    this.morphoBlueAddress = morphoAddressesByChain[chainId].blue
+    this.morphoAddress = morphoAddressesByChain[chainId].blue
     this.irmAddress = morphoAddressesByChain[chainId].irm
   }
 
+  /**
+   * Implements fetching borrow position data from the Morpho Protocol.
+   * @param account The account with the loan..
+   * @param market The market that originates the loan.
+   * @returns {BorrowPosition}
+   */
   async getBorrowPosition(
     account: Address,
     market: Market
@@ -53,25 +59,24 @@ export class MorphoMarketReader extends MarketReader {
       oracle: market.collateralToken.address,
       irm: market.metadata.irm,
       lltv: market.lltv,
-      liquidationIncentiveFactor: 1n,
+      liquidationIncentiveFactor: 1n, // not used
     }
 
-    // Fetch position shares
+    // Fetch the position owned by the user.
     const [supplyShares, borrowShares, collateral] =
       await this.client.readContract({
         abi: MorphoBlueAbi,
-        address: this.morphoBlueAddress,
+        address: this.morphoAddress,
         functionName: "position",
         args: [market.metadata.id, account],
       })
 
-    // Early termination if the connect account does not have a borrow
-    // position open.
+    // Early termination if no borrow position exists.
     if (borrowShares <= 0) {
       return Promise.resolve(undefined)
     }
 
-    // Fetch market state.
+    // Fetch the market state.
     const [
       totalSupplyAssets,
       totalSupplyShares,
@@ -81,11 +86,12 @@ export class MorphoMarketReader extends MarketReader {
       fee,
     ] = await this.client.readContract({
       abi: MorphoBlueAbi,
-      address: this.morphoBlueAddress,
+      address: this.morphoAddress,
       functionName: "market",
       args: [market.metadata.id],
     })
 
+    // Batch RPC call the oracle price and rateAtTarget from the IRM.
     const [price, rateAtTarget] = await Promise.all([
       this.client.readContract({
         abi: OracleAbi,
@@ -132,12 +138,14 @@ export class MorphoMarketReader extends MarketReader {
       morphoMarket
     )
 
+    // Fetch an off-chain estimated token price of one base asset.
     const loanTokenPriceUsd = await getTokenUsdPrice(
       this.chainId,
       market.loanToken.address
     )
-    const pastBlock = await super.getPastBlock(Date.now() / 1000 - 2592000)
 
+    // Fetch the rate history and range going back an estimated 30 days.
+    const pastBlock = await super.getPastBlock(Date.now() / 1000 - 2592000)
     const rateHistory = pastBlock.number
       ? await this.getMarketRateHistory(
           market.metadata.id,
@@ -145,6 +153,7 @@ export class MorphoMarketReader extends MarketReader {
         )
       : undefined
 
+    // Fetch the current spot FRB rate.
     const fixedRate = await this.quoteRate(market)
 
     const totalDebt = position.borrowAssets
@@ -170,9 +179,18 @@ export class MorphoMarketReader extends MarketReader {
     }
   }
 
+  /**
+   * Fetches borrow positions from an account for all Hyperdrive supported
+   * Morpho markets.
+   * @param account The account with the loan..
+   * @returns {BorrowPosition}
+   */
   async getBorrowPositions(account: Address): Promise<BorrowPosition[]> {
+    // Get all supported Morpho markets from the config.
     const markets = getAppConfig(this.chainId).morphoMarkets
 
+    // Batch fetch using our atomic getBorrowPosition function and filter
+    // out markets without a user position.
     const accountBorrowPositions = (
       await Promise.all(
         markets.map(async (market) => this.getBorrowPosition(account, market))
@@ -182,14 +200,18 @@ export class MorphoMarketReader extends MarketReader {
     return accountBorrowPositions
   }
 
+  /**
+   * @notice This function can be more optimized.
+   * @returns {Promise<MarketInfo[]>}
+   */
   async getAllMarketsInfo(): Promise<MarketInfo[]> {
-    // Get whitelisted Morpho Blue markets from AppConfig
+    // Get all supported Morpho markets from the config.
     const appConfig = getAppConfig(this.chainId)
     const markets = appConfig.morphoMarkets
 
     const morphoMarketStates = await this.getMarketStateBatch(
       markets.map((market) => market.metadata.id),
-      this.morphoBlueAddress
+      this.morphoAddress
     )
 
     const marketParams = markets.map((market) => ({
@@ -199,9 +221,10 @@ export class MorphoMarketReader extends MarketReader {
       oracle: market.metadata.oracle,
       irm: market.metadata.irm,
       lltv: market.lltv,
-      liquidationIncentiveFactor: 0n,
+      liquidationIncentiveFactor: 0n, // not used
     }))
 
+    // Ensure that our two data-structures have the same length.
     if (morphoMarketStates.length !== marketParams.length)
       throw new Error("getAllMarketsInfo fetching failed: Invalid sizes.")
 
@@ -217,7 +240,6 @@ export class MorphoMarketReader extends MarketReader {
           liquidationIncentiveFactor: 1n,
         }
 
-        // Fetch market state.
         const [
           totalSupplyAssets,
           totalSupplyShares,
@@ -227,7 +249,7 @@ export class MorphoMarketReader extends MarketReader {
           fee,
         ] = await this.client.readContract({
           abi: MorphoBlueAbi,
-          address: this.morphoBlueAddress,
+          address: this.morphoAddress,
           functionName: "market",
           args: [market.metadata.id],
         })
@@ -269,7 +291,6 @@ export class MorphoMarketReader extends MarketReader {
         })
       })
     )
-
     const apys = morphoMarkets.map((m) => m.borrowApy)
 
     return Promise.all(
@@ -312,13 +333,13 @@ export class MorphoMarketReader extends MarketReader {
    */
   async getMarketStateBatch(
     morphoIds: Address[],
-    morphoBlueAddress: Address
+    morphoAddress: Address
   ): Promise<Array<MorphoMarketState>> {
     const results = await Promise.all(
       morphoIds.map((id) =>
         this.client.readContract({
           abi: MorphoBlueAbi,
-          address: morphoBlueAddress,
+          address: morphoAddress,
           functionName: "market",
           args: [id],
         })
@@ -445,7 +466,7 @@ export class MorphoMarketReader extends MarketReader {
       args: [market.metadata.id],
     })
 
-    // Constants numbers represented in 18 decimals.
+    // One represented with 18 decimals.
     const ONE = parseFixed(1)
 
     /**
