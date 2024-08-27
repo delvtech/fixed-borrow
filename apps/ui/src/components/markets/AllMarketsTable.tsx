@@ -130,7 +130,7 @@ const columns: ColumnDef<MarketInfo>[] = [
       const { row, getValue } = props
 
       return (
-        <div className="flex items-center gap-x-2 font-mono capitalize">
+        <div className="flex items-center gap-x-2 font-mono">
           <TokenPair market={row.original.market} />
           {getValue()}
           <Badge className="border-none px-1 text-xs text-[#8A92A3]">
@@ -153,7 +153,8 @@ const columns: ColumnDef<MarketInfo>[] = [
           {dn.format([getValue(), 18], {
             digits: 2,
             compact: true,
-          })}
+          })}{" "}
+          {props.row.original.market.loanToken.symbol}
         </div>
       )
     },
