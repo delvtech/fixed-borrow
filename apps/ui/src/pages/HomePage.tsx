@@ -2,7 +2,6 @@ import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Skeleton } from "components/base/skeleton"
-import { FAQ } from "components/core/FAQ"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
 import { BorrowPositionCard } from "components/position/BorrowPositionCard"
 import { useAllBorrowPositions } from "hooks/markets/useAllBorrowPositions"
@@ -19,7 +18,7 @@ export function HomePage() {
     useAllBorrowPositions(account)
 
   return (
-    <main className="m-auto flex max-w-3xl flex-col gap-y-36 px-4 py-8">
+    <main className="m-auto flex max-w-4xl flex-col gap-y-36 px-4 py-8">
       <div className="m-auto max-w-[766px] space-y-24">
         <div className="flex flex-col items-center gap-4">
           <h1 className="gradient-text font-chakra text-h2 md:text-h1">
@@ -170,8 +169,6 @@ export function HomePage() {
           <AllMarketsTable />
         </div>
       </div>
-
-      <FAQ />
     </main>
   )
 }

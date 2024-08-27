@@ -24,12 +24,16 @@ export interface Token {
 
 const mainnetPublicClient = createPublicClient({
   chain: mainnet,
-  transport: http(),
+  transport: http(
+    "https://eth-mainnet.g.alchemy.com/v2/jhjiuDykxwKqhI8hEbj15nV2ZKED7O6z",
+  ),
 });
 
 const sepoliaPublicClient = createPublicClient({
   chain: sepolia,
-  transport: http(),
+  transport: http(
+    "https://eth-sepolia.g.alchemy.com/v2/1lwuV3-H1ieTJ_tXRFJz2s5cXpmtJTvD",
+  ),
 });
 
 function getClient(chainId: number) {
@@ -117,9 +121,9 @@ supportedChainIds.forEach(async (chainId) => {
         address: market.hyperdrive,
       });
 
-      const duration = (
-        await readHyperdrive.getPoolConfig()
-      ).positionDuration.toString();
+      const hyperdrivePoolConfig = await readHyperdrive.getPoolConfig();
+
+      const duration = hyperdrivePoolConfig.positionDuration.toString();
 
       return {
         id: market.morphoId,
@@ -131,7 +135,7 @@ supportedChainIds.forEach(async (chainId) => {
         lltv: lltv.toString(),
         duration,
       };
-    })
+    }),
   );
 
   fs.writeFileSync(
@@ -139,6 +143,6 @@ supportedChainIds.forEach(async (chainId) => {
     JSON.stringify({
       tokens,
       morphoMarkets,
-    })
+    }),
   );
 });
