@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "engines": {
-    "node": "20"
+    "node": ">=20.0.0"
   },
   "packageManager": "yarn@1.22.22",
   "workspaces": [
@@ -18,16 +18,15 @@
     "format:check": "turbo run format:check",
     "lint": "turbo run lint"
   },
+  "resolutions": {
+    "typescript": "^5.5.4"
+  },
   "dependencies": {},
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.6",
     "prettier": "^3.2.5",
     "prettier-plugin-organize-imports": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.6.5",
     "turbo": "^2.0.6",
-    "typescript": "^5.2.2"
+    "typescript": "^5.5.4"
   }
 }
