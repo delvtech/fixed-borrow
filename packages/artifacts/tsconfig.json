@@ -20,5 +20,5 @@
     "strict": true
   },
   "include": ["morpho", "base"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }
