@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "target": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "module": "ESNext",
     "skipLibCheck": true,
 
@@ -14,7 +13,6 @@
       "@/utils": ["./src/@/lib/utils"],
       "utils/*": ["./src/utils/*"],
       "lib/*": ["./lib/*"],
-      "~/constants": ["./src/constants.ts"],
       "static/*": ["./src/static/*"]
     },
 
@@ -23,16 +21,27 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "useDefineForClassFields": true,
     "noEmit": true,
     "jsx": "react-jsx",
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
-  },
 
-  "include": ["src", "lib"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+    // From hyperdrive-trading
+
+    "allowJs": false,
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./",
+    "forceConsistentCasingInFileNames": true,
+
+    "composite": false,
+    "declaration": true,
+    "declarationMap": true,
+    "inlineSources": false
+  },
+  "exclude": ["node_modules", "dist", "public"],
+  "include": ["src", "lib"]
+  // "references": [{ "path": "./tsconfig.node.json" }]
 }
