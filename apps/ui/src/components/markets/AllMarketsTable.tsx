@@ -206,7 +206,7 @@ const columns: ColumnDef<MarketInfo>[] = [
         percent: true,
       })
 
-      return <div className="text-right font-mono lowercase">{borrowRate}</div>
+      return <div className="text-center font-mono">{borrowRate}</div>
     },
   },
   {
@@ -221,10 +221,10 @@ const columns: ColumnDef<MarketInfo>[] = [
     header: ({ column }) => (
       <Button
         variant="ghost"
-        className="justify-end rounded-none p-0"
+        className="justify-end rounded-none"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        <div className="text-right">Fixed Borrow Rate</div>
+        <div>Fixed Borrow Rate</div>
         <ChevronsUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -232,7 +232,7 @@ const columns: ColumnDef<MarketInfo>[] = [
       const { getValue } = props
 
       return (
-        <div className="text-right">
+        <div className="text-center">
           <span className="gradient-text font-mono font-medium">
             {formatRate(getValue())}
           </span>
