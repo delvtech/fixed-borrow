@@ -222,8 +222,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
   const decimals = props.market.loanToken.decimals
 
   const client = usePublicClient()
-  // const { address: account } = useAccount()
-  // const { data: walletClient } = useWalletClient()
 
   const [state, dispatch] = useReducer(reducer, {
     step: "buy",
@@ -273,6 +271,14 @@ export function BorrowFlow(props: BorrowFlowProps) {
     props.market.duration
   )
   const formattedDuration = durationValue + " " + durationScale
+  const formattedMaturityDate = new Date(
+    Date.now() + Number(props.market.duration) * 1000
+  )
+
+  // const formattedCurrentBorrowRate = fixed(props.position.currentRate).format({
+  //   decimals: 2,
+  //   percent: true,
+  // })
 
   const formattedRateQuote = borrowFlowData?.rateQuote
     ? borrowFlowData.rateQuote.format({
@@ -303,6 +309,14 @@ export function BorrowFlow(props: BorrowFlowProps) {
       })
     : undefined
 
+  const formattedProjectedMaxDebt = borrowFlowData
+    ? fixed(state.bondAmount)
+        .mul(FixedPoint.one().add(borrowFlowData.rateQuote))
+        .format({
+          decimals: 4,
+        })
+    : undefined
+
   const handleQuickAmountAction = (amount: FixedPoint) => {
     const input = document.getElementById("bondAmountInput") as HTMLInputElement
     input.value = amount.toString()
@@ -325,6 +339,55 @@ export function BorrowFlow(props: BorrowFlowProps) {
       amount,
     }
   })
+
+  const positionDetails = (
+    <>
+      {" "}
+      <div className="flex justify-between text-sm">
+        <p className="text-secondary-foreground">Fixed Borrow Rate</p>
+        {!isNil(formattedRateQuote) ? (
+          <p className="w-fit font-mono">{formattedRateQuote}</p>
+        ) : (
+          <Skeleton className="h-[18px] w-[70px] rounded-sm bg-white/10" />
+        )}
+      </div>
+      {/* <div className="flex justify-between text-sm">
+  <p className="text-secondary-foreground">
+    Current Borrow APY (Morpho)
+  </p>
+  <p className="font-mono">{formattedCurrentBorrowRate}</p>
+</div> */}
+      <div className="flex justify-between text-sm">
+        <p className="text-secondary-foreground">Maturity Date</p>
+        {!isNil(formattedMaturityDate) ? (
+          <p className="font-mono">
+            {formattedMaturityDate.toLocaleDateString()}
+          </p>
+        ) : (
+          <Skeleton className="h-[18px] w-[70px] rounded-sm bg-white/10" />
+        )}
+      </div>
+      <div className="flex justify-between text-sm">
+        <p className="text-secondary-foreground">
+          Projected Max Fixed Debt ({formattedDuration})
+        </p>
+        <p className="font-mono">
+          {!isNil(formattedProjectedMaxDebt) ? (
+            <p>
+              {formattedProjectedMaxDebt} {props.market.loanToken.symbol}
+            </p>
+          ) : (
+            <Skeleton className="h-[18px] w-[70px] rounded-sm bg-white/10" />
+          )}
+        </p>
+      </div>
+      {/* TODO  */}
+      {/* <div className="flex justify-between text-sm">
+  <p className="text-secondary-foreground">Slippage</p>
+  <p className="font-mono">~0.5%</p>
+</div> */}
+    </>
+  )
 
   return (
     <div className="m-auto flex w-full max-w-xl flex-col gap-8 bg-transparent">
@@ -524,42 +587,13 @@ export function BorrowFlow(props: BorrowFlowProps) {
               <Separator />
 
               <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-                <CollapsibleTrigger className="-mt-2 flex w-full items-center text-start text-sm text-secondary-foreground">
+                <CollapsibleTrigger className="-mt-2 flex w-full items-center text-start text-sm font-semibold text-secondary-foreground">
                   Details
                   <ChevronDown className="ml-auto inline h-4 w-4 text-secondary-foreground" />
                 </CollapsibleTrigger>
 
                 <CollapsibleContent className="mt-4 space-y-4">
-                  <div className="flex justify-between text-sm">
-                    <p className="text-secondary-foreground">
-                      Your Projected Max Borrow APY
-                    </p>
-                    <p className="font-mono">10.70%</p>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <p className="text-secondary-foreground">Maturity Date</p>
-                    <p className="font-mono">31-Aug-2025</p>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <p className="text-secondary-foreground">
-                      Projected Max Fixed Debt (365 days)
-                    </p>
-                    <p className="font-mono">189,987.77 USDC</p>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <p className="text-secondary-foreground">
-                      Current Borrow APY (Morpho)
-                    </p>
-                    <p className="font-mono">9.31%</p>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <p className="text-secondary-foreground">Slippage</p>
-                    <p className="font-mono">~0.5%</p>
-                  </div>
+                  {positionDetails}
                 </CollapsibleContent>
               </Collapsible>
             </CardContent>
@@ -618,36 +652,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
               <p className="font-medium">Summary</p>
 
-              <div className="flex justify-between text-sm">
-                <p className="text-secondary-foreground">
-                  Your Projected Max Borrow APY
-                </p>
-                <p className="font-mono">10.70%</p>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <p className="text-secondary-foreground">Maturity Date</p>
-                <p className="font-mono">31-Aug-2025</p>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <p className="text-secondary-foreground">
-                  Projected Max Fixed Debt (365 days)
-                </p>
-                <p className="font-mono">189,987.77 USDC</p>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <p className="text-secondary-foreground">
-                  Current Borrow APY (Morpho)
-                </p>
-                <p className="font-mono">9.31%</p>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <p className="text-secondary-foreground">Slippage</p>
-                <p className="font-mono">~0.5%</p>
-              </div>
+              {positionDetails}
             </CardContent>
           ))
           .with("receipt", () => (
@@ -686,36 +691,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
               </div>
               <p className="font-medium">Summary</p>
 
-              <div className="flex justify-between text-sm">
-                <p className="text-secondary-foreground">
-                  Your Projected Max Borrow APY
-                </p>
-                <p className="font-mono">10.70%</p>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <p className="text-secondary-foreground">Maturity Date</p>
-                <p className="font-mono">31-Aug-2025</p>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <p className="text-secondary-foreground">
-                  Projected Max Fixed Debt (365 days)
-                </p>
-                <p className="font-mono">189,987.77 USDC</p>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <p className="text-secondary-foreground">
-                  Current Borrow APY (Morpho)
-                </p>
-                <p className="font-mono">9.31%</p>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <p className="text-secondary-foreground">Slippage</p>
-                <p className="font-mono">~0.5%</p>
-              </div>
+              {positionDetails}
 
               <div className="w-full space-y-2">
                 <Link href="/positions" asChild>
