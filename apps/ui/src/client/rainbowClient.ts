@@ -9,10 +9,16 @@ export const rainbowConfig = getDefaultConfig({
   ssr: false, // If your dApp uses server side rendering (SSR)
   transports: {
     [mainnet.id]: http(
-      "https://eth-mainnet.g.alchemy.com/v2/jhjiuDykxwKqhI8hEbj15nV2ZKED7O6z"
+      "https://eth-mainnet.g.alchemy.com/v2/jhjiuDykxwKqhI8hEbj15nV2ZKED7O6z",
+      {
+        batch: true,
+      }
     ),
     [sepolia.id]: http(
-      "https://eth-sepolia.g.alchemy.com/v2/1lwuV3-H1ieTJ_tXRFJz2s5cXpmtJTvD"
+      "https://eth-sepolia.g.alchemy.com/v2/1lwuV3-H1ieTJ_tXRFJz2s5cXpmtJTvD",
+      {
+        batch: true,
+      }
     ),
   },
 })

@@ -25,7 +25,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
     <div className="grid w-full grid-cols-2">
       <Card className="z-10 rounded-xl">
         <CardHeader>
-          <MarketHeader market={props.market} />
+          <MarketHeader market={props.market} className="text-h4" />
         </CardHeader>
 
         <CardContent className="grid grid-rows-3 gap-5">

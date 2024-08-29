@@ -1,9 +1,11 @@
 import { Badge } from "components/base/badge"
+import { cn } from "components/utils"
 import { MorphoLogo } from "static/images/MorphoLogo"
 import { Market } from "../../types"
 
 interface MarketHeaderProps {
   market: Market
+  className?: string
 }
 
 export function MarketHeader(props: MarketHeaderProps) {
@@ -15,7 +17,7 @@ export function MarketHeader(props: MarketHeaderProps) {
           <img src={props.market.loanToken.iconUrl} className="-ml-3 size-6" />
         </div>
 
-        <h3 className="font-chakra font-semibold">
+        <h3 className={cn("font-chakra font-semibold", props.className)}>
           {props.market.collateralToken.symbol} /{" "}
           {props.market.loanToken.symbol}
         </h3>

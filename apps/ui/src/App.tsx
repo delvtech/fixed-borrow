@@ -36,7 +36,7 @@ function App() {
               <Route path="/" component={HomePage} />
               <Route path="/dev" component={DevPage} />
               <Route path="/borrow/:hyperdrive" component={BorrowPage} />
-              <Route path="/position/:hyperdrive" component={PositionPage} />
+              <Route path="/positions" component={PositionPage} />
 
               {/* Default route in a switch */}
               <Route>404: No such page!</Route>
