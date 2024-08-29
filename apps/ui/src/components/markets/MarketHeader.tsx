@@ -29,7 +29,7 @@ export function MarketHeader(props: MarketHeaderProps) {
           Morpho
         </Badge>
 
-        <Badge variant="secondary" className="ont-mono text-xs">
+        <Badge variant="secondary" className="font-mono text-xs">
           LLTV: 86%
         </Badge>
       </div>
