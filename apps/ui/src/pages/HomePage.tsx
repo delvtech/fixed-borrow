@@ -103,7 +103,7 @@ export function HomePage() {
                 )
               }
 
-              return borrowPositions!.map((position) => (
+              return borrowPositions.map((position) => (
                 <BorrowPositionCard
                   key={position.market.hyperdrive}
                   {...position}

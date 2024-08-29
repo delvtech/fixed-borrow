@@ -9,7 +9,7 @@ export function useAllBorrowPositions(account?: Address) {
   const client = usePublicClient()
 
   return useQuery({
-    queryKey: ["all-borrow-positions", account, chainId],
+    queryKey: ["current-borrow-positions", account, chainId],
     queryFn: async () => {
       const reader = new MorphoMarketReader(
         client!,

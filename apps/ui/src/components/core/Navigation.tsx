@@ -33,11 +33,27 @@ export function Navbar() {
         </Link>
       </div>
 
-      <div></div>
+      <div className="justify-self-center">
+        <Link href="/positions" asChild>
+          <p className="cursor-pointer font-chakra text-md font-medium hover:underline">
+            My Positions
+          </p>
+        </Link>
+      </div>
 
       <div className="flex items-center gap-x-2 justify-self-end">
         <div className="min-h-[40px] w-max">
-          <ConnectButton showBalance={false} />
+          <ConnectButton
+            showBalance={false}
+            accountStatus={{
+              smallScreen: "avatar",
+              largeScreen: "full",
+            }}
+            chainStatus={{
+              smallScreen: "icon",
+              largeScreen: "icon",
+            }}
+          />
         </div>
       </div>
     </div>
