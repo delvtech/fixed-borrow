@@ -18,6 +18,7 @@ import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { ChevronDown } from "lucide-react"
 import { useState } from "react"
 import { formatAddress } from "utils/base/formatAddress"
+import { getUSDPrice } from "utils/price/getUSDPrice"
 import { Address } from "viem"
 import { useAccount, useChainId, usePublicClient } from "wagmi"
 import { SupportedChainId } from "~/constants"
@@ -131,7 +132,10 @@ function MarketPositionsCard(props: MarketPositionsCardProps) {
                   const maturity = new Date(Number(short.maturity) * 1000)
 
                   return (
-                    <TableRow className="hover:bg-card">
+                    <TableRow
+                      key={short.assetId.toString()}
+                      className="hover:bg-card"
+                    >
                       <TableCell className="font-mono">
                         {openedDate.toLocaleDateString()}
                       </TableCell>
@@ -180,12 +184,20 @@ function useAllBorrowPositions(account?: Address) {
       )
       const borrowPositions = await reader.getBorrowPositions(account!)
 
+      const usdPrices = await getUSDPrice(
+        borrowPositions.map((p) => p.market.loanToken.address),
+        client!.chain
+      )
+
       return await Promise.all(
         borrowPositions.map(async (position) => {
           const readHyperdrive = new ReadHyperdrive({
             address: position.market.hyperdrive,
             publicClient: client!,
           })
+
+          const usdPrice: bigint | undefined =
+            usdPrices[position.market.loanToken.address]
 
           const decimals = position.market.loanToken.decimals
 
@@ -195,6 +207,14 @@ function useAllBorrowPositions(account?: Address) {
           const totalCoverage = shorts.reduce((prev, curr) => {
             return prev + curr.bondAmount
           }, 0n)
+
+          const totalCoverageUsd = usdPrice
+            ? shorts.reduce((prev, curr) => {
+                return (
+                  prev + fixed(curr.bondAmount).mul(usdPrice, decimals).bigint
+                )
+              }, 0n)
+            : 0n
 
           const debtCovered =
             position.totalDebt === 0n
@@ -206,6 +226,7 @@ function useAllBorrowPositions(account?: Address) {
             position,
             shorts,
             totalCoverage,
+            totalCoverageUsd,
             debtCovered,
           }
         })
@@ -219,7 +240,6 @@ export function PositionPage() {
   const { address: account } = useAccount()
 
   const { data: borrowPositions } = useAllBorrowPositions(account)
-  console.log(borrowPositions)
 
   // const totalCoverage = borrowPositions?.reduce(
   //   (prev, curr) => prev + curr.totalCoverage,
