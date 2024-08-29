@@ -91,6 +91,7 @@ export function AllMarketsTable() {
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
+                  className="border-b-0"
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
