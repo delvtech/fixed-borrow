@@ -9,12 +9,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "components/base/collapsible"
-import { Input } from "components/base/input"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "components/base/popover"
 import {
   Select,
   SelectContent,
@@ -30,13 +24,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "components/base/tooltip"
+import SlippageSettings, {
+  defaultSlippageAmount,
+} from "components/forms/SlippageSettings"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { cn } from "components/utils"
 import { useApproval } from "hooks/base/useApproval"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { isNil } from "lodash-es"
-import { ChevronDown, ExternalLink, Info, Settings } from "lucide-react"
-import { Fragment, useReducer, useState } from "react"
+import { ChevronDown, ExternalLink, Info } from "lucide-react"
+import { useReducer, useState } from "react"
 import { match } from "ts-pattern"
 import { formatTermLength } from "utils/formatTermLength"
 import { Address, maxUint256 } from "viem"
@@ -46,19 +43,12 @@ import { SupportedChainId } from "~/constants"
 import { BorrowPosition, Market } from "../../types"
 
 const quickTokenAmountWeights = [0.25, 0.5, 0.75, 1] as const
-const quickSlippageAmounts = [
-  parseFixed(0.001), // 0.1%
-  parseFixed(0.005), // 0.5%
-  parseFixed(0.01), // 1%
-] as const
-const defaultSlippageAmount = quickSlippageAmounts[1]
 
 type State = {
   step: "buy" | "loading" | "receipt"
   decimals: number
   bondAmount: bigint
-  slippage: FixedPoint
-  slippageInputValue: string
+  slippage: bigint
   hash?: Address
 }
 
@@ -82,8 +72,7 @@ type Action =
   | {
       type: "slippageAmountInput"
       payload: {
-        value: string
-        amount: FixedPoint
+        amount: bigint
       }
     }
 
@@ -119,7 +108,6 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         slippage: payload.amount,
-        slippageInputValue: payload.value,
       }
     }
 
@@ -257,9 +245,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
     bondAmount: 0n,
     decimals: props.market.loanToken.decimals,
     slippage: defaultSlippageAmount,
-    slippageInputValue: defaultSlippageAmount.mul(100, 0).format({
-      trailingZeros: false,
-    }),
   })
   const [isOpen, setIsOpen] = useState(false)
 
@@ -438,112 +423,17 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     <p className="text-sm text-secondary-foreground">Amount</p>
 
                     {/* Slippage button */}
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="h-min rounded-[4px] p-1 px-2 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                        >
-                          Slippage:{" "}
-                          <span className="font-mono">
-                            {state.slippage.format({
-                              decimals: 18,
-                              percent: true,
-                              trailingZeros: false,
-                            })}
-                          </span>
-                          <Settings size={16} />
-                        </Button>
-                      </PopoverTrigger>
-
-                      {/* Slippage popover */}
-                      <PopoverContent
-                        className="w-64 border border-border-secondary shadow"
-                        align="end"
-                      >
-                        <div className="grid gap-4">
-                          <h3 className="text-lg font-medium leading-none">
-                            Max. slippage
-                          </h3>
-
-                          {/* Quick slippage amount buttons */}
-                          <div className="flex items-center justify-center gap-2">
-                            {quickSlippageAmounts.map((quickAmount, i) => (
-                              <Fragment
-                                key={`quick-slippage-${quickAmount.bigint}`}
-                              >
-                                <Button
-                                  variant="secondary"
-                                  onClick={() =>
-                                    dispatch({
-                                      type: "slippageAmountInput",
-                                      payload: {
-                                        amount: quickAmount,
-                                        value: quickAmount.mul(100, 0).format({
-                                          trailingZeros: false,
-                                        }),
-                                      },
-                                    })
-                                  }
-                                  className={cn(
-                                    "px-auto h-7 grow rounded-[4px] border border-border-secondary bg-muted/20 text-xs text-foreground/75 hover:text-foreground",
-                                    {
-                                      "bg-muted text-foreground":
-                                        state.slippage.eq(quickAmount),
-                                    }
-                                  )}
-                                >
-                                  {quickAmount.format({
-                                    decimals: 2,
-                                    percent: true,
-                                    trailingZeros: false,
-                                  })}
-                                </Button>
-                                {i !== quickSlippageAmounts.length - 1 && (
-                                  <Separator
-                                    orientation="vertical"
-                                    className="bg-border-secondary"
-                                  />
-                                )}
-                              </Fragment>
-                            ))}
-                          </div>
-
-                          {/* Custom slippage input */}
-                          <div className="flex items-center gap-2">
-                            <label htmlFor="width" className="pl-1 text-sm">
-                              Custom
-                            </label>
-                            <Input
-                              type="number"
-                              step={0.1}
-                              value={state.slippageInputValue}
-                              onKeyDown={(e) => {
-                                if (["-", "e", "E"].includes(e.key)) {
-                                  e.preventDefault()
-                                }
-                              }}
-                              onChange={({ target }) => {
-                                // Truncate to 16 decimal places (the max
-                                // precision after division), and remove
-                                // negative sign if present
-                                const [int, fraction] = target.value.split(".")
-                                const value = `${int}${fraction !== undefined ? `.${fraction.slice(0, 16)}` : ""}`
-
-                                dispatch({
-                                  type: "slippageAmountInput",
-                                  payload: {
-                                    value,
-                                    amount: parseFixed(value).div(100, 0),
-                                  },
-                                })
-                              }}
-                              className="h-8 grow"
-                            />
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                    <SlippageSettings
+                      amount={state.slippage}
+                      onChange={(slippage) =>
+                        dispatch({
+                          type: "slippageAmountInput",
+                          payload: {
+                            amount: slippage,
+                          },
+                        })
+                      }
+                    />
                   </div>
 
                   <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
