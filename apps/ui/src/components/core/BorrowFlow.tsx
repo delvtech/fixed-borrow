@@ -63,7 +63,7 @@ type Action =
     }
   | {
       type: "transactionComplete"
-      payload: {}
+      payload?: undefined
     }
 
 const reducer = (state: State, action: Action): State => {
@@ -262,7 +262,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
       dispatch({
         type: "transactionComplete",
-        payload: {},
       })
     }
   }
@@ -499,7 +498,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       ) : (
                         <Skeleton className="h-[30px] w-[70px] rounded-sm bg-white/10" />
                       )}
-                      {!!formattedRateImpact ? (
+                      {formattedRateImpact ? (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger className="flex items-center gap-1 text-xs text-secondary-foreground">
