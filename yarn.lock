@@ -344,6 +344,11 @@
   resolved "https://registry.yarnpkg.com/@delvtech/fixed-point-wasm/-/fixed-point-wasm-0.0.3.tgz#6946b2011b7870f7aa75c6c77d87369d2191e937"
   integrity sha512-+lfCOLFooKwAuwBG+f0fBH4N1ymMfwHrllUDK+y1BSYAJzL+J/eRyNySu9AmPb5OWpOqVtq0HE09+mvdyBIaMQ==
 
+"@delvtech/fixed-point-wasm@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@delvtech/fixed-point-wasm/-/fixed-point-wasm-0.0.4.tgz#b9324f0b8c05fc9877a213b911722505c5b1d05c"
+  integrity sha512-K8K0zD7gD06XAI2tcCFu/012lGvys97ic5nIxMDFRKwcIBuxePkMcEQYFTyQbW1myAAT7kbPLyIAAiy+Xaglaw==
+
 "@delvtech/hyperdrive-artifacts@^0.4.0":
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/@delvtech/hyperdrive-artifacts/-/hyperdrive-artifacts-0.4.0.tgz#8623967ee06a1150e1cbd219786920238585972a"
