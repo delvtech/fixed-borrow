@@ -108,10 +108,8 @@ function SlippageSettings({
           </div>
 
           {/* Custom slippage input */}
-          <div className="flex items-center gap-2">
-            <label htmlFor="width" className="pl-1 text-sm">
-              Custom
-            </label>
+          <label className="flex items-center gap-2 pl-1 text-sm">
+            Custom
             <Input
               type="number"
               min={0}
@@ -125,7 +123,7 @@ function SlippageSettings({
               onChange={({ target }) => handleChange(target.value)}
               className="h-8 grow"
             />
-          </div>
+          </label>
         </div>
       </PopoverContent>
     </Popover>
