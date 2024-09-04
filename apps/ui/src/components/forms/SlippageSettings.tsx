@@ -38,8 +38,7 @@ function SlippageSettings({
 
     switch (typeof amount) {
       case "string": {
-        // Truncate to 16 decimal places (the max
-        // precision after division).
+        // Truncate to 16 decimal places (the max precision after division).
         const [int, fraction] = amount.split(".")
         setInputValue(
           `${int}${fraction !== undefined ? `.${fraction.slice(0, 16)}` : ""}`
