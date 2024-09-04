@@ -1,4 +1,4 @@
-import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
+import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
 import { Button } from "components/base/button"
 import { Input } from "components/base/input"
 import {
@@ -11,11 +11,11 @@ import { Settings } from "lucide-react"
 import { useState } from "react"
 
 const quickSlippageAmounts = [
-  parseFixed(0.001), // 0.1%
-  parseFixed(0.005), // 0.5%
-  parseFixed(0.01), // 1%
+  BigInt(0.001e18), // 0.1%
+  BigInt(0.005e18), // 0.5%
+  BigInt(0.01e18), // 1%
 ] as const
-export const defaultSlippageAmount = quickSlippageAmounts[1].bigint
+export const defaultSlippageAmount = quickSlippageAmounts[1]
 
 export interface SlippageSettingsProps {
   onChange: (amount: bigint) => void
@@ -32,30 +32,30 @@ function SlippageSettings({
     })
   )
 
-  function handleChange(amount: string | FixedPoint) {
+  function handleChange(amount: string | bigint) {
     let amountString: string
-    let amountFixed: FixedPoint
+    let amountInt: bigint
 
     switch (typeof amount) {
       case "string": {
         // Truncate to 16 decimal places (the max precision after division).
         const [int, fraction] = amount.split(".")
         amountString = `${int}${fraction !== undefined ? `.${fraction.slice(0, 16)}` : ""}`
-        amountFixed = parseFixed(amountString).div(100, 0)
+        amountInt = parseFixed(amountString).div(100, 0).bigint
         break
       }
 
-      case "object": {
-        amountString = amount.mul(100, 0).format({
+      case "bigint": {
+        amountString = fixed(amount).mul(100, 0).format({
           trailingZeros: false,
         })
-        amountFixed = amount
+        amountInt = amount
         break
       }
     }
 
     setInputValue(amountString)
-    onChange(amountFixed.bigint)
+    onChange(amountInt)
   }
 
   return (
@@ -88,17 +88,17 @@ function SlippageSettings({
           <div className="flex items-center justify-center gap-2">
             {quickSlippageAmounts.map((quickAmount) => (
               <Button
-                key={`quick-slippage-${quickAmount.bigint}`}
+                key={`quick-slippage-${quickAmount}`}
                 variant="secondary"
                 onClick={() => handleChange(quickAmount)}
                 className={cn(
                   "px-auto h-7 grow rounded-[4px] border border-border-secondary bg-muted/20 text-xs text-foreground/75 hover:text-foreground",
                   {
-                    "bg-muted text-foreground": amount === quickAmount.bigint,
+                    "bg-muted text-foreground": amount === quickAmount,
                   }
                 )}
               >
-                {quickAmount.format({
+                {fixed(quickAmount).format({
                   decimals: 2,
                   percent: true,
                   trailingZeros: false,
