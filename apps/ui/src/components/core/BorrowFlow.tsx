@@ -421,8 +421,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-secondary-foreground">Amount</p>
-
-                    {/* Slippage button */}
                     <SlippageSettings
                       amount={state.slippage}
                       onChange={(slippage) =>
