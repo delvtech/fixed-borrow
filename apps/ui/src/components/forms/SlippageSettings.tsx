@@ -6,10 +6,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "components/base/popover"
-import { Separator } from "components/base/separator"
 import { cn } from "components/utils"
 import { Settings } from "lucide-react"
-import { Fragment, useState } from "react"
+import { useState } from "react"
 
 const quickSlippageAmounts = [
   parseFixed(0.001), // 0.1%
@@ -91,31 +90,24 @@ function SlippageSettings({
 
           {/* Quick slippage amount buttons */}
           <div className="flex items-center justify-center gap-2">
-            {quickSlippageAmounts.map((quickAmount, i) => (
-              <Fragment key={`quick-slippage-${quickAmount.bigint}`}>
-                <Button
-                  variant="secondary"
-                  onClick={() => handleChange(quickAmount)}
-                  className={cn(
-                    "px-auto h-7 grow rounded-[4px] border border-border-secondary bg-muted/20 text-xs text-foreground/75 hover:text-foreground",
-                    {
-                      "bg-muted text-foreground": amount === quickAmount.bigint,
-                    }
-                  )}
-                >
-                  {quickAmount.format({
-                    decimals: 2,
-                    percent: true,
-                    trailingZeros: false,
-                  })}
-                </Button>
-                {i !== quickSlippageAmounts.length - 1 && (
-                  <Separator
-                    orientation="vertical"
-                    className="bg-border-secondary"
-                  />
+            {quickSlippageAmounts.map((quickAmount) => (
+              <Button
+                key={`quick-slippage-${quickAmount.bigint}`}
+                variant="secondary"
+                onClick={() => handleChange(quickAmount)}
+                className={cn(
+                  "px-auto h-7 grow rounded-[4px] border border-border-secondary bg-muted/20 text-xs text-foreground/75 hover:text-foreground",
+                  {
+                    "bg-muted text-foreground": amount === quickAmount.bigint,
+                  }
                 )}
-              </Fragment>
+              >
+                {quickAmount.format({
+                  decimals: 2,
+                  percent: true,
+                  trailingZeros: false,
+                })}
+              </Button>
             ))}
           </div>
 
