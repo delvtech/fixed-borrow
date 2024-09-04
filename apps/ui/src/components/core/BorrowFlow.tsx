@@ -70,7 +70,7 @@ type Action =
       payload?: undefined
     }
   | {
-      type: "slippageAmountInput"
+      type: "slippageAmountChange"
       payload: {
         amount: bigint
       }
@@ -104,7 +104,7 @@ const reducer = (state: State, action: Action): State => {
       }
     }
 
-    case "slippageAmountInput": {
+    case "slippageAmountChange": {
       return {
         ...state,
         slippage: payload.amount,
@@ -427,7 +427,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       amount={state.slippage}
                       onChange={(slippage) =>
                         dispatch({
-                          type: "slippageAmountInput",
+                          type: "slippageAmountChange",
                           payload: {
                             amount: slippage,
                           },
