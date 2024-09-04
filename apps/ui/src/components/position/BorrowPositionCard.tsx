@@ -98,7 +98,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
           </div>
         </div>
 
-        <Link href={`/borrow/${props.market.hyperdrive}`}>
+        <Link href={`/borrow/${props.market.hyperdrive}`} asChild>
           <Button size="lg" className="font-semibold">
             Fix Your Rate
           </Button>
