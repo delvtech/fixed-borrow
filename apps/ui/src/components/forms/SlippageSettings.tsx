@@ -41,7 +41,7 @@ function SlippageSettings({
         // Truncate to 16 decimal places (the max precision after division).
         const [int, fraction] = amount.split(".")
         amountString = `${int}${fraction !== undefined ? `.${fraction.slice(0, 16)}` : ""}`
-        amountFixed = parseFixed(amount).div(100, 0)
+        amountFixed = parseFixed(amountString).div(100, 0)
         break
       }
 
