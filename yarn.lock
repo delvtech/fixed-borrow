@@ -344,6 +344,11 @@
   resolved "https://registry.yarnpkg.com/@delvtech/fixed-point-wasm/-/fixed-point-wasm-0.0.3.tgz#6946b2011b7870f7aa75c6c77d87369d2191e937"
   integrity sha512-+lfCOLFooKwAuwBG+f0fBH4N1ymMfwHrllUDK+y1BSYAJzL+J/eRyNySu9AmPb5OWpOqVtq0HE09+mvdyBIaMQ==
 
+"@delvtech/fixed-point-wasm@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@delvtech/fixed-point-wasm/-/fixed-point-wasm-0.0.4.tgz#b9324f0b8c05fc9877a213b911722505c5b1d05c"
+  integrity sha512-K8K0zD7gD06XAI2tcCFu/012lGvys97ic5nIxMDFRKwcIBuxePkMcEQYFTyQbW1myAAT7kbPLyIAAiy+Xaglaw==
+
 "@delvtech/hyperdrive-artifacts@^0.4.0":
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/@delvtech/hyperdrive-artifacts/-/hyperdrive-artifacts-0.4.0.tgz#8623967ee06a1150e1cbd219786920238585972a"
@@ -1434,6 +1439,27 @@
     aria-hidden "^1.1.1"
     react-remove-scroll "2.5.5"
 
+"@radix-ui/react-popover@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-popover/-/react-popover-1.1.1.tgz#604b783cdb3494ed4f16a58c17f0e81e61ab7775"
+  integrity sha512-3y1A3isulwnWhvTTwmIreiB8CF4L+qRjZnK1wYLO7pplddzXKby/GnZ2M7OZY3qgnl6p9AodUIHRYGXNah8Y7g==
+  dependencies:
+    "@radix-ui/primitive" "1.1.0"
+    "@radix-ui/react-compose-refs" "1.1.0"
+    "@radix-ui/react-context" "1.1.0"
+    "@radix-ui/react-dismissable-layer" "1.1.0"
+    "@radix-ui/react-focus-guards" "1.1.0"
+    "@radix-ui/react-focus-scope" "1.1.0"
+    "@radix-ui/react-id" "1.1.0"
+    "@radix-ui/react-popper" "1.2.0"
+    "@radix-ui/react-portal" "1.1.1"
+    "@radix-ui/react-presence" "1.1.0"
+    "@radix-ui/react-primitive" "2.0.0"
+    "@radix-ui/react-slot" "1.1.0"
+    "@radix-ui/react-use-controllable-state" "1.1.0"
+    aria-hidden "^1.1.1"
+    react-remove-scroll "2.5.7"
+
 "@radix-ui/react-popper@1.1.3":
   version "1.1.3"
   resolved "https://registry.npmjs.org/@radix-ui/react-popper/-/react-popper-1.1.3.tgz"
@@ -1558,13 +1584,12 @@
     aria-hidden "^1.1.1"
     react-remove-scroll "2.5.7"
 
-"@radix-ui/react-separator@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.npmjs.org/@radix-ui/react-separator/-/react-separator-1.0.3.tgz"
-  integrity sha512-itYmTy/kokS21aiV5+Z56MZB54KrhPgn6eHDKkFeOLR34HMN2s8PaN47qZZAGnvupcjxHaFZnW4pQEh0BvvVuw==
+"@radix-ui/react-separator@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-separator/-/react-separator-1.1.0.tgz#ee0f4d86003b0e3ea7bc6ccab01ea0adee32663e"
+  integrity sha512-3uBAs+egzvJBDZAzvb/n4NxxOYpnspmWxO2u5NbZ8Y6FM/NdrGSF9bop3Cf6F6C71z1rTSn8KV0Fo2ZVd79lGA==
   dependencies:
-    "@babel/runtime" "^7.13.10"
-    "@radix-ui/react-primitive" "1.0.3"
+    "@radix-ui/react-primitive" "2.0.0"
 
 "@radix-ui/react-slot@1.0.2", "@radix-ui/react-slot@^1.0.2":
   version "1.0.2"

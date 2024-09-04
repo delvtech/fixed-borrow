@@ -1,7 +1,10 @@
+import { initSync, wasmBuffer } from "@delvtech/fixed-point-wasm"
 import React from "react"
 import ReactDOM from "react-dom/client"
-import App from "./App"
+import App from "src/App"
 import "./globals.css"
+
+initSync(wasmBuffer)
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

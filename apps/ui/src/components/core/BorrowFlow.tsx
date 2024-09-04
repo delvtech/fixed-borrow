@@ -24,12 +24,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "components/base/tooltip"
+import SlippageSettings, {
+  defaultSlippageAmount,
+} from "components/forms/SlippageSettings"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { cn } from "components/utils"
 import { useApproval } from "hooks/base/useApproval"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { isNil } from "lodash-es"
-import { ChevronDown, ExternalLink, Info, Settings } from "lucide-react"
+import { ChevronDown, ExternalLink, Info } from "lucide-react"
 import { useReducer, useState } from "react"
 import { match } from "ts-pattern"
 import { formatTermLength } from "utils/formatTermLength"
@@ -45,6 +48,7 @@ type State = {
   step: "buy" | "loading" | "receipt"
   decimals: number
   bondAmount: bigint
+  slippage: bigint
   hash?: Address
 }
 
@@ -63,7 +67,13 @@ type Action =
     }
   | {
       type: "transactionComplete"
-      payload: {}
+      payload?: undefined
+    }
+  | {
+      type: "slippageAmountChange"
+      payload: {
+        amount: bigint
+      }
     }
 
 const reducer = (state: State, action: Action): State => {
@@ -91,6 +101,13 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         step: "receipt",
+      }
+    }
+
+    case "slippageAmountChange": {
+      return {
+        ...state,
+        slippage: payload.amount,
       }
     }
 
@@ -227,6 +244,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
     step: "buy",
     bondAmount: 0n,
     decimals: props.market.loanToken.decimals,
+    slippage: defaultSlippageAmount,
   })
   const [isOpen, setIsOpen] = useState(false)
 
@@ -262,7 +280,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
       dispatch({
         type: "transactionComplete",
-        payload: {},
       })
     }
   }
@@ -381,11 +398,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
           )}
         </p>
       </div>
-      {/* TODO  */}
-      {/* <div className="flex justify-between text-sm">
-  <p className="text-secondary-foreground">Slippage</p>
-  <p className="font-mono">~0.5%</p>
-</div> */}
     </>
   )
 
@@ -409,12 +421,17 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-secondary-foreground">Amount</p>
-                    <Button
-                      variant="ghost"
-                      className="h-min rounded-[4px] p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                    >
-                      <Settings size={16} />
-                    </Button>
+                    <SlippageSettings
+                      amount={state.slippage}
+                      onChange={(slippage) =>
+                        dispatch({
+                          type: "slippageAmountChange",
+                          payload: {
+                            amount: slippage,
+                          },
+                        })
+                      }
+                    />
                   </div>
 
                   <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
@@ -499,7 +516,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       ) : (
                         <Skeleton className="h-[30px] w-[70px] rounded-sm bg-white/10" />
                       )}
-                      {!!formattedRateImpact ? (
+                      {formattedRateImpact ? (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger className="flex items-center gap-1 text-xs text-secondary-foreground">
