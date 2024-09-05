@@ -11,10 +11,13 @@ import {
 } from "components/base/collapsible"
 import { Dialog, DialogContent, DialogTitle } from "components/base/dialog"
 import { Progress } from "components/base/progress"
+import SlippageSettings, {
+  defaultSlippageAmount,
+} from "components/forms/SlippageSettings"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { cn } from "components/utils"
 import { isNil } from "lodash-es"
-import { ChevronDown, Settings } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import { useState } from "react"
 import { Market } from "src/types"
 import { formatTermLength } from "utils/formatTermLength"
@@ -98,12 +101,13 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
   const totalShortAmount = fixed(props.short.bondAmount)
   const [shortAmountInput, setShortAmountInput] = useState<bigint>()
 
+  const [slippage, setSlippage] = useState(defaultSlippageAmount)
+
   const { data: closeCoverageData } = useCloseCoverageData(
     props.market,
     props.short,
     shortAmountInput
   )
-  console.log(closeCoverageData)
   const formattedAmountOut = closeCoverageData
     ? fixed(closeCoverageData.amountOut, decimals).format({
         decimals: 2,
@@ -155,7 +159,9 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
   }
 
   const handleQuickAmountAction = (amount: FixedPoint) => {
-    const input = document.getElementById("bondAmountInput") as HTMLInputElement
+    const input = document.getElementById(
+      "shortAmountInput"
+    ) as HTMLInputElement
     input.value = amount.toString()
 
     handleShortAmountInput(input.value)
@@ -164,8 +170,8 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
   return (
     <Dialog {...props}>
       <DialogContent aria-describedby={undefined}>
-        <DialogTitle>
-          <h4 className="gradient-text w-fit font-chakra text-h4 font-semibold">
+        <DialogTitle asChild>
+          <h4 className="gradient-text w-fit font-chakra !text-h4 font-semibold">
             Close Coverage
           </h4>
         </DialogTitle>
@@ -214,12 +220,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-secondary-foreground">Amount</p>
-                <Button
-                  variant="ghost"
-                  className="text-xbs h-min rounded-[4px] p-1 text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                >
-                  <Settings size={16} />
-                </Button>
+                <SlippageSettings amount={slippage} onChange={setSlippage} />
               </div>
 
               <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
@@ -254,11 +255,11 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                         handleQuickAmountAction(quickAction.amount)
                       }
                       className={cn(
-                        "h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
-                        // {
-                        //   "text-foreground/75 hover:text-foreground/75":
-                        //     state.bondAmount === quickAction.amount.bigint,
-                        // }
+                        "h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground",
+                        {
+                          "text-foreground/75 hover:text-foreground/75":
+                            shortAmountInput === quickAction.amount.bigint,
+                        }
                       )}
                     >
                       {quickAction.weight === 1
