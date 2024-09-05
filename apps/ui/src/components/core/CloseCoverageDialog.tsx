@@ -16,12 +16,13 @@ import SlippageSettings, {
 } from "components/forms/SlippageSettings"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { cn } from "components/utils"
+import { useCloseShort } from "hooks/hyperdrive/useCloseShort"
 import { isNil } from "lodash-es"
 import { ChevronDown } from "lucide-react"
 import { useState } from "react"
 import { Market } from "src/types"
 import { formatTermLength } from "utils/formatTermLength"
-import { useChainId, usePublicClient } from "wagmi"
+import { useAccount, useChainId, usePublicClient } from "wagmi"
 
 const quickTokenAmountWeights = [0.25, 0.5, 0.75, 1] as const
 
@@ -54,12 +55,6 @@ function useCloseCoverageData(
       let flatPlusCurveFee = 0n
 
       if (isNil(shortAmount)) return { amountOut, flatPlusCurveFee, error }
-
-      //   return {
-      //     amountOut,
-      //     flatPlusCurveFee,
-      //     error,
-      //   }
 
       if (shortAmount > 0n) {
         try {
@@ -95,6 +90,8 @@ interface CloseCoverageDialogProps extends DialogProps {
 }
 
 export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
+  const { address: account } = useAccount()
+
   const symbol = props.market.loanToken.symbol
   const decimals = props.market.loanToken.decimals
 
@@ -120,6 +117,22 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
         trailingZeros: false,
       })
     : undefined
+
+  const { mutateAsync: closeShort } = useCloseShort()
+  const handleCloseShort = async () => {
+    if (isNil(shortAmountInput) || !account) return
+
+    await closeShort({
+      hyperdrive: props.market.hyperdrive,
+      shortOptions: {
+        maturityTime: props.short.maturity,
+        bondAmountIn: shortAmountInput,
+        // TODO implement slippage controls
+        minAmountOut: 0n,
+        destination: account,
+      },
+    })
+  }
 
   const quickAmountValues = quickTokenAmountWeights.map((weight) => {
     // const amount = fixed(props.position.totalDebt).mul(parseFixed(weight))
@@ -162,10 +175,16 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
     const input = document.getElementById(
       "shortAmountInput"
     ) as HTMLInputElement
-    input.value = amount.toString()
+    input.value = amount.format({
+      trailingZeros: false,
+      group: false,
+    })
 
     handleShortAmountInput(input.value)
   }
+
+  const executeButtonDisabled =
+    shortAmountInput === 0n || isNil(shortAmountInput) || !closeCoverageData
 
   return (
     <Dialog {...props}>
@@ -231,7 +250,6 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                   min={0}
                   step={1}
                   id="shortAmountInput"
-                  //   disabled={isNil(allowance)}
                   onChange={({ target }) =>
                     handleShortAmountInput(target.value)
                   }
@@ -269,16 +287,21 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                   ))}
                 </div>
 
-                {/* <p className="text-right text-sm text-secondary-foreground">
-                      Total Debt: {formattedTotalDebt}
-                    </p> */}
+                <p className="text-right text-sm text-secondary-foreground">
+                  Max:{" "}
+                  {totalShortAmount.format({
+                    decimals: 2,
+                    trailingZeros: false,
+                  })}{" "}
+                  {symbol}
+                </p>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2">
             <div className="flex flex-col gap-2 text-sm">
-              <p className="text-secondary-foreground">Total Fees</p>
+              <p className="text-secondary-foreground">Closing Fee</p>
               <div className="space-y-1">
                 <p className="w-fit font-mono text-h4">
                   {formattedFees} {symbol}
@@ -287,7 +310,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
             </div>
 
             <div className="flex flex-col items-end gap-2 text-sm">
-              <p className="text-secondary-foreground">You Receive</p>
+              <p className="text-secondary-foreground">Rebate to Receive</p>
               <div className="space-y-1">
                 <p className="w-fit font-mono text-h4">
                   {formattedAmountOut} {symbol}
@@ -297,7 +320,13 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
           </div>
 
           <div className="space-y-4">
-            <Button className="w-full">Execute</Button>
+            <Button
+              className="w-full"
+              disabled={executeButtonDisabled}
+              onClick={handleCloseShort}
+            >
+              Execute
+            </Button>
             <Collapsible open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
               <CollapsibleTrigger className="flex w-full items-center text-start text-sm text-secondary-foreground">
                 Details
