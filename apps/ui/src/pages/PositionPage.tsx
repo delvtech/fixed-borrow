@@ -54,6 +54,10 @@ function MarketPositionsCard(props: MarketPositionsCardProps) {
     debtCovered.gt(0n) && debtCovered.lt(FixedPoint.one(decimals))
 
   const [closeCoverageModalOpen, setCloseCoverageModalOpen] = useState(false)
+  const handleCloseCoverageModelOpen = (open: boolean) => {
+    setCloseCoverageModalOpen(open)
+    setSelectedOpenShort(undefined)
+  }
 
   const [selectedOpenShort, setSelectedOpenShort] = useState<OpenShort>()
 
@@ -181,7 +185,7 @@ function MarketPositionsCard(props: MarketPositionsCardProps) {
       {selectedOpenShort && (
         <CloseCoverageDialog
           open={closeCoverageModalOpen}
-          onOpenChange={setCloseCoverageModalOpen}
+          onOpenChange={handleCloseCoverageModelOpen}
           market={props.market}
           short={selectedOpenShort}
         />
