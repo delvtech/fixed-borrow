@@ -51,7 +51,7 @@ export class MorphoMarketReader extends MarketReader {
   async getBorrowPosition(
     account: Address,
     market: Market
-  ): Promise<BorrowPosition> {
+  ): Promise<BorrowPosition | undefined> {
     const marketConfig = {
       id: market.metadata.id as MarketId,
       loanToken: market.loanToken.address,
@@ -117,8 +117,6 @@ export class MorphoMarketReader extends MarketReader {
       price,
       rateAtTarget,
     })
-
-    console.log(morphoMarket.borrowApy, morphoMarket.rateAtTarget)
 
     const position = new AccrualPosition(
       {

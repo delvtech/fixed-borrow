@@ -11,22 +11,32 @@ function convertMillisecondsToYears(ms: number): number {
   return days
 }
 
-export function formatTermLength(termLengthMS: bigint): {
+type FormattedTermLengthResult = {
   value: number
   scale: "days" | "years"
-} {
+  formatted: string
+}
+export function formatTermLength(
+  termLengthMS: bigint
+): FormattedTermLengthResult {
   const numDays = convertMillisecondsToDays(Number(termLengthMS * 1000n))
   const numYears = convertMillisecondsToYears(Number(termLengthMS * 1000n))
 
-  if (numYears >= 1) {
-    return {
-      value: numYears,
-      scale: "years",
-    }
-  }
+  let result: Omit<FormattedTermLengthResult, "formatted"> =
+    numYears >= 1
+      ? {
+          value: numYears,
+          scale: "years",
+        }
+      : {
+          value: numDays,
+          scale: "days",
+        }
+
+  const formatted = result.value + " " + result.scale
 
   return {
-    value: numDays,
-    scale: "days",
+    ...result,
+    formatted,
   }
 }

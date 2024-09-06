@@ -34,7 +34,7 @@ export function Navbar() {
       </div>
 
       <div className="justify-self-center">
-        <Link href="/positions" asChild>
+        <Link href="/positions">
           <p className="cursor-pointer font-chakra text-md font-medium hover:underline">
             My Positions
           </p>

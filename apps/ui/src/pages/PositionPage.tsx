@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "components/base/table"
+import { CloseCoverageDialog } from "components/core/CloseCoverageDialog"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { ChevronDown } from "lucide-react"
@@ -20,6 +21,7 @@ import { useState } from "react"
 import { formatAddress } from "utils/base/formatAddress"
 import { Address } from "viem"
 import { useAccount, useChainId, usePublicClient } from "wagmi"
+import { Link } from "wouter"
 import { SupportedChainId } from "~/constants"
 import { Market } from "../types"
 
@@ -51,15 +53,25 @@ function MarketPositionsCard(props: MarketPositionsCardProps) {
   const shouldShowAddCoverageButton =
     debtCovered.gt(0n) && debtCovered.lt(FixedPoint.one(decimals))
 
+  const [closeCoverageModalOpen, setCloseCoverageModalOpen] = useState(false)
+  const handleCloseCoverageModelOpen = (open: boolean) => {
+    setCloseCoverageModalOpen(open)
+    setSelectedOpenShort(undefined)
+  }
+
+  const [selectedOpenShort, setSelectedOpenShort] = useState<OpenShort>()
+
   return (
     <Card>
       <CardHeader className="flex flex-row justify-between space-y-0">
         <MarketHeader market={props.market} className="text-h4" />
 
         {shouldShowAddCoverageButton && (
-          <Button className="bg-gradient-to-r from-primary to-skyBlue">
-            Add Coverage
-          </Button>
+          <Link href={`/borrow/${props.market.hyperdrive}`}>
+            <Button className="bg-gradient-to-r from-primary to-skyBlue hover:opacity-90">
+              Add Coverage
+            </Button>
+          </Link>
         )}
       </CardHeader>
 
@@ -131,7 +143,10 @@ function MarketPositionsCard(props: MarketPositionsCardProps) {
                   const maturity = new Date(Number(short.maturity) * 1000)
 
                   return (
-                    <TableRow className="hover:bg-card">
+                    <TableRow
+                      key={short.assetId.toString()}
+                      className="hover:bg-card"
+                    >
                       <TableCell className="font-mono">
                         {openedDate.toLocaleDateString()}
                       </TableCell>
@@ -150,9 +165,12 @@ function MarketPositionsCard(props: MarketPositionsCardProps) {
                         <Button
                           variant="secondary"
                           className="ml-auto"
-                          disabled
+                          onClick={() => {
+                            setSelectedOpenShort(short)
+                            setCloseCoverageModalOpen(true)
+                          }}
                         >
-                          Remove Coverage
+                          Close Coverage
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -163,6 +181,15 @@ function MarketPositionsCard(props: MarketPositionsCardProps) {
           </CollapsibleContent>
         </Collapsible>
       </CardContent>
+
+      {selectedOpenShort && (
+        <CloseCoverageDialog
+          open={closeCoverageModalOpen}
+          onOpenChange={handleCloseCoverageModelOpen}
+          market={props.market}
+          short={selectedOpenShort}
+        />
+      )}
     </Card>
   )
 }
@@ -219,7 +246,6 @@ export function PositionPage() {
   const { address: account } = useAccount()
 
   const { data: borrowPositions } = useAllBorrowPositions(account)
-  console.log(borrowPositions)
 
   // const totalCoverage = borrowPositions?.reduce(
   //   (prev, curr) => prev + curr.totalCoverage,
@@ -227,7 +253,7 @@ export function PositionPage() {
   // )
 
   return (
-    <main className="m-auto my-8 flex max-w-7xl flex-col gap-8 px-8 lg:px-28">
+    <main className="m-auto my-8 flex max-w-7xl flex-col gap-8 px-8 pb-8 lg:px-28">
       <h2 className="gradient-text w-fit font-chakra font-medium">
         My Positions
       </h2>
