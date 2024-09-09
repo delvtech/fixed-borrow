@@ -22,7 +22,7 @@ export function formatTermLength(
   const numDays = convertMillisecondsToDays(Number(termLengthMS * 1000n))
   const numYears = convertMillisecondsToYears(Number(termLengthMS * 1000n))
 
-  let result: Omit<FormattedTermLengthResult, "formatted"> =
+  const result: Omit<FormattedTermLengthResult, "formatted"> =
     numYears >= 1
       ? {
           value: numYears,

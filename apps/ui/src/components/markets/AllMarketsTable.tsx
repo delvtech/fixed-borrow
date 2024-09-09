@@ -261,8 +261,10 @@ const columns: ColumnDef<MarketInfo>[] = [
       // TODO will need to generalize when multi-protocol
       const morphoUrl = new URL("market", "https://app.morpho.org")
       morphoUrl.searchParams.set("id", props.row.original.market.metadata.id)
-      client &&
+      if (client) {
         morphoUrl.searchParams.set("network", client?.chain.name.toLowerCase())
+      }
+
       const isTestnet = chainId && chainId === sepolia.id
 
       return (
@@ -271,8 +273,8 @@ const columns: ColumnDef<MarketInfo>[] = [
             href={isTestnet ? "#" : morphoUrl.toString()}
             className="block w-min"
             target="_blank"
-            rel="noopener"
             aria-label={`Go to ${props.row.original.market.collateralToken.symbol}/${props.row.original.market.loanToken.symbol} on Morpho`}
+            rel="noopener noreferrer"
           >
             <div className="flex w-min items-center rounded-full bg-accent p-3 hover:bg-accent/80">
               <ArrowRight size={16} />

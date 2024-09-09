@@ -82,7 +82,7 @@ export function HomePage() {
                           <a
                             href="https://app.morpho.org"
                             target="_blank"
-                            rel="noopener"
+                            rel="noopener noreferrer"
                           >
                             <img
                               src="/logos/Morpho-logo-symbol-darkmode.svg"
