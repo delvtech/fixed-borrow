@@ -14,8 +14,13 @@
     "gen": "npx tsx ./src/generate.ts"
   },
   "devDependencies": {
+    "@eslint/js": "^9.10.0",
     "artifacts": "*",
+    "globals": "^15.9.0",
     "tsx": "^4.16.2",
-    "typescript": "^5.2.2"
-  }
+    "typescript": "^5.2.2",
+    "typescript-eslint": "^8.5.0",
+    "eslint": "^9.10.0"
+  },
+  "dependencies": {}
 }
