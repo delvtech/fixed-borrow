@@ -129,8 +129,16 @@ interface TokenPairProps {
 function TokenPair(props: TokenPairProps) {
   return (
     <div className="flex">
-      <img src={props.market.collateralToken.iconUrl} className="size-5" />
-      <img src={props.market.loanToken.iconUrl} className="-ml-3 size-5" />
+      <img
+        src={props.market.collateralToken.iconUrl}
+        className="size-5"
+        alt={`${props.market.collateralToken.symbol} token symbol`}
+      />
+      <img
+        src={props.market.loanToken.iconUrl}
+        className="-ml-3 size-5"
+        alt={`${props.market.loanToken.symbol} token symbol`}
+      />
     </div>
   )
 }
@@ -264,6 +272,7 @@ const columns: ColumnDef<MarketInfo>[] = [
             className="block w-min"
             target="_blank"
             rel="noopener"
+            aria-label={`Go to ${props.row.original.market.collateralToken.symbol}/${props.row.original.market.loanToken.symbol} on Morpho`}
           >
             <div className="flex w-min items-center rounded-full bg-accent p-3 hover:bg-accent/80">
               <ArrowRight size={16} />

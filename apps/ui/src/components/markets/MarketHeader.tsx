@@ -13,14 +13,24 @@ export function MarketHeader(props: MarketHeaderProps) {
     <div className="flex flex-col space-y-2">
       <div className="flex items-center gap-2">
         <div className="flex">
-          <img src={props.market.collateralToken.iconUrl} className="size-6" />
-          <img src={props.market.loanToken.iconUrl} className="-ml-3 size-6" />
+          <img
+            src={props.market.collateralToken.iconUrl}
+            className="size-6"
+            alt={`${props.market.collateralToken.symbol} token symbol`}
+          />
+          <img
+            src={props.market.loanToken.iconUrl}
+            className="-ml-3 size-6"
+            alt={`${props.market.loanToken.symbol} token symbol`}
+          />
         </div>
 
-        <h3 className={cn("font-chakra font-semibold", props.className)}>
+        <h2
+          className={cn("font-chakra text-h3 font-semibold", props.className)}
+        >
           {props.market.collateralToken.symbol} /{" "}
           {props.market.loanToken.symbol}
-        </h3>
+        </h2>
       </div>
 
       <div className="flex items-center gap-2">

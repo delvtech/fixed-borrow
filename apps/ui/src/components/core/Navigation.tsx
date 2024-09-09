@@ -5,7 +5,7 @@ export function Navbar() {
   return (
     <div className="grid grid-cols-3 items-center px-8 py-4">
       <div>
-        <Link href="/">
+        <Link href="/" aria-label="Go to Hyperdrive Home page">
           <svg
             className="hidden md:block"
             xmlns="http://www.w3.org/2000/svg"
