@@ -641,11 +641,11 @@ export function BorrowFlow(props: BorrowFlowProps) {
                         gradientUnits="userSpaceOnUse"
                         gradientTransform="translate(36 36) scale(36)"
                       >
-                        <stop stop-color="#15ffab" />
+                        <stop stopColor="#15ffab" />
                         <stop
                           offset="1"
-                          stop-color="#14D0F9"
-                          stop-opacity="0.4"
+                          stopColor="#14D0F9"
+                          stopOpacity="0.4"
                         />
                       </radialGradient>
                     </defs>
@@ -659,7 +659,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 <a
                   href="https://www.etherscan.com"
                   target="_blank"
-                  rel="noopener"
+                  rel="noopener noreferrer"
                 >
                   <p className="flex items-center gap-1 text-sm text-skyBlue hover:underline">
                     View on Explorer <ExternalLink size={14} />
@@ -684,8 +684,8 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
+                      fillRule="evenodd"
+                      clipRule="evenodd"
                       d="M24.5908 4.79934L9.78382 19.5307L1.40967 11.1993L2.54685 10.068L9.78382 17.268L23.4537 3.66797L24.5908 4.79934Z"
                       fill="#36D399"
                     />
@@ -699,7 +699,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 <a
                   href="https://www.etherscan.com"
                   target="_blank"
-                  rel="noopener"
+                  rel="noopener noreferrer"
                 >
                   <p className="flex items-center gap-1 text-sm text-skyBlue hover:underline">
                     View on Explorer <ExternalLink size={14} />

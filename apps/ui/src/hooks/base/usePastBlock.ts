@@ -20,7 +20,7 @@ export function usePastBlock(timestamp: number): UseQueryResult<Block> {
     queryKey: ["prev-block", blockExplorerUrl, timestamp, client?.chain.id],
     queryFn: async () => {
       // Create a URL object
-      let url = new URL(blockExplorerUrl!)
+      const url = new URL(blockExplorerUrl!)
 
       // Append the query parameters to the URL
       url.search = new URLSearchParams({

@@ -13,7 +13,7 @@ interface CollateralCardProps {
  * @deprecated
  */
 export function CollateralCard({ position }: CollateralCardProps) {
-  let currentLTV = 0n
+  const currentLTV = 0n
 
   return (
     <Card>

@@ -55,7 +55,7 @@ export abstract class MarketReader {
       throw new Error("Chain does not have block explorer api.")
 
     // Create URL request object.
-    let url = new URL(blockExplorerUrl)
+    const url = new URL(blockExplorerUrl)
 
     // Add query parameters to the request.
     url.search = new URLSearchParams({

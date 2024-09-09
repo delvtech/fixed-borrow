@@ -1,18 +1,18 @@
-import { Address, Chain } from "viem";
-import { mainnet, sepolia } from "viem/chains";
+import { Address, Chain } from "viem"
+import { mainnet, sepolia } from "viem/chains"
 
 export const supportedChainIds: Chain["id"][] = [
   mainnet.id,
   sepolia.id,
-] as const;
+] as const
 
-export type SupportedChainId = 1 | 11155111;
+export type SupportedChainId = 1 | 11155111
 
 export const morphoAddressesByChain: Record<
   SupportedChainId,
   {
-    blue: Address;
-    irm: Address;
+    blue: Address
+    irm: Address
   }
 > = {
   [mainnet.id]: {
@@ -23,7 +23,7 @@ export const morphoAddressesByChain: Record<
     blue: "0x927A9E3C4B897eF5135e6B2C7689637fA8E2E0Bd",
     irm: "0x0fB591F09ab2eB967c0EFB9eE0EF6642c2abe6Ab",
   },
-};
+}
 
 export const whitelistedMetaMorphoMarketsByChain: Record<
   SupportedChainId,
@@ -63,7 +63,7 @@ export const whitelistedMetaMorphoMarketsByChain: Record<
       hyperdrive: "0x0399BBA8DE5959007148a95ADaaD04eA3172513E",
     },
   ],
-};
+}
 
 export const tokenIconBySymbol: Record<string, string> = {
   DAI: "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.svg?v=032",
@@ -73,4 +73,4 @@ export const tokenIconBySymbol: Record<string, string> = {
   wstETH: "https://cdn.morpho.org/assets/logos/wsteth.svg",
   USDC: "https://cryptologos.cc/logos/usd-coin-usdc-logo.svg?v=033",
   WETH: "https://cdn.morpho.org/assets/logos/weth.svg",
-};
+}
