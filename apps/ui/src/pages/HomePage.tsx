@@ -157,7 +157,7 @@ export function HomePage() {
         />
 
         <div className="space-y-4 text-center">
-          <h3 className="font-chakra">Available Morpho Markets</h3>
+          <h1 className="font-chakra text-h3">Available Morpho Markets</h1>
 
           <p className="text-secondary-foreground">
             Open a supported position on Morpho Blue and fix your rate in one
