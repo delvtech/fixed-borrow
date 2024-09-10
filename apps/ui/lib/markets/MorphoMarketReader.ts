@@ -98,7 +98,7 @@ export class MorphoMarketReader extends MarketReader {
         address: market.metadata.oracle,
         functionName: "price",
       }),
-      await this.client.readContract({
+      this.client.readContract({
         abi: AdaptiveCurveIrmAbi,
         address: this.irmAddress,
         functionName: "rateAtTarget",

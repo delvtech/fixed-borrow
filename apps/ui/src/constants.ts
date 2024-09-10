@@ -43,3 +43,5 @@ export const tokenIconBySymbol: Record<string, string> = {
   DAI: "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.svg?v=032",
   SDAI: "https://1827921443-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FjvdfbhgN5UCpMtP1l8r5%2Fuploads%2Fgit-blob-9873db4416f6c6f7f29d9be3ead28f5317f3dfa3%2FBadge_Dai%202.svg?alt=media",
 }
+
+export const dayInSeconds = 60 * 60 * 24
