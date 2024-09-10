@@ -1,251 +1,18 @@
-import { fixed, FixedPoint } from "@delvtech/fixed-point-wasm"
-import { OpenShort, ReadHyperdrive } from "@delvtech/hyperdrive-viem"
-import { useQuery } from "@tanstack/react-query"
-import { Button } from "components/base/button"
-import { Card, CardContent, CardHeader } from "components/base/card"
-import { Collapsible, CollapsibleContent } from "components/base/collapsible"
-import { Separator } from "components/base/separator"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "components/base/table"
-import { CloseCoverageDialog } from "components/core/CloseCoverageDialog"
-import { MarketHeader } from "components/markets/MarketHeader"
-import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
-import { ChevronDown } from "lucide-react"
-import { useState } from "react"
+import { Skeleton } from "components/base/skeleton"
+import { MarketPositionsCard } from "components/position/MarketPositionCard"
+import { useAllPositions } from "hooks/positions/useAllPositions"
 import { formatAddress } from "utils/base/formatAddress"
-import { Address } from "viem"
-import { useAccount, useChainId, usePublicClient } from "wagmi"
-import { Link } from "wouter"
-import { SupportedChainId } from "~/constants"
-import { Market } from "../types"
-
-interface MarketPositionsCardProps {
-  market: Market
-  totalCoverage: bigint
-  debtCovered: bigint
-  shorts: OpenShort[]
-}
-
-const dayInSeconds = 60 * 60 * 24
-
-function MarketPositionsCard(props: MarketPositionsCardProps) {
-  const [tableOpen, setTableOpen] = useState(false)
-  const decimals = props.market.loanToken.decimals
-  const symbol = props.market.loanToken.symbol
-
-  const oldestShort = props.shorts.at(0)
-  const currentDateSeconds = Date.now()
-  const daysRemaining = oldestShort
-    ? Math.round(
-        (Number(oldestShort.maturity) - currentDateSeconds / 1000) /
-          dayInSeconds
-      )
-    : undefined
-
-  const debtCovered = fixed(props.debtCovered, decimals)
-
-  const shouldShowAddCoverageButton =
-    debtCovered.gt(0n) && debtCovered.lt(FixedPoint.one(decimals))
-
-  const [closeCoverageModalOpen, setCloseCoverageModalOpen] = useState(false)
-  const handleCloseCoverageModelOpen = (open: boolean) => {
-    setCloseCoverageModalOpen(open)
-    setSelectedOpenShort(undefined)
-  }
-
-  const [selectedOpenShort, setSelectedOpenShort] = useState<OpenShort>()
-
-  return (
-    <Card>
-      <CardHeader className="flex flex-row justify-between space-y-0">
-        <MarketHeader market={props.market} className="text-h4" />
-
-        {shouldShowAddCoverageButton && (
-          <Link href={`/borrow/${props.market.hyperdrive}`}>
-            <Button className="bg-gradient-to-r from-primary to-skyBlue hover:opacity-90">
-              Add Coverage
-            </Button>
-          </Link>
-        )}
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-sm text-secondary-foreground">Total Coverage</p>
-            <p className="font-mono text-lg">
-              {fixed(props.totalCoverage, decimals).format({
-                decimals: 2,
-                trailingZeros: false,
-              })}{" "}
-              {symbol}
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <p className="text-sm text-secondary-foreground">Debt Covered</p>
-            <p className="font-mono text-lg">
-              {fixed(props.debtCovered, decimals).format({
-                percent: true,
-                trailingZeros: false,
-              })}
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <p className="text-sm text-secondary-foreground">Next Expiry</p>
-            <p className="font-mono text-lg">
-              {daysRemaining
-                ? `${daysRemaining} day${dayInSeconds === 1 ? "" : "s"}`
-                : "n/a"}
-            </p>
-          </div>
-
-          <Button variant="ghost" onClick={() => setTableOpen((open) => !open)}>
-            <p>Manage</p> <ChevronDown />
-          </Button>
-        </div>
-
-        <Collapsible open={tableOpen}>
-          <CollapsibleContent>
-            <Separator />
-
-            <h6 className="p-4 font-chakra font-medium">Coverage Positions</h6>
-            <Table>
-              <TableHeader className="[&_tr]:border-b-0">
-                <TableRow className="hover:bg-card">
-                  <TableHead className="font-normal text-secondary-foreground">
-                    Coverage Date
-                  </TableHead>
-                  <TableHead className="font-normal text-secondary-foreground">
-                    Amount
-                  </TableHead>
-                  <TableHead className="font-normal text-secondary-foreground">
-                    Fixed Rate
-                  </TableHead>
-                  <TableHead className="font-normal text-secondary-foreground">
-                    Expiry Date
-                  </TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {props.shorts.map((short) => {
-                  const openedDate = new Date(
-                    Number(short.openedTimestamp) * 1000
-                  )
-                  const maturity = new Date(Number(short.maturity) * 1000)
-
-                  return (
-                    <TableRow
-                      key={short.assetId.toString()}
-                      className="hover:bg-card"
-                    >
-                      <TableCell className="font-mono">
-                        {openedDate.toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="font-mono">
-                        {fixed(short.bondAmount, decimals).format({
-                          decimals: 2,
-                          trailingZeros: false,
-                        })}{" "}
-                        {symbol}
-                      </TableCell>
-                      <TableCell className="font-mono">10.70%</TableCell>
-                      <TableCell className="font-mono">
-                        {maturity.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="font-mono">
-                        <Button
-                          variant="secondary"
-                          className="ml-auto"
-                          onClick={() => {
-                            setSelectedOpenShort(short)
-                            setCloseCoverageModalOpen(true)
-                          }}
-                        >
-                          Close Coverage
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </CollapsibleContent>
-        </Collapsible>
-      </CardContent>
-
-      {selectedOpenShort && (
-        <CloseCoverageDialog
-          open={closeCoverageModalOpen}
-          onOpenChange={handleCloseCoverageModelOpen}
-          market={props.market}
-          short={selectedOpenShort}
-        />
-      )}
-    </Card>
-  )
-}
-
-function useAllBorrowPositions(account?: Address) {
-  const chainId = useChainId()
-  const client = usePublicClient()
-
-  return useQuery({
-    queryKey: ["borrow-positions", account, chainId],
-    queryFn: async () => {
-      const reader = new MorphoMarketReader(
-        client!,
-        chainId as SupportedChainId
-      )
-      const borrowPositions = await reader.getBorrowPositions(account!)
-
-      return await Promise.all(
-        borrowPositions.map(async (position) => {
-          const readHyperdrive = new ReadHyperdrive({
-            address: position.market.hyperdrive,
-            publicClient: client!,
-          })
-
-          const decimals = position.market.loanToken.decimals
-
-          const shorts = await readHyperdrive.getOpenShorts({
-            account: account!,
-          })
-          const totalCoverage = shorts.reduce((prev, curr) => {
-            return prev + curr.bondAmount
-          }, 0n)
-
-          const debtCovered =
-            position.totalDebt === 0n
-              ? fixed(0n, decimals)
-              : fixed(totalCoverage, decimals).div(position.totalDebt, decimals)
-
-          return {
-            market: position.market,
-            position,
-            shorts,
-            totalCoverage,
-            debtCovered,
-          }
-        })
-      )
-    },
-    enabled: !!account && !!client,
-  })
-}
+import { useAccount } from "wagmi"
 
 export function PositionPage() {
-  const { address: account } = useAccount()
+  const { address } = useAccount()
+  const { data: borrowPositions, isLoading: queryLoading } = useAllPositions()
 
-  const { data: borrowPositions } = useAllBorrowPositions(account)
+  const loading = !borrowPositions && queryLoading
+
+  const positions = borrowPositions
+    ?.filter(Boolean)
+    .sort((a, b) => (b.totalCoverage > a.totalCoverage ? 0 : -1))
 
   // const totalCoverage = borrowPositions?.reduce(
   //   (prev, curr) => prev + curr.totalCoverage,
@@ -259,12 +26,14 @@ export function PositionPage() {
       </h2>
 
       <div className="flex gap-12">
-        {account && (
-          <div className="space-y-1">
-            <p className="text-secondary-foreground">Account</p>
-            <p className="font-mono text-h5">{formatAddress(account)}</p>
-          </div>
-        )}
+        <div className="space-y-1">
+          <p className="text-secondary-foreground">Account</p>
+          {address ? (
+            <p className="font-mono text-h5">{formatAddress(address)}</p>
+          ) : (
+            <Skeleton className="h-[28px] w-[132px] rounded-xl bg-popover" />
+          )}
+        </div>
 
         {/* TODO */}
         <div className="space-y-1">
@@ -273,17 +42,22 @@ export function PositionPage() {
         </div>
       </div>
 
-      {borrowPositions
-        ?.filter(Boolean)
-        .map((position) => (
-          <MarketPositionsCard
-            key={position.market.hyperdrive}
-            market={position.market}
-            totalCoverage={position.totalCoverage}
-            debtCovered={position.debtCovered.bigint}
-            shorts={position.shorts}
-          />
-        ))}
+      {loading
+        ? Array.from({ length: 3 }, (_, index) => (
+            <Skeleton
+              key={index}
+              className="h-[204px] w-full rounded-xl bg-popover"
+            />
+          ))
+        : positions?.map((position) => (
+            <MarketPositionsCard
+              key={position.market.hyperdrive}
+              market={position.market}
+              totalCoverage={position.totalCoverage}
+              debtCovered={position.debtCovered.bigint}
+              shorts={position.shorts}
+            />
+          ))}
     </main>
   )
 }
