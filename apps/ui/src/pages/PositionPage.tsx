@@ -10,6 +10,10 @@ export function PositionPage() {
 
   const loading = !borrowPositions && queryLoading
 
+  const positions = borrowPositions
+    ?.filter(Boolean)
+    .sort((a, b) => (b.totalCoverage > a.totalCoverage ? 0 : -1))
+
   // const totalCoverage = borrowPositions?.reduce(
   //   (prev, curr) => prev + curr.totalCoverage,
   //   0n
@@ -45,18 +49,15 @@ export function PositionPage() {
               className="h-[204px] w-full rounded-xl bg-popover"
             />
           ))
-        : borrowPositions
-            ?.filter(Boolean)
-            .sort((a, b) => (b.totalCoverage > a.totalCoverage ? 0 : -1))
-            .map((position) => (
-              <MarketPositionsCard
-                key={position.market.hyperdrive}
-                market={position.market}
-                totalCoverage={position.totalCoverage}
-                debtCovered={position.debtCovered.bigint}
-                shorts={position.shorts}
-              />
-            ))}
+        : positions?.map((position) => (
+            <MarketPositionsCard
+              key={position.market.hyperdrive}
+              market={position.market}
+              totalCoverage={position.totalCoverage}
+              debtCovered={position.debtCovered.bigint}
+              shorts={position.shorts}
+            />
+          ))}
     </main>
   )
 }

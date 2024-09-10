@@ -28,11 +28,22 @@ interface MarketPositionsCardProps {
 }
 
 export function MarketPositionsCard(props: MarketPositionsCardProps) {
+  const [selectedOpenShort, setSelectedOpenShort] = useState<OpenShort>()
   const [tableOpen, setTableOpen] = useState(false)
+
+  const [closeCoverageModalOpen, setCloseCoverageModalOpen] = useState(false)
+  const handleCloseCoverageModelOpen = (open: boolean) => {
+    setCloseCoverageModalOpen(open)
+    setSelectedOpenShort(undefined)
+  }
+
   const decimals = props.market.loanToken.decimals
   const symbol = props.market.loanToken.symbol
 
   const oldestShort = props.shorts.at(0)
+
+  const debtCovered = fixed(props.debtCovered, decimals)
+
   const currentDateSeconds = Date.now()
   const daysRemaining = oldestShort
     ? Math.round(
@@ -41,18 +52,8 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
       )
     : undefined
 
-  const debtCovered = fixed(props.debtCovered, decimals)
-
   const shouldShowAddCoverageButton =
     debtCovered.gt(0n) && debtCovered.lt(FixedPoint.one(decimals))
-
-  const [closeCoverageModalOpen, setCloseCoverageModalOpen] = useState(false)
-  const handleCloseCoverageModelOpen = (open: boolean) => {
-    setCloseCoverageModalOpen(open)
-    setSelectedOpenShort(undefined)
-  }
-
-  const [selectedOpenShort, setSelectedOpenShort] = useState<OpenShort>()
 
   return (
     <Card>
@@ -61,9 +62,7 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
 
         {shouldShowAddCoverageButton && (
           <Link href={`/borrow/${props.market.hyperdrive}`}>
-            <Button className="bg-gradient-to-r from-primary to-skyBlue hover:opacity-90">
-              Add Coverage
-            </Button>
+            <Button variant="gradient">Add Coverage</Button>
           </Link>
         )}
       </CardHeader>
@@ -95,7 +94,9 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
             <p className="text-sm text-secondary-foreground">Next Expiry</p>
             <p className="font-mono text-lg">
               {daysRemaining
-                ? `${daysRemaining} day${dayInSeconds === 1 ? "" : "s"}`
+                ? daysRemaining < 0
+                  ? "expired"
+                  : `${daysRemaining} day${dayInSeconds === 1 ? "" : "s"}`
                 : "n/a"}
             </p>
           </div>
@@ -152,7 +153,7 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
                       </TableCell>
                       <TableCell className="font-mono">10.70%</TableCell>
                       <TableCell className="font-mono">
-                        {maturity.toLocaleString()}
+                        {maturity.toLocaleDateString()}
                       </TableCell>
                       <TableCell className="font-mono">
                         <Button
