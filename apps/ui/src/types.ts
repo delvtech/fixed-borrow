@@ -1,3 +1,5 @@
+import { FixedPoint } from "@delvtech/fixed-point-wasm"
+import { OpenShort } from "@delvtech/hyperdrive-viem"
 import { Address } from "viem"
 
 /** Interface that includes useful market state data.  */
@@ -82,6 +84,14 @@ export interface BorrowPosition {
   currentRate: bigint
 
   rates?: RateHistory
+}
+
+export interface Position {
+  market: Market
+  position: BorrowPosition
+  shorts: OpenShort[]
+  totalCoverage: bigint
+  debtCovered: FixedPoint
 }
 
 export type ArrayElement<A> = A extends readonly (infer T)[] ? T : never
