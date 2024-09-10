@@ -1,0 +1,155 @@
+import { X } from "lucide-react"
+
+export default function AppFooter() {
+  return (
+    <footer className="mt-16 w-full border-t">
+      <div className="grid max-w-4xl grid-cols-4 items-start justify-between gap-4 p-8 md:flex-row">
+        <div className="space-y-2">
+          <svg
+            className="hidden md:block"
+            xmlns="http://www.w3.org/2000/svg"
+            width="130"
+            height="20"
+            fill="none"
+          >
+            <path
+              fill="#fff"
+              d="M121.031 14.622V5.455h8.44v1.693h-6.747v2.037h5.423v1.707h-5.423v2.037h6.747v1.693h-8.44ZM112.642 14.622l-5.308-9.167h1.96l4.099 7.13 4.112-7.13h1.948l-5.308 9.167h-1.503ZM104.062 14.622V5.455h1.668v9.167h-1.668ZM100.409 14.623l-2.763-3.298h2.202l2.394 2.827v.47h-1.833Zm-7.307 0V5.468h7.383c.322 0 .619.08.891.242.272.161.488.377.649.65.162.262.242.555.242.878v2.47c0 .322-.08.62-.242.891a1.825 1.825 0 0 1-.649.65c-.272.152-.569.229-.891.229l-5.703.012v3.133h-1.68Zm1.833-4.839h5.474c.042 0 .08-.013.114-.038a.12.12 0 0 0 .051-.102V7.301a.12.12 0 0 0-.051-.102.158.158 0 0 0-.114-.05h-5.474a.158.158 0 0 0-.115.05.138.138 0 0 0-.038.102v2.343c0 .043.013.077.038.102a.186.186 0 0 0 .115.038ZM81.875 14.622V5.455h7.383c.323 0 .62.08.892.242.271.16.487.377.649.649.16.263.242.556.242.878v5.628c0 .323-.081.62-.242.892a1.866 1.866 0 0 1-.65.636 1.713 1.713 0 0 1-.89.242h-7.384Zm1.82-1.693h5.487c.042 0 .08-.013.115-.039a.158.158 0 0 0 .05-.114V7.301a.121.121 0 0 0-.05-.102.159.159 0 0 0-.115-.051h-5.487a.159.159 0 0 0-.114.051.138.138 0 0 0-.038.102v5.475c0 .042.012.08.038.114a.186.186 0 0 0 .114.039ZM78.016 14.623l-2.762-3.298h2.202l2.393 2.827v.47h-1.833Zm-7.307 0V5.468h7.383c.323 0 .62.08.892.242.271.161.487.377.649.65.16.262.242.555.242.878v2.47c0 .322-.081.62-.242.891a1.832 1.832 0 0 1-.65.65c-.271.152-.568.229-.89.229l-5.704.012v3.133h-1.68Zm1.833-4.839h5.474c.042 0 .08-.013.115-.038a.121.121 0 0 0 .05-.102V7.301a.121.121 0 0 0-.05-.102.158.158 0 0 0-.115-.05h-5.474a.158.158 0 0 0-.115.05.138.138 0 0 0-.038.102v2.343c0 .043.013.077.038.102a.186.186 0 0 0 .115.038ZM60.35 14.622V5.455h8.44v1.693h-6.747v2.037h5.423v1.707h-5.423v2.037h6.747v1.693h-8.44ZM49.617 14.623V5.468h7.384c.322 0 .62.08.89.242.272.161.489.377.65.65.161.262.242.555.242.878v2.47c0 .322-.08.62-.242.891a1.832 1.832 0 0 1-.65.65c-.27.152-.568.229-.89.229l-5.703.012v3.133h-1.68Zm1.833-4.839h5.474c.043 0 .08-.013.115-.038a.121.121 0 0 0 .05-.102V7.301a.121.121 0 0 0-.05-.102.158.158 0 0 0-.115-.05H51.45a.158.158 0 0 0-.114.05.138.138 0 0 0-.038.102v2.343c0 .043.012.077.038.102a.186.186 0 0 0 .114.038ZM42.29 14.622v-3.438l-4.225-5.73h1.985l3.094 3.884 3.055-3.883h2.024l-4.24 5.742v3.425h-1.692ZM27.273 14.622V5.455h1.68v3.73h6.01v-3.73h1.68v9.167h-1.68v-3.73h-6.01v3.73h-1.68ZM8.216 14.534l4.936-7.752a1.25 1.25 0 0 1 2.305.675V20l4.476-1.837A1.724 1.724 0 0 0 21 16.568V7.493c0-.951-.77-1.723-1.719-1.723h-5.075a1.69 1.69 0 0 0-1.422.78l-4.936 7.752a1.25 1.25 0 0 1-2.305-.675V0L1.067 1.837A1.724 1.724 0 0 0 0 3.432V13.59c0 .951.77 1.724 1.719 1.724h5.075a1.69 1.69 0 0 0 1.422-.78Z"
+            ></path>
+          </svg>
+
+          <svg
+            className="size-5 md:hidden"
+            viewBox="0 0 224 213"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M87.6376 154.782L140.287 72.2258C142.726 68.3801 146.988 66.0502 151.529 66.0502C158.903 66.0502 164.874 72.0293 164.874 79.4118V213L212.618 193.435C219.514 190.6 224 183.891 224 176.452V79.8049C224 69.6714 215.786 61.4467 205.665 61.4467H151.529C145.39 61.4467 139.671 64.5906 136.362 69.7555L83.7127 152.311C81.2736 156.157 77.0123 158.487 72.4706 158.487C65.0974 158.487 59.1259 152.508 59.1259 145.125V0L11.3822 19.5652C4.4856 22.4004 0 29.1093 0 36.548V144.732C0 154.866 8.21429 163.09 18.3349 163.09H72.4706C78.6103 163.09 84.3294 159.947 87.6376 154.782Z"
+              fill="white"
+            />
+          </svg>
+
+          <p className="text-secondary-foreground">Fixed Borrow</p>
+
+          <div className="mt-2 flex flex-row gap-3">
+            <a
+              href="https://x.com/delv_tech"
+              className="daisy-link-hover daisy-link"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <X />
+            </a>
+            <a
+              href="https://warpcast.com/~/channel/delv"
+              className="daisy-link-hover daisy-link"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <X />
+            </a>
+            <a
+              href="https://linkedin.com/company/delv-tech"
+              className="daisy-link-hover daisy-link"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <X />
+            </a>
+          </div>
+        </div>
+
+        <nav className="flex flex-col gap-2 text-sm font-light">
+          <header className="text-md font-medium text-secondary-foreground">
+            Resources
+          </header>
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://docs.hyperdrive.box"
+            className="hover:underline"
+          >
+            Documentation
+          </a>
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://hyperdrive.blockanalitica.com"
+            className="hover:underline"
+          >
+            Analytics
+          </a>
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://docs.hyperdrive.box/security/security-for-the-hyperdrive-protocol"
+            className="hover:underline"
+          >
+            Security
+          </a>
+        </nav>
+
+        <nav className="flex flex-col gap-2 text-sm font-light">
+          <header className="text-md font-medium text-secondary-foreground">
+            Ecosystem
+          </header>
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://docs.hyperdrive.box"
+            className="hover:underline"
+          >
+            Trading App
+          </a>
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://hyperdrive.blockanalitica.com"
+            className="hover:underline"
+          >
+            Community
+          </a>
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://docs.hyperdrive.box/security/security-for-the-hyperdrive-protocol"
+            className="hover:underline"
+          >
+            Governance
+          </a>
+        </nav>
+
+        <nav className="flex flex-col gap-2 text-sm font-light">
+          <header className="text-md font-medium text-secondary-foreground">
+            About Us
+          </header>
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://docs.hyperdrive.box"
+            className="hover:underline"
+          >
+            DELV
+          </a>
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://hyperdrive.blockanalitica.com"
+            className="hover:underline"
+          >
+            Blog
+          </a>
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://docs.hyperdrive.box/security/security-for-the-hyperdrive-protocol"
+            className="hover:underline"
+          >
+            GitHub
+          </a>
+        </nav>
+      </div>
+    </footer>
+  )
+}

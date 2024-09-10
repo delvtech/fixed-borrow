@@ -6,6 +6,7 @@ import "@rainbow-me/rainbowkit/styles.css"
 
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import AppFooter from "components/core/AppFooter"
 import { BorrowPage } from "pages/BorrowPage"
 import DevPage from "pages/DevPage"
 import { PositionPage } from "pages/PositionPage"
@@ -41,6 +42,8 @@ function App() {
               {/* Default route in a switch */}
               <Route>404: No such page!</Route>
             </Switch>
+
+            <AppFooter />
           </div>
         </RainbowKitProvider>
       </QueryClientProvider>
