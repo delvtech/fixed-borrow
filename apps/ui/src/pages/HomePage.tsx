@@ -26,7 +26,7 @@ export function HomePage() {
     <main className="m-auto flex max-w-4xl flex-col gap-y-36 px-4 py-8">
       <div className="m-auto max-w-[766px] space-y-24">
         <div className="flex flex-col items-center gap-4">
-          <h1 className="gradient-text font-chakra text-h2 font-medium md:text-h1">
+          <h1 className="font-chakra text-h2 font-medium text-primary md:text-h1">
             FIX YOUR BORROW
           </h1>
 
