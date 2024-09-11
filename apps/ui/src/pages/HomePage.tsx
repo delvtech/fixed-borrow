@@ -26,17 +26,17 @@ export function HomePage() {
     <main className="m-auto flex max-w-4xl flex-col gap-y-36 px-4 py-8">
       <div className="m-auto max-w-[766px] space-y-24">
         <div className="flex flex-col items-center gap-4">
-          <h1 className="font-chakra text-h2 font-medium text-primary md:text-h1">
+          <h1 className="font-chakra text-h2 text-primary sm:text-h1">
             FIX YOUR BORROW
           </h1>
 
-          <p className="max-w-xl text-center text-lg font-light text-foreground/90">
+          <p className="max-w-lg text-center font-light text-foreground/90 sm:text-lg">
             Keep all the best parts of your borrow position while gaining peace
             of mind with a predictable interest rate.
           </p>
 
-          <div className="flex w-full justify-between gap-2">
-            <Badge className="font-light">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Badge className="text-xs font-light sm:text-md">
               <Check size={16} className="mr-1 stroke-primary" /> Protect
               against high future rates
             </Badge>

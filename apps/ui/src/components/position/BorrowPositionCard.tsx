@@ -28,7 +28,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
           <MarketHeader market={props.market} className="text-h4" />
         </CardHeader>
 
-        <CardContent className="grid grid-rows-3 gap-5">
+        <CardContent className="grid grid-rows-2 gap-5">
           <BorrowPositionCardStat
             title="Your Current Loan"
             value={`${totalDebt.format({

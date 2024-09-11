@@ -7,6 +7,8 @@ import { Market } from "../../types"
 interface MarketHeaderProps {
   market: Market
   className?: string
+  classNameToken?: string
+  size?: number
 }
 
 export function MarketHeader(props: MarketHeaderProps) {
@@ -16,12 +18,15 @@ export function MarketHeader(props: MarketHeaderProps) {
         <div className="flex">
           <img
             src={props.market.collateralToken.iconUrl}
-            className="size-6"
+            height={props.size ?? 24}
+            width={props.size ?? 24}
             alt={`${props.market.collateralToken.symbol} token symbol`}
           />
           <img
             src={props.market.loanToken.iconUrl}
-            className="-ml-3 size-6"
+            className={cn("-ml-2", props.classNameToken)}
+            height={props.size ?? 24}
+            width={props.size ?? 24}
             alt={`${props.market.loanToken.symbol} token symbol`}
           />
         </div>

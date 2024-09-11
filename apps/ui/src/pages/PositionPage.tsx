@@ -20,7 +20,7 @@ export function PositionPage() {
   // )
 
   return (
-    <main className="m-auto my-8 flex max-w-7xl flex-col gap-8 px-8 pb-8 lg:px-28">
+    <main className="m-auto my-8 flex max-w-6xl flex-col gap-8 px-8 pb-8 lg:px-28">
       <h1 className="w-fit font-chakra text-primary">My Positions</h1>
 
       <div className="flex gap-12">
