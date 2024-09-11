@@ -52,11 +52,11 @@ export const whitelistedMetaMorphoMarketsByChain: Record<
         "0xb9049de02baa044eb4bf58fc00f772c310bac9e9d1857c3517aa9d41b12fe762",
       hyperdrive: "0x00583284597c48A5de4753A2374076C289B93505",
     },
-    {
-      morphoId:
-        "0x25265c1600f7ba171c1037d6a3b431516e817efa9b580d8089cdb51ba719da96",
-      hyperdrive: "0xE352F4D16C7Ee4162d1aa54b77A15d4DA8f35f4b",
-    },
+    // {
+    //   morphoId:
+    //     "0x25265c1600f7ba171c1037d6a3b431516e817efa9b580d8089cdb51ba719da96",
+    //   hyperdrive: "0xE352F4D16C7Ee4162d1aa54b77A15d4DA8f35f4b",
+    // },
     {
       morphoId:
         "0x3ac16258a0f8e99f393bf117c45048187f87beacc8d7873d52436a003726b2d5",

@@ -1,17 +1,22 @@
 import { fixed } from "@delvtech/fixed-point-wasm"
 import { useMutation } from "@tanstack/react-query"
 import { MorphoBlueAbi } from "lib/morpho/abi/MorphoBlueAbi"
+import { getAppConfig } from "utils/getAppConfig"
 import { erc20Abi, maxUint256, parseAbi } from "viem"
 import {
   useAccount,
+  useChainId,
   usePublicClient,
   useReadContract,
   useWalletClient,
 } from "wagmi"
 import { SupportedChainId, morphoAddressesByChain } from "~/constants"
-import { Market } from "../../types"
 
-export function useTestPosition(market?: Market) {
+export function useTestPosition() {
+  const chainId = useChainId()
+
+  const market = getAppConfig(chainId as SupportedChainId).morphoMarkets.at(1)
+
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
 

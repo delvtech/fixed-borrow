@@ -27,13 +27,6 @@
       "name": "Wrapped liquid staked Ether 2.0",
       "decimals": 18,
       "iconUrl": "https://cdn.morpho.org/assets/logos/wsteth.svg"
-    },
-    {
-      "address": "0xFF8AFe6bb92eB9D8e80c607bbe5bbb78BF1201Df",
-      "symbol": "SDAI",
-      "name": "Savings DAI",
-      "decimals": 18,
-      "iconUrl": "https://1827921443-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FjvdfbhgN5UCpMtP1l8r5%2Fuploads%2Fgit-blob-9873db4416f6c6f7f29d9be3ead28f5317f3dfa3%2FBadge_Dai%202.svg?alt=media"
     }
   ],
   "morphoMarkets": [
@@ -57,28 +50,6 @@
       "oracle": "0x8f1AE6B11a339e829243fe0404b9496631E2AC64",
       "irm": "0x0fB591F09ab2eB967c0EFB9eE0EF6642c2abe6Ab",
       "lltv": "860000000000000000",
-      "duration": "1209600"
-    },
-    {
-      "id": "0x25265c1600f7ba171c1037d6a3b431516e817efa9b580d8089cdb51ba719da96",
-      "hyperdrive": "0xE352F4D16C7Ee4162d1aa54b77A15d4DA8f35f4b",
-      "loanToken": {
-        "address": "0xe8b99bF4249D90C0eB900651F92485F7160A0513",
-        "symbol": "DAI",
-        "name": "DAI",
-        "decimals": 18,
-        "iconUrl": "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.svg?v=032"
-      },
-      "collateralToken": {
-        "address": "0xFF8AFe6bb92eB9D8e80c607bbe5bbb78BF1201Df",
-        "symbol": "SDAI",
-        "name": "Savings DAI",
-        "decimals": 18,
-        "iconUrl": "https://1827921443-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FjvdfbhgN5UCpMtP1l8r5%2Fuploads%2Fgit-blob-9873db4416f6c6f7f29d9be3ead28f5317f3dfa3%2FBadge_Dai%202.svg?alt=media"
-      },
-      "oracle": "0x23F3A48121861b78f66BbE3DF60AD24A21c4DDad",
-      "irm": "0x0fB591F09ab2eB967c0EFB9eE0EF6642c2abe6Ab",
-      "lltv": "980000000000000000",
       "duration": "1209600"
     },
     {
