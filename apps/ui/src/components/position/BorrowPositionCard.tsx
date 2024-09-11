@@ -56,9 +56,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
       <div className="-ml-8 flex flex-col items-center gap-5 rounded-xl rounded-l-none border-y border-r bg-background p-6 pl-16">
         <div className="flex w-full grow flex-col justify-between">
           <div className="space-y-2 text-center">
-            <p className="text-sm font-medium text-secondary-foreground">
-              Variable Rate
-            </p>
+            <p className="text-sm text-secondary-foreground">Variable Rate</p>
 
             {props.rates ? (
               <p className="font-chakra text-h4 text-[#D3DAEB]">

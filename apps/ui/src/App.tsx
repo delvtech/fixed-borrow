@@ -31,17 +31,19 @@ function App() {
             fontStack: "system",
           })}
         >
-          <div className="min-h-screen bg-gradient-to-b from-[#0F1117] to-[#05060B]">
+          <div className="flex min-h-screen w-full flex-col bg-gradient-to-b from-[#05060d] to-[#0c141e]">
             <Navbar />
-            <Switch>
-              <Route path="/" component={HomePage} />
-              <Route path="/dev" component={DevPage} />
-              <Route path="/borrow/:hyperdrive" component={BorrowPage} />
-              <Route path="/positions" component={PositionPage} />
+            <div className="grow">
+              <Switch>
+                <Route path="/" component={HomePage} />
+                <Route path="/dev" component={DevPage} />
+                <Route path="/borrow/:hyperdrive" component={BorrowPage} />
+                <Route path="/positions" component={PositionPage} />
 
-              {/* Default route in a switch */}
-              <Route>404: No such page!</Route>
-            </Switch>
+                {/* Default route in a switch */}
+                <Route>404: No such page!</Route>
+              </Switch>
+            </div>
 
             <AppFooter />
           </div>

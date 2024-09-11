@@ -7,6 +7,7 @@ import { BorrowPositionCard } from "components/position/BorrowPositionCard"
 import { useAllBorrowPositions } from "hooks/markets/useAllBorrowPositions"
 import { Check, CircleSlash, MoveUpRight } from "lucide-react"
 import { match } from "ts-pattern"
+import { useTestPosition } from "utils/test/createTestPosition"
 import { sepolia } from "viem/chains"
 import { useAccount, useChainId } from "wagmi"
 
@@ -17,15 +18,19 @@ export function HomePage() {
   const { data: borrowPositions, status: allBorrowPositionsQueryStatus } =
     useAllBorrowPositions(account)
 
+  const { mutate: createTestPosition } = useTestPosition()
+
+  console.log(borrowPositions)
+
   return (
     <main className="m-auto flex max-w-4xl flex-col gap-y-36 px-4 py-8">
       <div className="m-auto max-w-[766px] space-y-24">
         <div className="flex flex-col items-center gap-4">
-          <h1 className="gradient-text font-chakra text-h2 font-medium md:text-h1">
-            Fix your Borrow
+          <h1 className="font-chakra text-h2 font-medium text-primary md:text-h1">
+            FIX YOUR BORROW
           </h1>
 
-          <p className="max-w-xl text-center font-light text-secondary-foreground">
+          <p className="max-w-xl text-center text-lg font-light text-foreground/90">
             Keep all the best parts of your borrow position while gaining peace
             of mind with a predictable interest rate.
           </p>
@@ -66,7 +71,10 @@ export function HomePage() {
 
                     <div className="flex justify-center gap-6">
                       {chainId === sepolia.id ? (
-                        <Button className="gap-2 bg-[#2E4DFF] font-light text-foreground hover:bg-[#2E4DFF]/90">
+                        <Button
+                          className="gap-2 bg-[#2E4DFF] font-light text-foreground hover:bg-[#2E4DFF]/90"
+                          onClick={() => createTestPosition()}
+                        >
                           <img
                             src="/logos/Morpho-logo-symbol-darkmode.svg"
                             alt="Morpho logo"
