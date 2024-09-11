@@ -30,7 +30,7 @@ export function HomePage() {
             FIX YOUR BORROW
           </h1>
 
-          <p className="text-center text-lg font-light text-foreground/90">
+          <p className="max-w-xl text-center text-lg font-light text-foreground/90">
             Keep all the best parts of your borrow position while gaining peace
             of mind with a predictable interest rate.
           </p>
