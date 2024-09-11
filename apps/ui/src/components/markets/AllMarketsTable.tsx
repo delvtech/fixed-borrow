@@ -64,7 +64,7 @@ export function AllMarketsTable() {
   return (
     <div className="w-full max-w-screen-xl">
       <div className="flex items-center py-4"></div>
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-secondary">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
