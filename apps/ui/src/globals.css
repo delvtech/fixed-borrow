@@ -12,7 +12,7 @@
     --foreground: 0 0% 100%;
 
     /* Surface Styles */
-    --primary: 158 100% 54%;
+    --primary: 180 85% 41%;
     --primary-foreground: 225 21% 7%;
 
     --secondary: 225 21% 7%;
@@ -77,9 +77,9 @@
 
 @layer components {
   .gradient-text {
-    @apply bg-gradient-to-r from-[hsl(var(--sky-blue))] to-primary bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[var(--aquamarine)] to-primary bg-clip-text text-transparent;
   }
   .gradient-background {
-    @apply bg-gradient-to-r from-[hsl(var(--sky-blue))] to-primary;
+    @apply bg-gradient-to-r from-[var(--aquamarine)] to-primary;
   }
 }
