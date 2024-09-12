@@ -3,10 +3,11 @@ import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { UseQueryOptions } from "@tanstack/react-query"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { rainbowConfig } from "src/client/rainbowClient"
-import { Position } from "src/types"
-import { Address } from "viem"
+import { OpenShortPlusQuote, Position } from "src/types"
+import { Address, fromHex, Hex, parseAbiItem, toFunctionSelector } from "viem"
 import { getPublicClient } from "wagmi/actions"
 import { SupportedChainId } from "~/constants"
+
 export function getPositionsQuery(
   chainId: SupportedChainId,
   account?: Address
@@ -29,6 +30,36 @@ export function getPositionsQuery(
             publicClient: client!,
           })
 
+          const logs = await client.getLogs({
+            address: position.market.hyperdrive,
+            args: {
+              trader: account,
+            },
+            fromBlock: 0n,
+            event: parseAbiItem(
+              "event OpenShort(address indexed trader,uint256 indexed assetId,uint256 maturityTime,uint256 amount,uint256 vaultSharePrice,bool asBase,uint256 baseProceeds,uint256 bondAmount,bytes extraData)"
+            ),
+          })
+
+          const rateQuoteRecord = new Map<string, bigint>()
+
+          for (const log of logs) {
+            const extraData = log.args.extraData
+            const assetId = log.args.assetId
+
+            if (extraData && assetId) {
+              const selector = extraData.slice(0, 10)
+              const quoteHex = "0x" + extraData.slice(10)
+
+              if (toFunctionSelector("frb(uint24)") === (selector as Address)) {
+                rateQuoteRecord.set(
+                  assetId.toString(),
+                  fromHex(quoteHex as Hex, "bigint")
+                )
+              }
+            }
+          }
+
           const decimals = position.market.loanToken.decimals
 
           const shorts = await readHyperdrive.getOpenShorts({
@@ -37,6 +68,13 @@ export function getPositionsQuery(
               blockNumber,
             },
           })
+
+          const frbShorts: OpenShortPlusQuote[] = shorts
+            .filter((short) => rateQuoteRecord.has(short.assetId.toString()))
+            .map((short) => ({
+              ...short,
+              rateQuote: rateQuoteRecord.get(short.assetId.toString())!,
+            }))
           const totalCoverage = shorts.reduce((prev, curr) => {
             return prev + curr.bondAmount
           }, 0n)
@@ -49,7 +87,7 @@ export function getPositionsQuery(
           return {
             market: position.market,
             position,
-            shorts,
+            shorts: frbShorts,
             totalCoverage,
             debtCovered,
           }

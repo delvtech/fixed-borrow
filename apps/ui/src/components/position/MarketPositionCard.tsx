@@ -16,7 +16,7 @@ import { CloseCoverageDialog } from "components/core/CloseCoverageDialog"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { ChevronDown } from "lucide-react"
 import { useState } from "react"
-import { Market } from "src/types"
+import { Market, OpenShortPlusQuote } from "src/types"
 import { Link } from "wouter"
 import { dayInSeconds } from "~/constants"
 
@@ -24,7 +24,7 @@ interface MarketPositionsCardProps {
   market: Market
   totalCoverage: bigint
   debtCovered: bigint
-  shorts: OpenShort[]
+  shorts: OpenShortPlusQuote[]
 }
 
 export function MarketPositionsCard(props: MarketPositionsCardProps) {
@@ -151,7 +151,12 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
                         })}{" "}
                         {symbol}
                       </TableCell>
-                      <TableCell className="font-mono">10.70%</TableCell>
+                      <TableCell className="font-mono">
+                        {fixed(short.rateQuote, 6).format({
+                          percent: true,
+                          decimals: 2,
+                        })}
+                      </TableCell>
                       <TableCell className="font-mono">
                         {maturity.toLocaleDateString()}
                       </TableCell>

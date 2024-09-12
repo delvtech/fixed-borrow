@@ -86,10 +86,12 @@ export interface BorrowPosition {
   rates?: RateHistory
 }
 
+export type OpenShortPlusQuote = OpenShort & { rateQuote: bigint }
+
 export interface Position {
   market: Market
   position: BorrowPosition
-  shorts: OpenShort[]
+  shorts: OpenShortPlusQuote[]
   totalCoverage: bigint
   debtCovered: FixedPoint
 }
