@@ -1,4 +1,5 @@
 import { Address, Block, PublicClient } from "viem"
+import { mainnet } from "viem/chains"
 import { SupportedChainId } from "../../src/constants"
 import { BorrowPosition, Market, MarketInfo } from "../../src/types"
 
@@ -48,7 +49,10 @@ export abstract class MarketReader {
    * @param timestamp - Unix timestamp in seconds.
    */
   protected async getPastBlock(timestamp: number): Promise<Block> {
-    const blockExplorerUrl = this.client.chain?.blockExplorers?.default.apiUrl
+    // Default to mainnet, assuming this is null when we are on fork.
+    const blockExplorerUrl =
+      this.client.chain?.blockExplorers?.default.apiUrl ??
+      mainnet.blockExplorers.default.apiUrl
 
     // Throw error is the chain does not have a registered block explorer API.
     if (!blockExplorerUrl)

@@ -72,9 +72,9 @@ export class MorphoMarketReader extends MarketReader {
       })
 
     // Early termination if no borrow position exists.
-    // if (borrowShares <= 0) {
-    //   return Promise.resolve(undefined)
-    // }
+    if (borrowShares <= 0) {
+      return Promise.resolve(undefined)
+    }
 
     // Fetch the market state.
     const [

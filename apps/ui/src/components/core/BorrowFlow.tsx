@@ -36,7 +36,7 @@ import { ChevronDown, ExternalLink, Info } from "lucide-react"
 import { useReducer, useState } from "react"
 import { match } from "ts-pattern"
 import { formatTermLength } from "utils/formatTermLength"
-import { Address, maxUint256 } from "viem"
+import { Address, encodePacked, maxUint256, toFunctionSelector } from "viem"
 import { useAccount, useChainId, usePublicClient, useWalletClient } from "wagmi"
 import { Link } from "wouter"
 import { SupportedChainId } from "~/constants"
@@ -138,6 +138,7 @@ function useBorrowFlowData(market: Market, bondAmount: bigint) {
       chainId,
     ],
     enabled: shouldEnable(),
+    staleTime: 5000,
 
     queryFn: async () => {
       const readHyperdrive = new ReadHyperdrive({
@@ -209,7 +210,11 @@ function useOpenShort() {
   const { data: walletClient } = useWalletClient()
 
   return useMutation({
-    mutationFn: async (vars: { bondAmount: bigint; hyperdrive: Address }) => {
+    mutationFn: async (vars: {
+      bondAmount: bigint
+      hyperdrive: Address
+      rateQuote: bigint
+    }) => {
       // early termination
       if (isNil(vars.bondAmount) || isNil(walletClient) || isNil(client)) return
       if (vars.bondAmount <= 0n) return
@@ -221,6 +226,15 @@ function useOpenShort() {
         walletClient,
       })
 
+      // lets reduce to 4 decimals
+      const reduced = fixed(vars.rateQuote).divUp(parseFixed(1e12)).bigint
+      const storedQuote = fixed(reduced, 4)
+
+      const encodedRate = encodePacked(
+        ["bytes4", "uint24"],
+        [toFunctionSelector("frb(uint24)"), Number(storedQuote.bigint)]
+      )
+
       return await writeHyperdrive.openShort({
         args: {
           destination: account,
@@ -228,7 +242,7 @@ function useOpenShort() {
           maxDeposit: maxUint256,
           asBase: true,
           bondAmount: vars.bondAmount,
-          extraData: "0x",
+          extraData: encodedRate,
         },
       })
     },
@@ -248,8 +262,10 @@ export function BorrowFlow(props: BorrowFlowProps) {
   })
   const [isOpen, setIsOpen] = useState(false)
 
-  const { data: borrowFlowData, isLoading: borrowFlowDataLoading } =
-    useBorrowFlowData(props.market, state.bondAmount)
+  const { data: borrowFlowData } = useBorrowFlowData(
+    props.market,
+    state.bondAmount
+  )
 
   const { needsApproval, approve, allowance } = useApproval(
     props.market.loanToken.address,
@@ -259,11 +275,12 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
   const { mutateAsync: openShort } = useOpenShort()
   const handleOpenShort = async () => {
-    if (state.bondAmount <= 0 || !client) return
+    if (state.bondAmount <= 0 || !client || !borrowFlowData) return
 
     const hash = await openShort({
       bondAmount: state.bondAmount,
       hyperdrive: props.market.hyperdrive,
+      rateQuote: borrowFlowData.rateQuote.bigint,
     })
 
     if (hash) {
@@ -543,7 +560,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   <div className="flex flex-col items-end gap-2 text-sm">
                     <p className="text-secondary-foreground">You Pay</p>
                     <div className="space-y-1">
-                      {!borrowFlowDataLoading ? (
+                      {formattedCostOfCoverage ? (
                         <p className="text-right font-mono text-h4">
                           {formattedCostOfCoverage}
                         </p>

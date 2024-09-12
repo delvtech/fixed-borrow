@@ -1,7 +1,8 @@
 import { Address } from "viem"
 import { SupportedChainId } from "../constants"
 
-import { mainnetConfig, sepoliaConfig } from "config"
+import { delvChainConfig, mainnetConfig, sepoliaConfig } from "config"
+import { delvChain } from "src/client/rainbowClient"
 import { mainnet } from "viem/chains"
 import { ArrayElement, Market } from "../types"
 
@@ -40,6 +41,10 @@ export function getAppConfig(chainId: SupportedChainId) {
 
   if (chainId === mainnet.id) {
     config = mainnetConfig
+  }
+
+  if (chainId === delvChain.id) {
+    config = delvChainConfig
   }
 
   return transfromAppConfig(config)

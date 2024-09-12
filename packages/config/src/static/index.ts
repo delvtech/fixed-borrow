@@ -1,5 +1,6 @@
 import mainnetConfigJson from "./ethereum-config.json"
 import sepoliaConfigJson from "./sepolia-config.json"
+import delvChainConfigJson from "./☁️chain-config.json"
 
 export type Config = {
   tokens: {
@@ -35,5 +36,6 @@ export type Config = {
 
 const sepoliaConfig = sepoliaConfigJson as Config
 const mainnetConfig = mainnetConfigJson as Config
+const delvChainConfig = delvChainConfigJson as Config
 
-export { mainnetConfig, sepoliaConfig }
+export { delvChainConfig, mainnetConfig, sepoliaConfig }
