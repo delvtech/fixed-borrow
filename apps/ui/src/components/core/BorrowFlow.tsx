@@ -262,8 +262,10 @@ export function BorrowFlow(props: BorrowFlowProps) {
   })
   const [isOpen, setIsOpen] = useState(false)
 
-  const { data: borrowFlowData, isLoading: borrowFlowDataLoading } =
-    useBorrowFlowData(props.market, state.bondAmount)
+  const { data: borrowFlowData } = useBorrowFlowData(
+    props.market,
+    state.bondAmount
+  )
 
   const { needsApproval, approve, allowance } = useApproval(
     props.market.loanToken.address,

@@ -8,10 +8,8 @@ import { useAllBorrowPositions } from "hooks/markets/useAllBorrowPositions"
 import { Check, CircleSlash, MoveUpRight } from "lucide-react"
 import { delvChain } from "src/client/rainbowClient"
 import { match } from "ts-pattern"
-import { getAppConfig } from "utils/getAppConfig"
 import { useTestPosition } from "utils/test/createTestPosition"
 import { useAccount, useChainId } from "wagmi"
-import { SupportedChainId } from "~/constants"
 
 export function HomePage() {
   const { address: account, isConnected } = useAccount()
@@ -21,10 +19,6 @@ export function HomePage() {
     useAllBorrowPositions(account)
 
   const { mutate: createTestPosition } = useTestPosition()
-
-  const config = getAppConfig(chainId as SupportedChainId)
-
-  console.log(borrowPositions)
 
   return (
     <main className="m-auto flex max-w-4xl flex-col gap-y-36 px-4 py-8">
