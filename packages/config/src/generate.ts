@@ -6,6 +6,7 @@ import { Address, createPublicClient, http } from "viem"
 import { mainnet, sepolia } from "viem/chains"
 import {
   SupportedChainId,
+  delvChain,
   morphoAddressesByChain,
   supportedChainIds,
   tokenIconBySymbol,
@@ -36,11 +37,18 @@ const sepoliaPublicClient = createPublicClient({
   ),
 })
 
+const delvChainPublicClient = createPublicClient({
+  chain: delvChain,
+  transport: http("https://fork.hyperdrive.money:8545"),
+})
+
 function getClient(chainId: number) {
   if (chainId === 1) {
     return mainnetPublicClient
+  } else if (chainId === sepolia.id) {
+    return sepoliaPublicClient
   }
-  return sepoliaPublicClient
+  return delvChainPublicClient
 }
 
 supportedChainIds.forEach(async (chainId) => {

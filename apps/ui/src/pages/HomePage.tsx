@@ -6,10 +6,12 @@ import { AllMarketsTable } from "components/markets/AllMarketsTable"
 import { BorrowPositionCard } from "components/position/BorrowPositionCard"
 import { useAllBorrowPositions } from "hooks/markets/useAllBorrowPositions"
 import { Check, CircleSlash, MoveUpRight } from "lucide-react"
+import { delvChain } from "src/client/rainbowClient"
 import { match } from "ts-pattern"
+import { getAppConfig } from "utils/getAppConfig"
 import { useTestPosition } from "utils/test/createTestPosition"
-import { sepolia } from "viem/chains"
 import { useAccount, useChainId } from "wagmi"
+import { SupportedChainId } from "~/constants"
 
 export function HomePage() {
   const { address: account, isConnected } = useAccount()
@@ -19,6 +21,8 @@ export function HomePage() {
     useAllBorrowPositions(account)
 
   const { mutate: createTestPosition } = useTestPosition()
+
+  const config = getAppConfig(chainId as SupportedChainId)
 
   console.log(borrowPositions)
 
@@ -70,7 +74,7 @@ export function HomePage() {
                     </p>
 
                     <div className="flex justify-center gap-6">
-                      {chainId === sepolia.id ? (
+                      {chainId === delvChain.id ? (
                         <Button
                           className="gap-2 bg-[#2E4DFF] font-light text-foreground hover:bg-[#2E4DFF]/90"
                           onClick={() => createTestPosition()}

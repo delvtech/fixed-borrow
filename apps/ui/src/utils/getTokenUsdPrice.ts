@@ -1,3 +1,4 @@
+import { delvChain } from "src/client/rainbowClient"
 import { Address, parseUnits } from "viem"
 import { mainnet, sepolia } from "viem/chains"
 import { SupportedChainId } from "../constants"
@@ -15,6 +16,7 @@ const tokenUsdPriceResolvers: Record<
     "0xFF8AFe6bb92eB9D8e80c607bbe5bbb78BF1201Df": () =>
       Promise.resolve(parseUnits("1", 18)),
   },
+  [delvChain.id]: {},
 }
 
 export async function getTokenUsdPrice(
