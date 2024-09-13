@@ -190,7 +190,7 @@ const columns: ColumnDef<MarketInfo>[] = [
     },
   },
   {
-    id: "Borrow Rate",
+    id: "Variable",
     accessorFn: (row) => {
       return row.borrowRate
     },
@@ -204,7 +204,7 @@ const columns: ColumnDef<MarketInfo>[] = [
         className="rounded-none"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        <div className="text-right">Borrow Rate</div>
+        <div className="text-right">Variable</div>
         <ChevronsUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -219,7 +219,7 @@ const columns: ColumnDef<MarketInfo>[] = [
     },
   },
   {
-    id: "Fixed Borrow Rate",
+    id: "Fixed",
     accessorFn: (row) => {
       return row.fixedRate
     },
@@ -233,7 +233,7 @@ const columns: ColumnDef<MarketInfo>[] = [
         className="justify-end rounded-none"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        <div>Fixed Borrow Rate</div>
+        <div>Fixed</div>
         <ChevronsUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
