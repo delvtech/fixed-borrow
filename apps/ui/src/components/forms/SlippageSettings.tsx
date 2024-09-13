@@ -113,6 +113,7 @@ function SlippageSettings({
             <Input
               type="number"
               min={0}
+              max={10}
               step={0.1}
               value={inputValue}
               onKeyDown={(e) => {
