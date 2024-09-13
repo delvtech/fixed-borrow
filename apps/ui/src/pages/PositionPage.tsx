@@ -21,7 +21,9 @@ export function PositionPage() {
 
   return (
     <main className="m-auto my-8 flex max-w-6xl flex-col gap-8 px-8 pb-8 lg:px-28">
-      <h1 className="gradient-text w-fit font-chakra">My Positions</h1>
+      <h1 className="gradient-text w-fit font-chakra text-h2 md:text-h1">
+        My Positions
+      </h1>
 
       <div className="flex gap-12">
         <div className="space-y-1">

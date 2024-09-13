@@ -306,7 +306,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
             <DialogContent aria-describedby={undefined}>
               <DialogTitle asChild>
                 <h4 className="gradient-text w-fit font-chakra !text-h4 font-semibold">
-                  Close Coverage
+                  Remove Coverage
                 </h4>
               </DialogTitle>
 
@@ -457,7 +457,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                     disabled={executeButtonDisabled}
                     onClick={handleCloseShort}
                   >
-                    Execute
+                    Remove
                   </Button>
                   <Collapsible
                     open={isDetailsOpen}
