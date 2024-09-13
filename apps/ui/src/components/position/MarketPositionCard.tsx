@@ -25,11 +25,13 @@ interface MarketPositionsCardProps {
   totalCoverage: bigint
   debtCovered: bigint
   shorts: OpenShortPlusQuote[]
+  /** The card is fully opened by default. */
+  startOpened?: boolean
 }
 
 export function MarketPositionsCard(props: MarketPositionsCardProps) {
   const [selectedOpenShort, setSelectedOpenShort] = useState<OpenShort>()
-  const [tableOpen, setTableOpen] = useState(false)
+  const [tableOpen, setTableOpen] = useState(props.startOpened ?? false)
 
   const [closeCoverageModalOpen, setCloseCoverageModalOpen] = useState(false)
   const handleCloseCoverageModelOpen = (open: boolean) => {

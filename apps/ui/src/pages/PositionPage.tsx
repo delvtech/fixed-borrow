@@ -4,7 +4,11 @@ import { useAllPositions } from "hooks/positions/useAllPositions"
 import { formatAddress } from "utils/base/formatAddress"
 import { useAccount } from "wagmi"
 
+import { useHashLocation } from "wouter/use-hash-location"
+
 export function PositionPage() {
+  const [hyperdriveHash] = useHashLocation()
+
   const { address } = useAccount()
   const { data: borrowPositions, isLoading: queryLoading } = useAllPositions()
 
@@ -50,13 +54,20 @@ export function PositionPage() {
             />
           ))
         : positions?.map((position) => (
-            <MarketPositionsCard
+            <div
+              id={position.market.hyperdrive}
               key={position.market.hyperdrive}
-              market={position.market}
-              totalCoverage={position.totalCoverage}
-              debtCovered={position.debtCovered.bigint}
-              shorts={position.shorts}
-            />
+            >
+              <MarketPositionsCard
+                market={position.market}
+                totalCoverage={position.totalCoverage}
+                debtCovered={position.debtCovered.bigint}
+                shorts={position.shorts}
+                startOpened={
+                  hyperdriveHash.slice(1) === position.market.hyperdrive
+                }
+              />
+            </div>
           ))}
     </main>
   )

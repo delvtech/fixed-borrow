@@ -223,7 +223,12 @@ export function BorrowFlow(props: BorrowFlowProps) {
     state.bondAmount
   )
 
-  const { needsApproval, approve, allowance } = useApproval(
+  const {
+    needsApproval,
+    approve,
+    allowance,
+    isLoading: isApprovalLoading,
+  } = useApproval(
     props.market.loanToken.address,
     props.market.hyperdrive,
     borrowFlowData?.traderDeposit.bigint
@@ -309,7 +314,10 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
   const handleQuickAmountAction = (amount: FixedPoint) => {
     const input = document.getElementById("bondAmountInput") as HTMLInputElement
-    input.value = amount.toString()
+    input.value = amount.format({
+      trailingZeros: false,
+      group: false,
+    })
 
     dispatch({
       type: "bondAmountInput",
@@ -359,15 +367,13 @@ export function BorrowFlow(props: BorrowFlowProps) {
           Projected Max Fixed Debt ({formattedDuration})
         </p>
 
-        <p className="font-mono">
-          {!isNil(formattedProjectedMaxDebt) ? (
-            <p>
-              {formattedProjectedMaxDebt} {props.market.loanToken.symbol}
-            </p>
-          ) : (
-            <Skeleton className="h-[18px] w-[70px] rounded-sm bg-white/10" />
-          )}
-        </p>
+        {!isNil(formattedProjectedMaxDebt) ? (
+          <p className="font-mono">
+            {formattedProjectedMaxDebt} {props.market.loanToken.symbol}
+          </p>
+        ) : (
+          <Skeleton className="h-[18px] w-[70px] rounded-sm bg-white/10" />
+        )}
       </li>
     </ul>
   )
@@ -412,6 +418,29 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       type="number"
                       id="bondAmountInput"
                       disabled={isNil(allowance)}
+                      step="any"
+                      min={0}
+                      /** Prevents scrolling from changing the input  */
+                      onWheel={(e) => e.currentTarget.blur()}
+                      onPaste={(e) => {
+                        const clipboardData = e.clipboardData
+                        const pastedData = parseFloat(
+                          clipboardData.getData("text")
+                        )
+
+                        try {
+                          if (pastedData < 0) throw new Error()
+
+                          fixed(pastedData, decimals)
+                        } catch {
+                          e.preventDefault()
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "-" || e.key === "+") {
+                          e.preventDefault()
+                        }
+                      }}
                       onChange={(e) => {
                         dispatch({
                           type: "bondAmountInput",
@@ -550,8 +579,8 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   <Button
                     size="lg"
                     className="h-12 w-full text-lg"
-                    disabled={transactionButtonDisabled}
-                    onClick={approve}
+                    disabled={isApprovalLoading}
+                    onClick={() => approve()}
                   >
                     Approve {props.market.loanToken.symbol}
                   </Button>
@@ -686,7 +715,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
               {positionDetails}
 
               <div className="w-full space-y-2">
-                <Link href="/positions" asChild>
+                <Link href={`/positions#${props.market.hyperdrive}`} asChild>
                   <Button className="w-full">View My Position</Button>
                 </Link>
 
