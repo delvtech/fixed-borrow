@@ -385,12 +385,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
           <Skeleton className="h-[18px] w-[70px] rounded-sm bg-white/10" />
         )}
       </div>
-      {/* <div className="flex justify-between text-sm">
-  <p className="text-secondary-foreground">
-    Current Borrow APY (Morpho)
-  </p>
-  <p className="font-mono">{formattedCurrentBorrowRate}</p>
-</div> */}
       <div className="flex justify-between text-sm">
         <p className="text-secondary-foreground">Maturity Date</p>
         {!isNil(formattedMaturityDate) ? (
@@ -419,7 +413,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
   )
 
   return (
-    <div className="m-auto flex w-full max-w-xl flex-col gap-8 bg-transparent">
+    <div className="m-auto flex w-full max-w-lg flex-col gap-8 bg-transparent">
       <MarketHeader market={props.market} />
 
       <Card>
@@ -588,7 +582,11 @@ export function BorrowFlow(props: BorrowFlowProps) {
               )}
 
               <div className="space-y-2">
-                {needsApproval ? (
+                {state.bondAmount === 0n ? (
+                  <Button size="lg" className="h-12 w-full text-lg" disabled>
+                    Enter an amount
+                  </Button>
+                ) : needsApproval ? (
                   <Button
                     size="lg"
                     className="h-12 w-full text-lg"
