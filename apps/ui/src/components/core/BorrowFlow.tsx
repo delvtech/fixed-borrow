@@ -223,7 +223,12 @@ export function BorrowFlow(props: BorrowFlowProps) {
     state.bondAmount
   )
 
-  const { needsApproval, approve, allowance } = useApproval(
+  const {
+    needsApproval,
+    approve,
+    allowance,
+    isLoading: isApprovalLoading,
+  } = useApproval(
     props.market.loanToken.address,
     props.market.hyperdrive,
     borrowFlowData?.traderDeposit.bigint
@@ -359,15 +364,13 @@ export function BorrowFlow(props: BorrowFlowProps) {
           Projected Max Fixed Debt ({formattedDuration})
         </p>
 
-        <p className="font-mono">
-          {!isNil(formattedProjectedMaxDebt) ? (
-            <p>
-              {formattedProjectedMaxDebt} {props.market.loanToken.symbol}
-            </p>
-          ) : (
-            <Skeleton className="h-[18px] w-[70px] rounded-sm bg-white/10" />
-          )}
-        </p>
+        {!isNil(formattedProjectedMaxDebt) ? (
+          <p className="font-mono">
+            {formattedProjectedMaxDebt} {props.market.loanToken.symbol}
+          </p>
+        ) : (
+          <Skeleton className="h-[18px] w-[70px] rounded-sm bg-white/10" />
+        )}
       </li>
     </ul>
   )
@@ -550,8 +553,8 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   <Button
                     size="lg"
                     className="h-12 w-full text-lg"
-                    disabled={transactionButtonDisabled}
-                    onClick={approve}
+                    disabled={isApprovalLoading}
+                    onClick={() => approve()}
                   >
                     Approve {props.market.loanToken.symbol}
                   </Button>
