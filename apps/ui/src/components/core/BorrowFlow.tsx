@@ -314,7 +314,10 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
   const handleQuickAmountAction = (amount: FixedPoint) => {
     const input = document.getElementById("bondAmountInput") as HTMLInputElement
-    input.value = amount.toString()
+    input.value = amount.format({
+      trailingZeros: false,
+      group: false,
+    })
 
     dispatch({
       type: "bondAmountInput",
@@ -415,6 +418,29 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       type="number"
                       id="bondAmountInput"
                       disabled={isNil(allowance)}
+                      step="any"
+                      min={0}
+                      /** Prevents scrolling from changing the input  */
+                      onWheel={(e) => e.currentTarget.blur()}
+                      onPaste={(e) => {
+                        const clipboardData = e.clipboardData
+                        const pastedData = parseFloat(
+                          clipboardData.getData("text")
+                        )
+
+                        try {
+                          if (pastedData < 0) throw new Error()
+
+                          fixed(pastedData, decimals)
+                        } catch {
+                          e.preventDefault()
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "-" || e.key === "+") {
+                          e.preventDefault()
+                        }
+                      }}
                       onChange={(e) => {
                         dispatch({
                           type: "bondAmountInput",
