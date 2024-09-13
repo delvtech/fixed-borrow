@@ -5,8 +5,8 @@
 @layer base {
   :root {
     /* Custom Colors */
-    --aquamarine: #15ffab;
-    --sky-blue: 191, 95%, 53%;
+    --aquamarine: 158 100% 54%;
+    --sky-blue: 191 95% 53%;
 
     --background: 230 38% 3%;
     --foreground: 0 0% 100%;
@@ -77,9 +77,9 @@
 
 @layer components {
   .gradient-text {
-    @apply bg-gradient-to-r from-[var(--aquamarine)] to-primary bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[hsl(var(--aquamarine))] to-primary bg-clip-text text-transparent;
   }
   .gradient-background {
-    @apply bg-gradient-to-r from-[var(--aquamarine)] to-primary;
+    @apply bg-gradient-to-r from-[hsl(var(--aquamarine))] to-primary;
   }
 }

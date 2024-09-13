@@ -21,31 +21,31 @@ export function HomePage() {
   const { mutate: createTestPosition } = useTestPosition()
 
   return (
-    <main className="m-auto flex max-w-4xl flex-col gap-y-36 px-4 py-8">
-      <div className="m-auto max-w-[766px] space-y-24">
+    <main className="m-auto flex max-w-4xl flex-col gap-y-24 px-4 py-8">
+      <div className="m-auto max-w-3xl space-y-24">
         <div className="flex flex-col items-center gap-4">
-          <h1 className="font-chakra text-h2 text-primary sm:text-h1">
+          <h1 className="font-chakra text-h2 font-medium text-primary sm:text-h1">
             FIX YOUR BORROW
           </h1>
 
-          <p className="max-w-lg text-center font-light text-foreground/90 sm:text-lg">
+          <p className="text-center font-light text-foreground/90 sm:text-lg">
             Keep all the best parts of your borrow position while gaining peace
             of mind with a predictable interest rate.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Badge className="text-xs font-light sm:text-md">
-              <Check size={16} className="mr-1 stroke-primary" /> Protect
+              <Check size={16} className="stroke-aquamarine mr-1" /> Protect
               against high future rates
             </Badge>
 
-            <Badge className="font-light">
-              <Check size={16} className="mr-1 stroke-primary" /> Core position
-              remains unchanged
+            <Badge className="text-xs font-light sm:text-md">
+              <Check size={16} className="stroke-aquamarine mr-1" /> Core
+              position remains unchanged
             </Badge>
 
-            <Badge className="font-light">
-              <Check size={16} className="mr-1 stroke-primary" />
+            <Badge className="text-xs font-light sm:text-md">
+              <Check size={16} className="stroke-aquamarine mr-1" />
               Automations remain unaffected
             </Badge>
           </div>
@@ -121,7 +121,7 @@ export function HomePage() {
                 return Array.from({ length: 2 }, (_, index) => (
                   <Skeleton
                     key={index}
-                    className="h-[290px] w-full rounded-xl bg-popover"
+                    className="h-[266px] w-full rounded-xl bg-popover"
                   />
                 ))
               }

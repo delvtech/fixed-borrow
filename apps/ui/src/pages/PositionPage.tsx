@@ -21,7 +21,7 @@ export function PositionPage() {
 
   return (
     <main className="m-auto my-8 flex max-w-6xl flex-col gap-8 px-8 pb-8 lg:px-28">
-      <h1 className="w-fit font-chakra text-primary">My Positions</h1>
+      <h1 className="gradient-text w-fit font-chakra">My Positions</h1>
 
       <div className="flex gap-12">
         <div className="space-y-1">
@@ -34,10 +34,10 @@ export function PositionPage() {
         </div>
 
         {/* TODO */}
-        <div className="space-y-1">
+        {/* <div className="space-y-1">
           <p className="text-secondary-foreground">Total Fixed Debt</p>
           <p className="font-mono text-h5">$170,000</p>
-        </div>
+        </div> */}
       </div>
 
       {loading

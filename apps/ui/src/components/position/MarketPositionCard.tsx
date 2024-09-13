@@ -62,7 +62,7 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
 
         {shouldShowAddCoverageButton && (
           <Link href={`/borrow/${props.market.hyperdrive}`}>
-            <Button variant="gradient">Add Coverage</Button>
+            <Button>Add Coverage</Button>
           </Link>
         )}
       </CardHeader>

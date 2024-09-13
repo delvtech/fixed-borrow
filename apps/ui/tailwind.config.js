@@ -94,6 +94,9 @@ module.exports = {
         skyBlue: {
           DEFAULT: "hsl(var(--sky-blue))",
         },
+        aquamarine: {
+          DEFAULT: "hsl(var(--aquamarine))",
+        },
       },
       borderRadius: {
         xl: "calc(var(--radius) * 2)",

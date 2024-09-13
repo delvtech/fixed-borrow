@@ -2,8 +2,8 @@ import { X } from "lucide-react"
 
 export default function AppFooter() {
   return (
-    <footer className="mt-16 w-full border-t">
-      <div className="grid max-w-4xl grid-cols-[repeat(auto-fit,180px)] gap-8 p-8 md:flex-row">
+    <footer className="mt-24 w-full border-t px-8 py-12">
+      <div className="grid max-w-4xl grid-cols-[repeat(auto-fit,180px)] gap-8 md:flex-row">
         <div className="space-y-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
