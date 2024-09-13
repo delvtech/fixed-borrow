@@ -689,7 +689,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
               {positionDetails}
 
               <div className="w-full space-y-2">
-                <Link href="/positions" asChild>
+                <Link href={`/positions#${props.market.hyperdrive}`} asChild>
                   <Button className="w-full">View My Position</Button>
                 </Link>
 
