@@ -1,6 +1,6 @@
 import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
-import { ReadHyperdrive, ReadWriteHyperdrive } from "@delvtech/hyperdrive-viem"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
+import { useQuery } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
@@ -30,14 +30,15 @@ import SlippageSettings, {
 import { MarketHeader } from "components/markets/MarketHeader"
 import { cn } from "components/utils"
 import { useApproval } from "hooks/base/useApproval"
+import { useOpenShort } from "hooks/hyperdrive/useOpenShort"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { isNil } from "lodash-es"
 import { ChevronDown, ExternalLink, Info } from "lucide-react"
 import { useReducer, useState } from "react"
 import { match } from "ts-pattern"
 import { formatTermLength } from "utils/formatTermLength"
-import { Address, encodePacked, maxUint256, toFunctionSelector } from "viem"
-import { useAccount, useChainId, usePublicClient, useWalletClient } from "wagmi"
+import { Address } from "viem"
+import { useChainId, usePublicClient } from "wagmi"
 import { Link } from "wouter"
 import { SupportedChainId } from "~/constants"
 import { BorrowPosition, Market } from "../../types"
@@ -204,51 +205,6 @@ function useBorrowFlowData(market: Market, bondAmount: bigint) {
   })
 }
 
-function useOpenShort() {
-  const client = usePublicClient()
-  const { address: account } = useAccount()
-  const { data: walletClient } = useWalletClient()
-
-  return useMutation({
-    mutationFn: async (vars: {
-      bondAmount: bigint
-      hyperdrive: Address
-      rateQuote: bigint
-    }) => {
-      // early termination
-      if (isNil(vars.bondAmount) || isNil(walletClient) || isNil(client)) return
-      if (vars.bondAmount <= 0n) return
-      if (!account) return
-
-      const writeHyperdrive = new ReadWriteHyperdrive({
-        address: vars.hyperdrive,
-        publicClient: client,
-        walletClient,
-      })
-
-      // lets reduce to 4 decimals
-      const reduced = fixed(vars.rateQuote).divUp(parseFixed(1e12)).bigint
-      const storedQuote = fixed(reduced, 4)
-
-      const encodedRate = encodePacked(
-        ["bytes4", "uint24"],
-        [toFunctionSelector("frb(uint24)"), Number(storedQuote.bigint)]
-      )
-
-      return await writeHyperdrive.openShort({
-        args: {
-          destination: account,
-          minVaultSharePrice: 0n,
-          maxDeposit: maxUint256,
-          asBase: true,
-          bondAmount: vars.bondAmount,
-          extraData: encodedRate,
-        },
-      })
-    },
-  })
-}
-
 export function BorrowFlow(props: BorrowFlowProps) {
   const decimals = props.market.loanToken.decimals
 
@@ -375,18 +331,20 @@ export function BorrowFlow(props: BorrowFlowProps) {
   })
 
   const positionDetails = (
-    <>
-      {" "}
-      <div className="flex justify-between text-sm">
+    <ul className="space-y-2">
+      <li className="flex justify-between text-sm">
         <p className="text-secondary-foreground">Fixed Borrow Rate</p>
+
         {!isNil(formattedRateQuote) ? (
           <p className="w-fit font-mono">{formattedRateQuote}</p>
         ) : (
           <Skeleton className="h-[18px] w-[70px] rounded-sm bg-white/10" />
         )}
-      </div>
-      <div className="flex justify-between text-sm">
+      </li>
+
+      <li className="flex justify-between text-sm">
         <p className="text-secondary-foreground">Maturity Date</p>
+
         {!isNil(formattedMaturityDate) ? (
           <p className="font-mono">
             {formattedMaturityDate.toLocaleDateString()}
@@ -394,11 +352,13 @@ export function BorrowFlow(props: BorrowFlowProps) {
         ) : (
           <Skeleton className="h-[18px] w-[70px] rounded-sm bg-white/10" />
         )}
-      </div>
-      <div className="flex justify-between text-sm">
+      </li>
+
+      <li className="flex justify-between text-sm">
         <p className="text-secondary-foreground">
           Projected Max Fixed Debt ({formattedDuration})
         </p>
+
         <p className="font-mono">
           {!isNil(formattedProjectedMaxDebt) ? (
             <p>
@@ -408,8 +368,8 @@ export function BorrowFlow(props: BorrowFlowProps) {
             <Skeleton className="h-[18px] w-[70px] rounded-sm bg-white/10" />
           )}
         </p>
-      </div>
-    </>
+      </li>
+    </ul>
   )
 
   return (
