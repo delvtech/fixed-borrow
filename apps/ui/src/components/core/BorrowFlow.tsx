@@ -442,12 +442,18 @@ export function BorrowFlow(props: BorrowFlowProps) {
                         }
                       }}
                       onChange={(e) => {
-                        dispatch({
-                          type: "bondAmountInput",
-                          payload: {
-                            amount: e.target.value ?? "0",
-                          },
-                        })
+                        try {
+                          // sanitize input
+                          fixed(e.currentTarget.value, decimals)
+                          dispatch({
+                            type: "bondAmountInput",
+                            payload: {
+                              amount: e.target.value ?? "0",
+                            },
+                          })
+                        } catch {
+                          e.preventDefault()
+                        }
                       }}
                     />
 
