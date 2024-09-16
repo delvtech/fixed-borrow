@@ -35,17 +35,17 @@ export function HomePage() {
 
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Badge className="text-xs font-light sm:text-md">
-              <Check size={16} className="stroke-aquamarine mr-1" /> Protect
+              <Check size={16} className="mr-1 stroke-aquamarine" /> Protect
               against high future rates
             </Badge>
 
             <Badge className="text-xs font-light sm:text-md">
-              <Check size={16} className="stroke-aquamarine mr-1" /> Core
+              <Check size={16} className="mr-1 stroke-aquamarine" /> Core
               position remains unchanged
             </Badge>
 
             <Badge className="text-xs font-light sm:text-md">
-              <Check size={16} className="stroke-aquamarine mr-1" />
+              <Check size={16} className="mr-1 stroke-aquamarine" />
               Automations remain unaffected
             </Badge>
           </div>
