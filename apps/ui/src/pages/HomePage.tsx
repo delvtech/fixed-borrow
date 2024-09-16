@@ -21,7 +21,7 @@ export function HomePage() {
   const { mutate: createTestPosition } = useTestPosition()
 
   return (
-    <main className="m-auto flex max-w-4xl flex-col gap-y-24 px-4 py-8">
+    <main className="relative m-auto flex max-w-4xl flex-col gap-y-24 px-4 py-8">
       <div className="m-auto max-w-3xl space-y-24">
         <div className="flex flex-col items-center gap-4">
           <h1 className="font-chakra text-h2 font-medium text-primary sm:text-h1">
