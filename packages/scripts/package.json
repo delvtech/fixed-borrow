@@ -1,0 +1,27 @@
+{
+  "name": "scripts",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json && yarn format",
+    "format": " prettier --write '**/*.{js,jsx,ts,tsx,json}'",
+    "gen": "npx tsx ./src/generate.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.10.0",
+    "viem": "2.20.1",
+    "artifacts": "*",
+    "globals": "^15.9.0",
+    "tsx": "^4.16.2",
+    "typescript": "^5.2.2",
+    "typescript-eslint": "^8.5.0",
+    "eslint": "^9.10.0"
+  },
+  "dependencies": {}
+}
