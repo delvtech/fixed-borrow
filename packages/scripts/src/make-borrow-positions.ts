@@ -3,6 +3,7 @@ import { MorphoBlueAbi } from "artifacts/morpho/MorphoBlueAbi"
 import {
   Address,
   Chain,
+  createPublicClient,
   createTestClient,
   encodeFunctionData,
   erc20Abi,
@@ -10,8 +11,6 @@ import {
   http,
   maxUint256,
   parseEther,
-  PublicClient,
-  WalletClient,
 } from "viem"
 import { morphoAddressesByChain, SupportedChainId } from "./constants"
 
@@ -85,12 +84,14 @@ export const testClient = createTestClient({
   transport: http("https://fork.hyperdrive.money:8545"),
 })
 
-async function makeBorrowPosition(
-  destination: Address,
-  publicClient: PublicClient,
-  walletClient: WalletClient,
-  market: Market
-) {
+const publicClient = createPublicClient({
+  chain: delvChain,
+  transport: http("https://fork.hyperdrive.money:8545", {
+    batch: true,
+  }),
+})
+
+async function makeBorrowPosition(destination: Address) {
   const chainId = publicClient.chain?.id
 
   if (!publicClient.chain) return
@@ -239,11 +240,11 @@ async function makeBorrowPosition(
     functionName: "supplyCollateral",
     args: [
       {
-        irm: market.metadata.irm,
-        oracle: market.metadata.oracle,
-        lltv: market.lltv,
-        collateralToken: market.collateralToken.address,
-        loanToken: market.loanToken.address,
+        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+        oracle: "0xaE4750d0813B5E37A51f7629beedd72AF1f9cA35",
+        lltv: 915000000000000000n,
+        collateralToken: USDE_ADDRESS_MAINNET,
+        loanToken: DAI_ADDRESS_MAINNET,
       },
       parseEther("10000"),
       destination,
@@ -264,11 +265,11 @@ async function makeBorrowPosition(
     functionName: "borrow",
     args: [
       {
-        irm: market.metadata.irm,
-        oracle: market.metadata.oracle,
-        lltv: market.lltv,
-        collateralToken: market.collateralToken.address,
-        loanToken: market.loanToken.address,
+        irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+        oracle: "0xaE4750d0813B5E37A51f7629beedd72AF1f9cA35",
+        lltv: 915000000000000000n,
+        collateralToken: USDE_ADDRESS_MAINNET,
+        loanToken: DAI_ADDRESS_MAINNET,
       },
       parseEther("9000"),
       0n,
@@ -283,4 +284,15 @@ async function makeBorrowPosition(
   })
   receipt = await publicClient.waitForTransactionReceipt({ hash })
   console.log("Borrow 9,000 DAI from market: ", receipt)
+}
+
+const addresses: Address[] = ["0x07833B7B4ab7d80Be6ED1fA45183BD434BEf8ff4"]
+
+for (const address of addresses) {
+  try {
+    await makeBorrowPosition(address)
+  } catch (e) {
+    console.error(`Make Borrow position failed on address: ${address}`)
+    console.error(e)
+  }
 }
