@@ -7,9 +7,9 @@ import {
   MarketUtils,
   Market as MorphoMarket,
 } from "@morpho-org/blue-sdk"
-import { AdaptiveCurveIrmAbi } from "lib/morpho/abi/AdaptiveCurveIrmAbi"
-import { MorphoBlueAbi } from "lib/morpho/abi/MorphoBlueAbi"
-import { OracleAbi } from "lib/morpho/abi/OracleAbi"
+import { AdaptiveCurveIrmAbi } from "artifacts/morpho/AdaptiveCurveIrmAbi"
+import { MorphoBlueAbi } from "artifacts/morpho/MorphoBlueAbi"
+import { OracleAbi } from "artifacts/morpho/OracleAbi"
 import { Address, PublicClient } from "viem"
 import { SupportedChainId, morphoAddressesByChain } from "../../src/constants"
 import {
@@ -52,6 +52,7 @@ export class MorphoMarketReader extends MarketReader {
     account: Address,
     market: Market
   ): Promise<BorrowPosition | undefined> {
+    console.log(market)
     const marketConfig = {
       id: market.metadata.id as MarketId,
       loanToken: market.loanToken.address,
