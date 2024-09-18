@@ -14,8 +14,12 @@ export function Navbar() {
   return (
     <div className="grid grid-cols-3 items-center px-8 py-4">
       <div className="flex items-center gap-8">
-        <Link href="/" aria-label="Go to Hyperdrive Home page" asChild>
-          <Button variant="ghost" className="rounded-lg hover:bg-primary/10">
+        <Button
+          variant="ghost"
+          className="rounded-lg hover:bg-primary/10"
+          asChild
+        >
+          <Link href="/" aria-label="Go to Hyperdrive Home page">
             <svg
               className="hidden md:block"
               xmlns="http://www.w3.org/2000/svg"
@@ -40,25 +44,29 @@ export function Navbar() {
                 fill="white"
               />
             </svg>
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
       <div className="justify-self-center">
-        <Link
-          href="/positions"
-          onMouseEnter={() => {
-            // Prefetch positions
-            queryClient.prefetchQuery({
-              ...getPositionsQuery(chainId as SupportedChainId, address),
-              staleTime: 1_000 * 60 * 5, // 5 min
-            })
-          }}
+        <Button
+          variant="ghost"
+          className="rounded-lg hover:bg-primary/10"
+          asChild
         >
-          <p className="cursor-pointer font-chakra text-lg hover:underline">
-            Portfolio
-          </p>
-        </Link>
+          <Link
+            href="/positions"
+            onMouseEnter={() => {
+              // Prefetch positions
+              queryClient.prefetchQuery({
+                ...getPositionsQuery(chainId as SupportedChainId, address),
+                staleTime: 1_000 * 60 * 5, // 5 min
+              })
+            }}
+          >
+            <p className="cursor-pointer font-chakra text-lg">Portfolio</p>
+          </Link>
+        </Button>
       </div>
 
       <div className="flex items-center gap-x-2 justify-self-end">
