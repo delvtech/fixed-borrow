@@ -5,11 +5,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "components/base/collapsible"
-import {
   Dialog,
   DialogClose,
   DialogContent,
@@ -23,7 +18,7 @@ import { MarketHeader } from "components/markets/MarketHeader"
 import { cn } from "components/utils"
 import { useCloseShort } from "hooks/hyperdrive/useCloseShort"
 import { isNil } from "lodash-es"
-import { ChevronDown, ExternalLink } from "lucide-react"
+import { ExternalLink } from "lucide-react"
 import { useReducer, useState } from "react"
 import { Market } from "src/types"
 import { match } from "ts-pattern"
@@ -256,7 +251,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
     }
   })
 
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  // const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 
   const { formatted: formattedDuration } = formatTermLength(
     props.market.duration
@@ -459,7 +454,8 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                   >
                     Remove
                   </Button>
-                  <Collapsible
+
+                  {/* <Collapsible
                     open={isDetailsOpen}
                     onOpenChange={setIsDetailsOpen}
                   >
@@ -469,9 +465,9 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                     </CollapsibleTrigger>
 
                     <CollapsibleContent className="mt-4 space-y-4">
-                      {/* {positionDetails} */}
+                      {positionDetails}
                     </CollapsibleContent>
-                  </Collapsible>
+                  </Collapsible> */}
                 </div>
               </div>
             </DialogContent>
@@ -529,7 +525,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                   </p>
                 </a>
               </div>
-              <p className="font-medium">Summary</p>{" "}
+              {/* <p className="font-medium">Summary</p>{" "} */}
             </DialogContent>
           )
         })
@@ -568,7 +564,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                   </p>
                 </a>
               </div>
-              <p className="font-medium">Summary</p>
+              {/* <p className="font-medium">Summary</p> */}
 
               {/* {positionDetails} */}
 

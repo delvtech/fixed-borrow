@@ -270,11 +270,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
     Date.now() + Number(props.market.duration) * 1000
   )
 
-  // const formattedCurrentBorrowRate = fixed(props.position.currentRate).format({
-  //   decimals: 2,
-  //   percent: true,
-  // })
-
   const formattedRateQuote = borrowFlowData?.rateQuote
     ? borrowFlowData.rateQuote.format({
         decimals: 2,
