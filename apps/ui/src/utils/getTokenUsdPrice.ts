@@ -16,13 +16,17 @@ const tokenUsdPriceResolvers: Record<
     "0xFF8AFe6bb92eB9D8e80c607bbe5bbb78BF1201Df": () =>
       Promise.resolve(parseUnits("1", 18)),
   },
-  [delvChain.id]: {},
+  [delvChain.id]: {
+    "0x6b175474e89094c44da98b954eedeac495271d0f": () =>
+      Promise.resolve(parseUnits("1", 18)),
+  },
 }
 
 export async function getTokenUsdPrice(
   chainId: SupportedChainId,
   address: Address
 ) {
+  address = address.toLowerCase() as Address
   const resolverFunc = tokenUsdPriceResolvers[chainId][address]
   if (!resolverFunc) {
     return null
