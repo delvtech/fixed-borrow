@@ -4,11 +4,13 @@ import { Chain, mainnet, sepolia } from "viem/chains"
 import { http } from "wagmi"
 
 export const delvChain = {
-  id: 42069,
-  name: "☁️Chain",
+  id: 707,
+  name: "HRB Testnet",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: {
-    default: { http: ["https://fork.hyperdrive.money:8545"] },
+    default: {
+      http: ["http://ec2-3-18-106-165.us-east-2.compute.amazonaws.com:8545/"],
+    },
   },
   blockExplorers: {
     default: { name: "Etherscan", url: "https://etherscan.io" },
@@ -31,12 +33,15 @@ export const delvChain = {
 export const testClient = createTestClient({
   chain: delvChain,
   mode: "anvil",
-  transport: http("https://fork.hyperdrive.money:8545"),
+  transport: http(
+    "http://ec2-3-18-106-165.us-east-2.compute.amazonaws.com:8545/"
+  ),
 })
 
 export const rainbowConfig = getDefaultConfig({
   appName: "Hyperdrive Borrow",
   projectId: import.meta.env.VITE_WALLET_CONNECT_ID,
+
   chains: [mainnet, sepolia, delvChain],
   ssr: false, // If your dApp uses server side rendering (SSR)
   transports: {
@@ -52,9 +57,12 @@ export const rainbowConfig = getDefaultConfig({
         batch: true,
       }
     ),
-    [42069]: http("https://fork.hyperdrive.money:8545", {
-      batch: true,
-    }),
+    [707]: http(
+      "http://ec2-3-18-106-165.us-east-2.compute.amazonaws.com:8545/",
+      {
+        batch: true,
+      }
+    ),
   },
 })
 
