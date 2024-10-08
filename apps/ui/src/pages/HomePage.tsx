@@ -1,15 +1,30 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "components/base/select"
 import { Skeleton } from "components/base/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/base/tabs"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
 import { BorrowPositionCard } from "components/position/BorrowPositionCard"
 import { useAllBorrowPositions } from "hooks/markets/useAllBorrowPositions"
 import { ArrowDown, Check, CircleSlash } from "lucide-react"
+import { useMemo, useState } from "react"
+import { MorphoLogo } from "static/images/MorphoLogo"
 import { match } from "ts-pattern"
 import { useTestPosition } from "utils/test/createTestPosition"
 import { useAccount, useChainId } from "wagmi"
+
+const protocols = ["Morpho"] as const
+type Protocol = (typeof protocols)[number]
+
+const sortingKeys = ["Loan Size", "Fixed Rate"] as const
+type SortingKey = (typeof sortingKeys)[number]
 
 export function HomePage() {
   const { address: account, isConnected } = useAccount()
@@ -22,9 +37,71 @@ export function HomePage() {
 
   const noPositions = borrowPositions && borrowPositions.length === 0
 
+  const [sorting, setSorting] = useState<SortingKey>("Loan Size")
+  const [protocolFilter, setProtocolFilter] = useState<Protocol | undefined>(
+    undefined
+  )
+
+  const newPositons = useMemo(() => {
+    // TODO implement protocol filtering
+    const filteredPositions = borrowPositions
+
+    const sortedPositions = filteredPositions?.sort((a, b) => {
+      switch (sorting) {
+        case "Loan Size":
+          return a.totalDebt > b.totalDebt ? 1 : 0
+        case "Fixed Rate":
+          return a.fixedRate > b.fixedRate ? 1 : 0
+      }
+    })
+
+    return match(allBorrowPositionsQueryStatus)
+      .with("success", () => {
+        return sortedPositions?.map((position) => (
+          <BorrowPositionCard key={position.market.hyperdrive} {...position} />
+        ))
+      })
+      .with("pending", () => {
+        if (isConnected) {
+          return Array.from({ length: 2 }, (_, index) => (
+            <Skeleton
+              key={index}
+              className="h-[266px] w-full rounded-xl bg-popover"
+            />
+          ))
+        }
+
+        return (
+          <div className="space-y-6 text-center">
+            <h3 className="font-chakra font-light">
+              Connect wallet to view your positions
+            </h3>
+
+            <div className="flex justify-center gap-6">
+              <ConnectButton />
+            </div>
+          </div>
+        )
+      })
+      .with("error", () => {
+        return (
+          <div className="flex flex-col items-center">
+            <div className="text-3xl flex items-center gap-x-2 font-bold">
+              Error <CircleSlash size={24} className="inline" />
+            </div>
+            <div>
+              Unable to load borrow positions. Please contact our support
+              service.
+            </div>
+          </div>
+        )
+      })
+      .exhaustive()
+  }, [borrowPositions, allBorrowPositionsQueryStatus, sorting, protocolFilter])
+
   return (
     <main className="relative m-auto flex max-w-4xl flex-col gap-y-24 px-4 py-8">
-      <div className="m-auto max-w-3xl space-y-24">
+      <div className="m-auto max-w-3xl space-y-16">
         <div className="flex flex-col items-center gap-5">
           <svg
             className="size-10 sm:size-12"
@@ -95,8 +172,8 @@ export function HomePage() {
             </div>
           </div>
         ) : (
-          <Tabs defaultValue="new" className="grid justify-items-center gap-4">
-            <TabsList className="w-fit">
+          <Tabs defaultValue="new" className="grid justify-items-center gap-2">
+            <TabsList className="mb-10 w-fit">
               <TabsTrigger value="new" className="w-40">
                 Fix Your Borrow
               </TabsTrigger>
@@ -105,53 +182,37 @@ export function HomePage() {
               </TabsTrigger>
             </TabsList>
 
+            <div className="flex w-full justify-between">
+              <Select>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="All Protocols" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">All Protocols</SelectItem>
+                  <SelectItem value="morpho">
+                    <div className="flex items-center gap-2">
+                      <MorphoLogo />
+                      Morpho
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Sort By: Loan Size" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="apple">Loan Size</SelectItem>
+                  <SelectItem value="banana">Fixed Rate</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <TabsContent value="new" asChild>
               <div className="flex w-full flex-col items-center gap-y-12">
-                {match(allBorrowPositionsQueryStatus)
-                  .with("success", () => {
-                    return borrowPositions?.map((position) => (
-                      <BorrowPositionCard
-                        key={position.market.hyperdrive}
-                        {...position}
-                      />
-                    ))
-                  })
-                  .with("pending", () => {
-                    if (isConnected) {
-                      return Array.from({ length: 2 }, (_, index) => (
-                        <Skeleton
-                          key={index}
-                          className="h-[266px] w-full rounded-xl bg-popover"
-                        />
-                      ))
-                    }
-
-                    return (
-                      <div className="space-y-6 text-center">
-                        <h3 className="font-chakra font-light">
-                          Connect wallet to view your positions
-                        </h3>
-
-                        <div className="flex justify-center gap-6">
-                          <ConnectButton />
-                        </div>
-                      </div>
-                    )
-                  })
-                  .with("error", () => {
-                    return (
-                      <div className="flex flex-col items-center">
-                        <div className="text-3xl flex items-center gap-x-2 font-bold">
-                          Error <CircleSlash size={24} className="inline" />
-                        </div>
-                        <div>
-                          Unable to load borrow positions. Please contact our
-                          support service.
-                        </div>
-                      </div>
-                    )
-                  })
-                  .exhaustive()}
+                {newPositons}
               </div>
             </TabsContent>
           </Tabs>
