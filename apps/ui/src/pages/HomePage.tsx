@@ -17,30 +17,21 @@ import { ArrowDown, Check, CircleSlash } from "lucide-react"
 import { useMemo, useState } from "react"
 import { MorphoLogo } from "static/images/MorphoLogo"
 import { match } from "ts-pattern"
-import { useTestPosition } from "utils/test/createTestPosition"
-import { useAccount, useChainId } from "wagmi"
+import { useAccount } from "wagmi"
 
-const protocols = ["Morpho"] as const
-type Protocol = (typeof protocols)[number]
-
-const sortingKeys = ["Loan Size", "Fixed Rate"] as const
-type SortingKey = (typeof sortingKeys)[number]
+type Protocol = ["Morpho"][number]
+type SortingKey = ["Loan Size", "Fixed Rate"][number]
 
 export function HomePage() {
   const { address: account, isConnected } = useAccount()
-  const chainId = useChainId()
 
   const { data: borrowPositions, status: allBorrowPositionsQueryStatus } =
     useAllBorrowPositions(account)
 
-  const { mutate: createTestPosition } = useTestPosition()
-
   const noPositions = borrowPositions && borrowPositions.length === 0
 
-  const [sorting, setSorting] = useState<SortingKey>("Loan Size")
-  const [protocolFilter, setProtocolFilter] = useState<Protocol | undefined>(
-    undefined
-  )
+  const [sorting] = useState<SortingKey>("Loan Size")
+  const [protocolFilter] = useState<Protocol | undefined>(undefined)
 
   const newPositons = useMemo(() => {
     // TODO implement protocol filtering

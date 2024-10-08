@@ -1,14 +1,8 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { useQueryClient } from "@tanstack/react-query"
 import { Button } from "components/base/button"
-import { useAccount, useChainId } from "wagmi"
 import { Link } from "wouter"
 
 export function Navbar() {
-  const queryClient = useQueryClient()
-  const chainId = useChainId()
-  const { address } = useAccount()
-
   return (
     <div className="grid grid-cols-3 items-center px-8 py-4">
       <div className="flex items-center gap-8">
