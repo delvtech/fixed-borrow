@@ -6,8 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/base/tabs"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
 import { BorrowPositionCard } from "components/position/BorrowPositionCard"
 import { useAllBorrowPositions } from "hooks/markets/useAllBorrowPositions"
-import { Check, CircleSlash, MoveUpRight } from "lucide-react"
-import { delvChain } from "src/client/rainbowClient"
+import { ArrowDown, Check, CircleSlash } from "lucide-react"
 import { match } from "ts-pattern"
 import { useTestPosition } from "utils/test/createTestPosition"
 import { useAccount, useChainId } from "wagmi"
@@ -20,6 +19,8 @@ export function HomePage() {
     useAllBorrowPositions(account)
 
   const { mutate: createTestPosition } = useTestPosition()
+
+  const noPositions = borrowPositions && borrowPositions.length === 0
 
   return (
     <main className="relative m-auto flex max-w-4xl flex-col gap-y-24 px-4 py-8">
@@ -42,9 +43,7 @@ export function HomePage() {
           </h1>
 
           <p className="text-center text-sm font-light text-secondary-foreground sm:text-lg">
-            Keep all the best parts of your borrow position while gaining peace
-            of mind with <br className="hidden md:block" /> a predictable
-            interest rate.
+            Gain peace of mind with a predictable interest rate.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-2">
@@ -54,8 +53,8 @@ export function HomePage() {
             </Badge>
 
             <Badge className="bg-secondary text-xs font-light sm:text-sm">
-              <Check size={16} className="mr-1 stroke-aquamarine" /> Core
-              position remains unchanged
+              <Check size={16} className="mr-1 stroke-aquamarine" /> Revert to
+              variable at any time
             </Badge>
 
             <Badge className="bg-secondary text-xs font-light sm:text-sm">
@@ -65,121 +64,98 @@ export function HomePage() {
           </div>
         </div>
 
-        <Tabs defaultValue="new" className="grid justify-items-center gap-4">
-          <TabsList className="w-fit">
-            <TabsTrigger value="new" className="w-40">
-              Fix Your Borrow
-            </TabsTrigger>
-            <TabsTrigger value="active" className="w-40">
-              Active Fixed Borrows
-            </TabsTrigger>
-          </TabsList>
+        {noPositions ? (
+          <div className="space-y-6 text-center">
+            <h3 className="font-chakra text-h4 font-light">
+              You don’t have any supported borrow positions on Morpho
+            </h3>
 
-          <TabsContent value="new" asChild>
-            <div className="flex w-full flex-col items-center gap-y-12">
-              {match(allBorrowPositionsQueryStatus)
-                .with("success", () => {
-                  if (!borrowPositions || borrowPositions.length === 0) {
+            <div className="flex justify-center gap-6">
+              <Button
+                className="gap-2 bg-[#2E4DFF]/75 font-light text-foreground hover:bg-[#2E4DFF]"
+                asChild
+              >
+                <a
+                  href="https://app.morpho.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img
+                    src="/logos/Morpho-logo-symbol-darkmode.svg"
+                    alt="Morpho logo"
+                    className="size-3"
+                  />
+                  Explore supported markets below <ArrowDown size={14} />
+                </a>
+              </Button>
+
+              {/* <Button variant="secondary">
+                        Learn How Fixed Borrow Works
+                      </Button> */}
+            </div>
+          </div>
+        ) : (
+          <Tabs defaultValue="new" className="grid justify-items-center gap-4">
+            <TabsList className="w-fit">
+              <TabsTrigger value="new" className="w-40">
+                Fix Your Borrow
+              </TabsTrigger>
+              <TabsTrigger value="active" className="w-40">
+                Active Fixed Borrows
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="new" asChild>
+              <div className="flex w-full flex-col items-center gap-y-12">
+                {match(allBorrowPositionsQueryStatus)
+                  .with("success", () => {
+                    return borrowPositions?.map((position) => (
+                      <BorrowPositionCard
+                        key={position.market.hyperdrive}
+                        {...position}
+                      />
+                    ))
+                  })
+                  .with("pending", () => {
+                    if (isConnected) {
+                      return Array.from({ length: 2 }, (_, index) => (
+                        <Skeleton
+                          key={index}
+                          className="h-[266px] w-full rounded-xl bg-popover"
+                        />
+                      ))
+                    }
+
                     return (
                       <div className="space-y-6 text-center">
                         <h3 className="font-chakra font-light">
-                          You don’t have any borrow positions
+                          Connect wallet to view your positions
                         </h3>
-                        <p className="text-secondary-foreground">
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Pellentesque vestibulum, turpis a vehicula
-                          condimentum, magna ipsum aliquet nisi, ac consectetur
-                          odio urna nec risus.
-                        </p>
 
                         <div className="flex justify-center gap-6">
-                          {chainId === delvChain.id ? (
-                            <Button
-                              className="gap-2 bg-[#2E4DFF] font-light text-foreground hover:bg-[#2E4DFF]/90"
-                              onClick={() => createTestPosition()}
-                            >
-                              <img
-                                src="/logos/Morpho-logo-symbol-darkmode.svg"
-                                alt="Morpho logo"
-                                className="size-3"
-                              />
-                              Open a Demo Position
-                            </Button>
-                          ) : (
-                            <Button
-                              className="gap-2 bg-[#2E4DFF] font-light text-foreground hover:bg-[#2E4DFF]/90"
-                              asChild
-                            >
-                              <a
-                                href="https://app.morpho.org"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <img
-                                  src="/logos/Morpho-logo-symbol-darkmode.svg"
-                                  alt="Morpho logo"
-                                  className="size-3"
-                                />
-                                Open Position on Morpho Blue{" "}
-                                <MoveUpRight size={14} />
-                              </a>
-                            </Button>
-                          )}
-
-                          {/* <Button variant="secondary">
-                        Learn How Fixed Borrow Works
-                      </Button> */}
+                          <ConnectButton />
                         </div>
                       </div>
                     )
-                  }
-
-                  return borrowPositions.map((position) => (
-                    <BorrowPositionCard
-                      key={position.market.hyperdrive}
-                      {...position}
-                    />
-                  ))
-                })
-                .with("pending", () => {
-                  if (isConnected) {
-                    return Array.from({ length: 2 }, (_, index) => (
-                      <Skeleton
-                        key={index}
-                        className="h-[266px] w-full rounded-xl bg-popover"
-                      />
-                    ))
-                  }
-
-                  return (
-                    <div className="space-y-6 text-center">
-                      <h3 className="font-chakra font-light">
-                        Connect wallet to view your positions
-                      </h3>
-
-                      <div className="flex justify-center gap-6">
-                        <ConnectButton />
+                  })
+                  .with("error", () => {
+                    return (
+                      <div className="flex flex-col items-center">
+                        <div className="text-3xl flex items-center gap-x-2 font-bold">
+                          Error <CircleSlash size={24} className="inline" />
+                        </div>
+                        <div>
+                          Unable to load borrow positions. Please contact our
+                          support service.
+                        </div>
                       </div>
-                    </div>
-                  )
-                })
-                .with("error", () => {
-                  return (
-                    <div className="flex flex-col items-center">
-                      <div className="text-3xl flex items-center gap-x-2 font-bold">
-                        Error <CircleSlash size={24} className="inline" />
-                      </div>
-                      <div>
-                        Unable to load borrow positions. Please contact our
-                        support service.
-                      </div>
-                    </div>
-                  )
-                })
-                .exhaustive()}
-            </div>
-          </TabsContent>
-        </Tabs>
+                    )
+                  })
+                  .exhaustive()}
+              </div>
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
 
       <div className="flex flex-col items-center gap-y-4">
@@ -193,8 +169,8 @@ export function HomePage() {
           <h1 className="font-chakra text-h3">Available Morpho Markets</h1>
 
           <p className="text-secondary-foreground">
-            Open a supported position on Morpho Blue and fix your rate in one
-            transaction with Hyperdrive.
+            Open a supported borrow position on Morpho and return to DELV Fixed
+            Borrow to fix your rate.
           </p>
         </div>
 

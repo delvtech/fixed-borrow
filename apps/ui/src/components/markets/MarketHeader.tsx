@@ -1,7 +1,6 @@
 import { Badge } from "components/base/badge"
 import { cn } from "components/utils"
 import { MorphoLogo } from "static/images/MorphoLogo"
-import { formatTermLength } from "utils/formatTermLength"
 import { Market } from "../../types"
 
 interface MarketHeaderProps {
@@ -46,12 +45,12 @@ export function MarketHeader(props: MarketHeaderProps) {
         </Badge>
 
         <Badge variant="secondary" className="font-mono text-xs">
-          LLTV: 86%
+          LTV: 86%
         </Badge>
 
-        <Badge variant="secondary" className="font-mono text-xs">
+        {/* <Badge variant="secondary" className="font-mono text-xs">
           {formatTermLength(props.market.duration).formatted}
-        </Badge>
+        </Badge> */}
       </div>
     </div>
   )
