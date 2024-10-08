@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "components/base/table"
 import { useAllMarkets } from "hooks/markets/useAllMarkets"
-import { ArrowRight, ChevronsUpDown } from "lucide-react"
+import { ChevronsUpDown, ExternalLink } from "lucide-react"
 import { formatRate } from "utils/base/formatRate"
 import { sepolia } from "viem/chains"
 import { useChainId, usePublicClient } from "wagmi"
@@ -91,7 +91,7 @@ export function AllMarketsTable() {
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
-                  className="border-b-0"
+                  className="border-b-0 hover:bg-secondary"
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
@@ -276,8 +276,8 @@ const columns: ColumnDef<MarketInfo>[] = [
             aria-label={`Go to ${props.row.original.market.collateralToken.symbol}/${props.row.original.market.loanToken.symbol} on Morpho`}
             rel="noopener noreferrer"
           >
-            <div className="flex w-min items-center rounded-full bg-accent p-3 hover:bg-accent/80">
-              <ArrowRight size={16} />
+            <div className="flex w-min items-center rounded-full bg-accent p-4 text-foreground/60 hover:bg-accent/80">
+              <ExternalLink size={16} />
             </div>
           </a>
         </div>
