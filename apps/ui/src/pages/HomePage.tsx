@@ -34,11 +34,9 @@ export function HomePage() {
   const { data: borrowPositions, status: allBorrowPositionsQueryStatus } =
     useAllBorrowPositions(account)
 
-  const { data: activePositions, isLoading: queryLoading } = useActivePositions(
-    {
-      enabled: view === "active",
-    }
-  )
+  const { data: activePositions } = useActivePositions({
+    enabled: view === "active",
+  })
 
   const noPositions = borrowPositions && borrowPositions.length === 0
 
