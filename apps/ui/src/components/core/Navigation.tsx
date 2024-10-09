@@ -1,16 +1,8 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { useQueryClient } from "@tanstack/react-query"
 import { Button } from "components/base/button"
-import { getPositionsQuery } from "src/queries/getPositionsQuery"
-import { useAccount, useChainId } from "wagmi"
 import { Link } from "wouter"
-import { SupportedChainId } from "~/constants"
 
 export function Navbar() {
-  const queryClient = useQueryClient()
-  const chainId = useChainId()
-  const { address } = useAccount()
-
   return (
     <div className="grid grid-cols-3 items-center px-8 py-4">
       <div className="flex items-center gap-8">
@@ -48,26 +40,7 @@ export function Navbar() {
         </Button>
       </div>
 
-      <div className="justify-self-center">
-        <Button
-          variant="ghost"
-          className="rounded-lg hover:bg-primary/10"
-          asChild
-        >
-          <Link
-            href="/positions"
-            onMouseEnter={() => {
-              // Prefetch positions
-              queryClient.prefetchQuery({
-                ...getPositionsQuery(chainId as SupportedChainId, address),
-                staleTime: 1_000 * 60 * 5, // 5 min
-              })
-            }}
-          >
-            <p className="cursor-pointer font-chakra text-lg">Portfolio</p>
-          </Link>
-        </Button>
-      </div>
+      <div className="justify-self-center"></div>
 
       <div className="flex items-center gap-x-2 justify-self-end">
         <div className="min-h-[40px] w-max">
