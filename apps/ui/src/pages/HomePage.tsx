@@ -12,7 +12,9 @@ import { Skeleton } from "components/base/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/base/tabs"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
 import { BorrowPositionCard } from "components/position/BorrowPositionCard"
+import { MarketPositionsCard } from "components/position/MarketPositionCard"
 import { useAllBorrowPositions } from "hooks/markets/useAllBorrowPositions"
+import { useActivePositions } from "hooks/positions/useActivePositions"
 import { ArrowDown, Check, CircleSlash } from "lucide-react"
 import { useMemo, useState } from "react"
 import { MorphoLogo } from "static/images/MorphoLogo"
@@ -22,11 +24,19 @@ import { useAccount } from "wagmi"
 type Protocol = ["Morpho"][number]
 type SortingKey = ["Loan Size", "Fixed Rate"][number]
 
+type View = "new" | "active"
+
 export function HomePage() {
   const { address: account, isConnected } = useAccount()
 
+  const [view, setView] = useState<View>("new")
+
   const { data: borrowPositions, status: allBorrowPositionsQueryStatus } =
     useAllBorrowPositions(account)
+
+  const { data: activePositions } = useActivePositions({
+    enabled: view === "active",
+  })
 
   const noPositions = borrowPositions && borrowPositions.length === 0
 
@@ -131,84 +141,112 @@ export function HomePage() {
             </Badge>
           </div>
         </div>
+      </div>
 
-        {noPositions ? (
-          <div className="space-y-6 text-center">
-            <h3 className="font-chakra text-h4 font-light">
-              You don’t have any supported borrow positions on Morpho
-            </h3>
+      {noPositions ? (
+        <div className="space-y-6 text-center">
+          <h3 className="font-chakra text-h4 font-light">
+            You don’t have any supported borrow positions on Morpho
+          </h3>
 
-            <div className="flex justify-center gap-6">
-              <Button
-                className="gap-2 bg-[#2E4DFF]/75 font-light text-foreground hover:bg-[#2E4DFF]"
-                asChild
+          <div className="flex justify-center gap-6">
+            <Button
+              className="gap-2 bg-[#2E4DFF]/75 font-light text-foreground hover:bg-[#2E4DFF]"
+              asChild
+            >
+              <a
+                href="https://app.morpho.org"
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                <a
-                  href="https://app.morpho.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <img
-                    src="/logos/Morpho-logo-symbol-darkmode.svg"
-                    alt="Morpho logo"
-                    className="size-3"
-                  />
-                  Explore supported markets below <ArrowDown size={14} />
-                </a>
-              </Button>
+                <img
+                  src="/logos/Morpho-logo-symbol-darkmode.svg"
+                  alt="Morpho logo"
+                  className="size-3"
+                />
+                Explore supported markets below <ArrowDown size={14} />
+              </a>
+            </Button>
 
-              {/* <Button variant="secondary">
+            {/* <Button variant="secondary">
                         Learn How Fixed Borrow Works
                       </Button> */}
-            </div>
           </div>
-        ) : (
-          <Tabs defaultValue="new" className="grid justify-items-center gap-2">
-            <TabsList className="mb-10 w-fit">
-              <TabsTrigger value="new" className="w-40">
-                Fix Your Borrow
-              </TabsTrigger>
-              <TabsTrigger value="active" className="w-40">
-                Active Fixed Borrows
-              </TabsTrigger>
-            </TabsList>
+        </div>
+      ) : (
+        <Tabs
+          value={view}
+          onValueChange={(value) => setView(value as View)}
+          defaultValue="new"
+          className="grid justify-items-center gap-2"
+        >
+          <TabsList className="mb-10 w-fit">
+            <TabsTrigger value="new" className="w-40">
+              Fix Your Borrow
+            </TabsTrigger>
+            <TabsTrigger value="active" className="w-40">
+              Active Fixed Borrows
+            </TabsTrigger>
+          </TabsList>
 
-            <div className="flex w-full justify-between">
-              <Select>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All Protocols" />
-                </SelectTrigger>
+          <div className="flex w-full justify-between">
+            <Select>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Protocols" />
+              </SelectTrigger>
 
-                <SelectContent>
-                  <SelectItem value="all">All Protocols</SelectItem>
-                  <SelectItem value="morpho">
-                    <div className="flex items-center gap-2">
-                      <MorphoLogo />
-                      Morpho
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <SelectContent>
+                <SelectItem value="all">All Protocols</SelectItem>
+                <SelectItem value="morpho">
+                  <div className="flex items-center gap-2">
+                    <MorphoLogo />
+                    Morpho
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
 
-              <Select>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort By: Loan Size" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="apple">Loan Size</SelectItem>
-                  <SelectItem value="banana">Fixed Rate</SelectItem>
-                </SelectContent>
-              </Select>
+            <Select>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sort By: Loan Size" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="apple">Loan Size</SelectItem>
+                <SelectItem value="banana">Fixed Rate</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <TabsContent value="new" asChild>
+            <div className="flex w-full flex-col items-center gap-y-12">
+              {newPositons}
             </div>
+          </TabsContent>
 
-            <TabsContent value="new" asChild>
-              <div className="flex w-full flex-col items-center gap-y-12">
-                {newPositons}
+          <TabsContent
+            value="active"
+            className="flex w-full flex-col items-center gap-y-12"
+          >
+            {activePositions?.map((position) => (
+              <div
+                className="w-full"
+                id={position.market.hyperdrive}
+                key={position.market.hyperdrive}
+              >
+                <MarketPositionsCard
+                  market={position.market}
+                  totalCoverage={position.totalCoverage}
+                  debtCovered={position.debtCovered.bigint}
+                  shorts={position.shorts}
+                  // startOpened={
+                  //   hyperdriveHash.slice(1) === position.market.hyperdrive
+                  // }
+                />
               </div>
-            </TabsContent>
-          </Tabs>
-        )}
-      </div>
+            ))}
+          </TabsContent>
+        </Tabs>
+      )}
 
       <div className="flex flex-col items-center gap-y-4">
         <img

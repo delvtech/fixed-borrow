@@ -52,7 +52,6 @@ export class MorphoMarketReader extends MarketReader {
     account: Address,
     market: Market
   ): Promise<BorrowPosition | undefined> {
-    console.log(market)
     const marketConfig = {
       id: market.metadata.id as MarketId,
       loanToken: market.loanToken.address,

@@ -79,9 +79,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
           </div>
 
           <div className="flex flex-col items-center gap-y-2">
-            <p className="text-sm font-medium text-secondary-foreground">
-              Fixed Rate
-            </p>
+            <p className="text-sm text-secondary-foreground">Fixed Rate</p>
 
             <p className="gradient-text font-chakra text-h3 font-medium">
               {currentFixedRate.format({

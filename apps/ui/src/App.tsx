@@ -1,17 +1,14 @@
-import { Navbar } from "components/core/Navigation"
-import { HomePage } from "pages/HomePage"
-import { Route, Switch, useLocation } from "wouter"
-
-import "@rainbow-me/rainbowkit/styles.css"
-
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit"
+import "@rainbow-me/rainbowkit/styles.css"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import AppFooter from "components/core/AppFooter"
+import { Navbar } from "components/core/Navigation"
 import { BorrowPage } from "pages/BorrowPage"
 import DevPage from "pages/DevPage"
-import { PositionPage } from "pages/PositionPage"
+import { HomePage } from "pages/HomePage"
 import { PropsWithChildren, useEffect } from "react"
 import { WagmiProvider } from "wagmi"
+import { Route, Switch, useLocation } from "wouter"
 import { rainbowConfig } from "./client/rainbowClient"
 
 const queryClient = new QueryClient({
@@ -53,7 +50,6 @@ function App() {
                 <Route path="/" component={HomePage} />
                 <Route path="/dev" component={DevPage} />
                 <Route path="/borrow/:hyperdrive" component={BorrowPage} />
-                <Route path="/positions" component={PositionPage} />
 
                 {/* Default route in a switch */}
                 <Route>404: No such page!</Route>
