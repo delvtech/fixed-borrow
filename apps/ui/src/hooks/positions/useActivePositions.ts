@@ -1,9 +1,15 @@
-import { useQuery } from "@tanstack/react-query"
+import { QueryKey, useQuery, UseQueryOptions } from "@tanstack/react-query"
 import { getPositionsQuery } from "src/queries/getPositionsQuery"
+import { Position } from "src/types"
 import { useAccount, useChainId, usePublicClient } from "wagmi"
 import { SupportedChainId } from "~/constants"
 
-export function useAllPositions() {
+type TypedQueryOptions = Omit<
+  UseQueryOptions<Position[], Error, Position[], QueryKey>,
+  "queryKey" | "queryFn"
+>
+
+export function useActivePositions(options?: TypedQueryOptions) {
   const { address } = useAccount()
   const chainId = useChainId()
   const client = usePublicClient()
@@ -12,6 +18,7 @@ export function useAllPositions() {
 
   return useQuery({
     ...getPositionsQuery(chainId as SupportedChainId, address),
-    enabled: enabled,
+    ...options,
+    enabled: enabled && options?.enabled,
   })
 }

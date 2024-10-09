@@ -58,7 +58,7 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
     debtCovered.gt(0n) && debtCovered.lt(FixedPoint.one(decimals))
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader className="flex flex-row justify-between space-y-0">
         <MarketHeader market={props.market} className="text-h4" />
 
