@@ -47,10 +47,6 @@ export function MarketHeader(props: MarketHeaderProps) {
         <Badge variant="secondary" className="font-mono text-xs">
           LTV: 86%
         </Badge>
-
-        {/* <Badge variant="secondary" className="font-mono text-xs">
-          {formatTermLength(props.market.duration).formatted}
-        </Badge> */}
       </div>
     </div>
   )

@@ -9,13 +9,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "components/base/collapsible"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "components/base/select"
 import { Separator } from "components/base/separator"
 import { Skeleton } from "components/base/skeleton"
 import {
@@ -24,26 +17,24 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "components/base/tooltip"
+import { Slider } from "components/base/ui/slider"
 import SlippageSettings, {
   defaultSlippageAmount,
 } from "components/forms/SlippageSettings"
-import { MarketHeader } from "components/markets/MarketHeader"
-import { cn } from "components/utils"
 import { useApproval } from "hooks/base/useApproval"
 import { useOpenShort } from "hooks/hyperdrive/useOpenShort"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { isNil } from "lodash-es"
 import { ChevronDown, ExternalLink, Info } from "lucide-react"
 import { useReducer, useState } from "react"
+import { MorphoLogo } from "static/images/MorphoLogo"
 import { match } from "ts-pattern"
 import { formatTermLength } from "utils/formatTermLength"
 import { Address } from "viem"
 import { useChainId, usePublicClient } from "wagmi"
 import { Link } from "wouter"
 import { SupportedChainId } from "~/constants"
-import { BorrowPosition, Market } from "../../types"
-
-const quickTokenAmountWeights = [0.25, 0.5, 0.75, 1] as const
+import { BorrowPosition, Market, Position } from "../../types"
 
 type State = {
   step: "buy" | "loading" | "receipt"
@@ -121,6 +112,7 @@ const reducer = (state: State, action: Action): State => {
 interface BorrowFlowProps {
   market: Market
   position: BorrowPosition
+  activePosition: Position
 }
 
 function useBorrowFlowData(market: Market, bondAmount: bigint) {
@@ -207,6 +199,13 @@ function useBorrowFlowData(market: Market, bondAmount: bigint) {
 
 export function BorrowFlow(props: BorrowFlowProps) {
   const decimals = props.market.loanToken.decimals
+
+  const percentCovered =
+    fixed(props.activePosition.totalCoverage)
+      .div(props.position.totalDebt)
+      .toNumber() * 100
+
+  const [sliderValue, setSliderValue] = useState(percentCovered)
 
   const client = usePublicClient()
 
@@ -307,31 +306,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
         })
     : undefined
 
-  const handleQuickAmountAction = (amount: FixedPoint) => {
-    const input = document.getElementById("bondAmountInput") as HTMLInputElement
-    input.value = amount.format({
-      trailingZeros: false,
-      group: false,
-    })
-
-    dispatch({
-      type: "bondAmountInput",
-      payload: {
-        amount: amount.toString(),
-      },
-    })
-  }
-
   const transactionButtonDisabled = state.bondAmount === 0n
-
-  const quickAmountValues = quickTokenAmountWeights.map((weight) => {
-    const amount = fixed(props.position.totalDebt).mul(parseFixed(weight))
-
-    return {
-      weight,
-      amount,
-    }
-  })
 
   const positionDetails = (
     <ul className="space-y-2">
@@ -375,13 +350,13 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
   return (
     <div className="m-auto flex w-full max-w-lg flex-col gap-8 bg-transparent">
-      <MarketHeader market={props.market} />
+      {/* <MarketHeader market={props.market} /> */}
 
       <Card>
         {state.step === "buy" && (
           <CardHeader>
-            <p className="gradient-text w-fit font-chakra text-h4 font-semibold">
-              Buy Coverage
+            <p className="gradient-text w-fit font-chakra text-h4 font-semibold text-[#AEF0FF]">
+              Convert to Fixed Rate
             </p>
           </CardHeader>
         )}
@@ -390,119 +365,149 @@ export function BorrowFlow(props: BorrowFlowProps) {
           .with("buy", () => (
             <CardContent className="grid gap-8 rounded-xl bg-card">
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-secondary-foreground">Amount</p>
-                    <SlippageSettings
-                      amount={state.slippage}
-                      onChange={(slippage) =>
-                        dispatch({
-                          type: "slippageAmountChange",
-                          payload: {
-                            amount: slippage,
-                          },
-                        })
-                      }
-                    />
-                  </div>
+                <div className="grid gap-6 rounded-lg bg-accent p-6">
+                  <div className="flex justify-between">
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex">
+                          <img
+                            src={props.market.collateralToken.iconUrl}
+                            height={24}
+                            width={24}
+                            alt={`${props.market.collateralToken.symbol} token symbol`}
+                          />
+                          <img
+                            src={props.market.loanToken.iconUrl}
+                            className="-ml-2"
+                            height={24}
+                            width={24}
+                            alt={`${props.market.loanToken.symbol} token symbol`}
+                          />
+                        </div>
 
-                  <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
-                    <input
-                      className="h-full w-full grow rounded-sm border-none bg-popover p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                      placeholder="0"
-                      type="number"
-                      id="bondAmountInput"
-                      disabled={isNil(allowance)}
-                      step="any"
-                      min={0}
-                      /** Prevents scrolling from changing the input  */
-                      onWheel={(e) => e.currentTarget.blur()}
-                      onPaste={(e) => {
-                        const clipboardData = e.clipboardData
-                        const pastedData = parseFloat(
-                          clipboardData.getData("text")
-                        )
+                        <h2 className="font-chakra text-h4 font-medium">
+                          {props.market.collateralToken.symbol} /{" "}
+                          {props.market.loanToken.symbol}
+                        </h2>
+                      </div>
 
-                        try {
-                          if (pastedData < 0) throw new Error()
-
-                          fixed(pastedData, decimals)
-                        } catch {
-                          e.preventDefault()
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "-" || e.key === "+") {
-                          e.preventDefault()
-                        }
-                      }}
-                      onChange={(e) => {
-                        try {
-                          // sanitize input
-                          fixed(e.currentTarget.value, decimals)
-                          dispatch({
-                            type: "bondAmountInput",
-                            payload: {
-                              amount: e.target.value ?? "0",
-                            },
-                          })
-                        } catch {
-                          e.preventDefault()
-                        }
-                      }}
-                    />
-
-                    <Badge className="m-2 flex h-6 items-center justify-center gap-1 border-none bg-accent p-2 py-4 font-sans font-medium hover:bg-none">
-                      <img
-                        src={props.market.loanToken.iconUrl}
-                        className="size-4"
-                      />{" "}
-                      {props.market.loanToken.symbol}
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-x-2">
-                      {quickAmountValues.map((quickAction) => (
-                        <Button
-                          key={`quick-action-${quickAction.weight}`}
-                          onClick={() =>
-                            handleQuickAmountAction(quickAction.amount)
-                          }
-                          className={cn(
-                            "h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground",
-                            {
-                              "text-foreground/75 hover:text-foreground/75":
-                                state.bondAmount === quickAction.amount.bigint,
-                            }
-                          )}
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="secondary"
+                          className="bg-secondary font-mono text-xs"
                         >
-                          {quickAction.weight === 1
-                            ? "Max"
-                            : `${quickAction.weight * 100}%`}
-                        </Button>
-                      ))}
+                          <MorphoLogo />
+                          Morpho
+                        </Badge>
+
+                        <Badge
+                          variant="secondary"
+                          className="bg-secondary font-mono text-xs"
+                        >
+                          LTV: 86%
+                        </Badge>
+                      </div>
                     </div>
 
-                    <p className="text-right text-sm text-secondary-foreground">
-                      Total Debt: {formattedTotalDebt}
-                    </p>
+                    <div>
+                      <p className="text-sm text-secondary-foreground">
+                        Current Loan
+                      </p>
+                      <p className="font-mono">600 USDC</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-secondary-foreground">
+                        Loan Amount to Fix
+                      </p>
+                      <SlippageSettings
+                        amount={state.slippage}
+                        onChange={(slippage) =>
+                          dispatch({
+                            type: "slippageAmountChange",
+                            payload: {
+                              amount: slippage,
+                            },
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-sm bg-secondary font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
+                      <input
+                        className="h-full w-full grow rounded-sm border-none bg-secondary p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        placeholder="0"
+                        type="number"
+                        id="bondAmountInput"
+                        disabled={isNil(allowance)}
+                        step="any"
+                        min={0}
+                        /** Prevents scrolling from changing the input  */
+                        onWheel={(e) => e.currentTarget.blur()}
+                        onPaste={(e) => {
+                          const clipboardData = e.clipboardData
+                          const pastedData = parseFloat(
+                            clipboardData.getData("text")
+                          )
+
+                          try {
+                            if (pastedData < 0) throw new Error()
+
+                            fixed(pastedData, decimals)
+                          } catch {
+                            e.preventDefault()
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "-" || e.key === "+") {
+                            e.preventDefault()
+                          }
+                        }}
+                        onChange={(e) => {
+                          try {
+                            // sanitize input
+                            fixed(e.currentTarget.value, decimals)
+                            dispatch({
+                              type: "bondAmountInput",
+                              payload: {
+                                amount: e.target.value ?? "0",
+                              },
+                            })
+                          } catch {
+                            e.preventDefault()
+                          }
+                        }}
+                      />
+
+                      <Badge className="m-4 flex h-6 items-center justify-center gap-1 border-none bg-secondary p-2 py-4 font-sans font-medium hover:bg-none">
+                        <img
+                          src={props.market.loanToken.iconUrl}
+                          className="size-4"
+                        />{" "}
+                        {props.market.loanToken.symbol}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <p className="text-sm text-secondary-foreground">
+                        Percent of Loan to Fix
+                      </p>
+                      <p className="text-sm">{sliderValue}%</p>
+                    </div>
+                    <Slider
+                      value={[sliderValue]}
+                      onValueChange={([value]) => setSliderValue(value)}
+                      className="h-0.5"
+                      max={100}
+                      min={percentCovered}
+                      step={1}
+                    />
                   </div>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm text-secondary-foreground">Duration</p>
-                <Select defaultValue={formattedDuration} disabled>
-                  <SelectTrigger className="h-12 w-full rounded-sm bg-accent text-lg">
-                    <SelectValue placeholder="Select term duration..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={formattedDuration}>
-                      {formattedDuration}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               {!borrowFlowData?.error && (
