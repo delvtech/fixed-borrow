@@ -650,7 +650,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 Transaction Pending...
               </h5>
 
-              <a href={url} target="_blank" rel="noopener">
+              <a href={url} target="_blank" rel="noopener noreferrer">
                 <p className="flex items-center gap-1 text-sm text-skyBlue hover:underline">
                   View on Explorer <ExternalLink size={14} />
                 </p>
@@ -690,7 +690,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 Transaction confirmed...
               </h5>
 
-              <a href={url} target="_blank" rel="noopener">
+              <a href={url} target="_blank" rel="noopener noreferrer">
                 <p className="flex items-center gap-1 text-sm text-skyBlue hover:underline">
                   View on Explorer <ExternalLink size={14} />
                 </p>
