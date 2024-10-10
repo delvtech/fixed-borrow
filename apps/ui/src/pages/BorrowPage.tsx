@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "components/base/skeleton"
 import { BorrowFlow } from "components/core/BorrowFlow"
+import { useActivePosition } from "hooks/positions/useActivePosition"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { useState } from "react"
 import { getAppConfig } from "utils/getAppConfig"
@@ -42,6 +43,8 @@ export function BorrowPage() {
     )
   })
 
+  const { data: activePosition } = useActivePosition(market)
+
   const { data: position } = useBorrowPosition(market)
 
   if (!market) {
@@ -51,8 +54,12 @@ export function BorrowPage() {
   return (
     <main className="relative my-8 flex flex-col gap-y-24 px-4">
       <div className="flex flex-col gap-y-12">
-        {market && position ? (
-          <BorrowFlow market={market} position={position} />
+        {market && position && activePosition ? (
+          <BorrowFlow
+            market={market}
+            position={position}
+            activePosition={activePosition}
+          />
         ) : (
           <div className="m-auto w-full max-w-xl space-y-8">
             <Skeleton className="m-auto h-[70px] w-full max-w-xl bg-accent" />{" "}
