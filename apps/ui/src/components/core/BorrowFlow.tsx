@@ -359,19 +359,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
     </ul>
   )
 
-  const handleSliderChange = (sliderVal: number) => {
-    setSliderValue(sliderValue)
-
-    // dispatch({
-    //   type: "bondAmountInput",
-    //   payload: {
-    //     amount: sliderVal.toString(),
-    //   },
-    // })
-  }
-
-  console.log(sliderValue)
-
   return (
     <div className="m-auto flex w-full max-w-lg flex-col gap-8 bg-transparent">
       {/* <MarketHeader market={props.market} /> */}
