@@ -227,23 +227,30 @@ export function HomePage() {
             value="active"
             className="flex w-full flex-col items-center gap-y-12"
           >
-            {activePositions?.map((position) => (
-              <div
-                className="w-full"
-                id={position.market.hyperdrive}
-                key={position.market.hyperdrive}
-              >
-                <MarketPositionsCard
-                  market={position.market}
-                  totalCoverage={position.totalCoverage}
-                  debtCovered={position.debtCovered.bigint}
-                  shorts={position.shorts}
-                  // startOpened={
-                  //   hyperdriveHash.slice(1) === position.market.hyperdrive
-                  // }
-                />
-              </div>
-            ))}
+            {activePositions
+              ? activePositions.map((position) => (
+                  <div
+                    className="w-full"
+                    id={position.market.hyperdrive}
+                    key={position.market.hyperdrive}
+                  >
+                    <MarketPositionsCard
+                      market={position.market}
+                      totalCoverage={position.totalCoverage}
+                      debtCovered={position.debtCovered.bigint}
+                      shorts={position.shorts}
+                      // startOpened={
+                      //   hyperdriveHash.slice(1) === position.market.hyperdrive
+                      // }
+                    />
+                  </div>
+                ))
+              : Array.from({ length: 2 }, (_, index) => (
+                  <Skeleton
+                    key={index}
+                    className="h-[204px] w-full rounded-xl bg-popover"
+                  />
+                ))}
           </TabsContent>
         </Tabs>
       )}
