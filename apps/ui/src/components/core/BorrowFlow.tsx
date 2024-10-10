@@ -287,9 +287,9 @@ export function BorrowFlow(props: BorrowFlowProps) {
       })
     : undefined
 
-  const formattedTotalDebt = fixed(props.position.totalDebt, decimals).format({
-    decimals: 2,
-  })
+  // const formattedTotalDebt = fixed(props.position.totalDebt, decimals).format({
+  //   decimals: 2,
+  // })
 
   const formattedCostOfCoverage = borrowFlowData?.traderDeposit
     ? fixed(
@@ -358,19 +358,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
       </li>
     </ul>
   )
-
-  const handleSliderChange = (sliderVal: number) => {
-    setSliderValue(sliderValue)
-
-    // dispatch({
-    //   type: "bondAmountInput",
-    //   payload: {
-    //     amount: sliderVal.toString(),
-    //   },
-    // })
-  }
-
-  console.log(sliderValue)
 
   return (
     <div className="m-auto flex w-full max-w-lg flex-col gap-8 bg-transparent">

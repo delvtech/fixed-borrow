@@ -1,3 +1,5 @@
+/* eslint react/prop-types: 0 */
+
 import * as SliderPrimitive from "@radix-ui/react-slider"
 import * as React from "react"
 
