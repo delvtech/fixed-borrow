@@ -26,7 +26,8 @@ interface UseApprovalResult {
 export function useApproval(
   tokenAddress?: Address,
   spenderAddress?: Address,
-  amount?: bigint
+  amount?: bigint,
+  padding?: bigint
 ): UseApprovalResult {
   const { address: account } = useAccount()
   const publicClient = usePublicClient()
@@ -54,7 +55,7 @@ export function useApproval(
           abi: erc20Abi,
           functionName: "approve",
           address: tokenAddress,
-          args: [spenderAddress, amount],
+          args: [spenderAddress, amount + (padding || 0n)],
         })
 
         await publicClient?.waitForTransactionReceipt({

@@ -61,10 +61,7 @@ export function BorrowPage() {
             activePosition={activePosition}
           />
         ) : (
-          <div className="m-auto w-full max-w-xl space-y-8">
-            <Skeleton className="m-auto h-[70px] w-full max-w-xl bg-accent" />{" "}
-            <Skeleton className="m-auto h-[570px] w-full max-w-xl bg-accent" />
-          </div>
+          <Skeleton className="m-auto h-[647px] w-full max-w-xl bg-accent" />
         )}
       </div>
     </main>
