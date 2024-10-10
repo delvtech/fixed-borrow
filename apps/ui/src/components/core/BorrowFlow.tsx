@@ -1,6 +1,7 @@
 import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
 import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { useQuery } from "@tanstack/react-query"
+import { useDebounce } from "@uidotdev/usehooks"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
@@ -123,77 +124,85 @@ function useBorrowFlowData(market: Market, bondAmount: bigint) {
     return !!client && !isNil(bondAmount)
   }
 
+  const debounceBondAmount = useDebounce(bondAmount, 200)
+
+  const fetchBorrowData = async () => {
+    console.log("here")
+
+    const readHyperdrive = new ReadHyperdrive({
+      address: market.hyperdrive,
+      publicClient: client!,
+    })
+
+    const reader = new MorphoMarketReader(client!, chainId as SupportedChainId)
+
+    const maxShort = await readHyperdrive.getMaxShort()
+    let rateQuote = fixed(await reader.quoteRate(market))
+    let rateImpact = fixed(0)
+    let traderDeposit = fixed(0)
+    let error: string | null = null
+
+    if (bondAmount > 0n) {
+      try {
+        const previewShortResult = await readHyperdrive.previewOpenShort({
+          amountOfBondsToShort: bondAmount!,
+          asBase: true,
+        })
+
+        traderDeposit = fixed(previewShortResult.traderDeposit)
+
+        const rateQuoteAfterOpen = await reader.quoteRate(
+          market,
+          previewShortResult.spotRateAfterOpen
+        )
+
+        rateImpact = fixed(rateQuoteAfterOpen).sub(rateQuote)
+
+        rateQuote = fixed(
+          await reader.quoteRate(market, previewShortResult.spotRateAfterOpen)
+        )
+      } catch (e) {
+        if (e instanceof Error) {
+          if (e.message.includes("MinimumTransactionAmount")) {
+            error = "Amount too small"
+          }
+
+          const maxBaseIn = maxShort.maxBaseIn
+
+          if (maxBaseIn < bondAmount) {
+            error = "Not Enough Liquidity"
+          }
+        } else {
+          // Placeholder for unidentified error
+          error = "Error"
+        }
+      }
+    }
+
+    return {
+      rateQuote,
+      rateImpact,
+      traderDeposit,
+      error,
+    }
+  }
+
+  // const debouncedFetchBorrowData = useCallback(
+  //   debounce(fetchBorrowData, 2000),
+  //   [market, bondAmount, chainId]
+  // )
+
   return useQuery({
     queryKey: [
       "fixed-borrowing-cost",
-      bondAmount.toString(),
+      debounceBondAmount.toString(),
       market.hyperdrive,
       chainId,
     ],
     enabled: shouldEnable(),
     staleTime: 5000,
 
-    queryFn: async () => {
-      const readHyperdrive = new ReadHyperdrive({
-        address: market.hyperdrive,
-        publicClient: client!,
-      })
-
-      const reader = new MorphoMarketReader(
-        client!,
-        chainId as SupportedChainId
-      )
-
-      const maxShort = await readHyperdrive.getMaxShort()
-      let rateQuote = fixed(await reader.quoteRate(market))
-      let rateImpact = fixed(0)
-      let traderDeposit = fixed(0)
-      let error: string | null = null
-
-      if (bondAmount > 0n) {
-        try {
-          const previewShortResult = await readHyperdrive.previewOpenShort({
-            amountOfBondsToShort: bondAmount!,
-            asBase: true,
-          })
-
-          traderDeposit = fixed(previewShortResult.traderDeposit)
-
-          const rateQuoteAfterOpen = await reader.quoteRate(
-            market,
-            previewShortResult.spotRateAfterOpen
-          )
-
-          rateImpact = fixed(rateQuoteAfterOpen).sub(rateQuote)
-
-          rateQuote = fixed(
-            await reader.quoteRate(market, previewShortResult.spotRateAfterOpen)
-          )
-        } catch (e) {
-          if (e instanceof Error) {
-            if (e.message.includes("MinimumTransactionAmount")) {
-              error = "Amount too small"
-            }
-
-            const maxBaseIn = maxShort.maxBaseIn
-
-            if (maxBaseIn < bondAmount) {
-              error = "Not Enough Liquidity"
-            }
-          } else {
-            // Placeholder for unidentified error
-            error = "Error"
-          }
-        }
-      }
-
-      return {
-        rateQuote,
-        rateImpact,
-        traderDeposit,
-        error,
-      }
-    },
+    queryFn: fetchBorrowData,
   })
 }
 
@@ -230,7 +239,9 @@ export function BorrowFlow(props: BorrowFlowProps) {
   } = useApproval(
     props.market.loanToken.address,
     props.market.hyperdrive,
-    borrowFlowData?.traderDeposit.bigint
+    borrowFlowData
+      ? borrowFlowData.traderDeposit.mul(parseFixed(1.05, decimals)).bigint
+      : undefined
   )
 
   const { mutateAsync: openShort } = useOpenShort()
@@ -348,6 +359,19 @@ export function BorrowFlow(props: BorrowFlowProps) {
     </ul>
   )
 
+  const handleSliderChange = (sliderVal: number) => {
+    setSliderValue(sliderValue)
+
+    // dispatch({
+    //   type: "bondAmountInput",
+    //   payload: {
+    //     amount: sliderVal.toString(),
+    //   },
+    // })
+  }
+
+  console.log(sliderValue)
+
   return (
     <div className="m-auto flex w-full max-w-lg flex-col gap-8 bg-transparent">
       {/* <MarketHeader market={props.market} /> */}
@@ -442,6 +466,10 @@ export function BorrowFlow(props: BorrowFlowProps) {
                         type="number"
                         id="bondAmountInput"
                         disabled={isNil(allowance)}
+                        value={fixed(state.bondAmount, decimals).format({
+                          group: false,
+                          trailingZeros: false,
+                        })}
                         step="any"
                         min={0}
                         /** Prevents scrolling from changing the input  */
@@ -468,13 +496,31 @@ export function BorrowFlow(props: BorrowFlowProps) {
                         onChange={(e) => {
                           try {
                             // sanitize input
-                            fixed(e.currentTarget.value, decimals)
+                            const value = parseFixed(
+                              e.currentTarget.value,
+                              decimals
+                            )
                             dispatch({
                               type: "bondAmountInput",
                               payload: {
                                 amount: e.target.value ?? "0",
                               },
                             })
+
+                            const totalShortedBonds =
+                              props.activePosition.totalCoverage + value.bigint
+                            const percent = fixed(
+                              totalShortedBonds,
+                              decimals
+                            ).div(props.position.totalDebt, decimals)
+
+                            console.log(
+                              value.format(),
+                              fixed(totalShortedBonds, decimals).format()
+                            )
+
+                            console.log(percent.toNumber() * 100)
+                            setSliderValue(Math.floor(percent.toNumber() * 100))
                           } catch {
                             e.preventDefault()
                           }
@@ -499,12 +545,30 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       <p className="text-sm">{sliderValue}%</p>
                     </div>
                     <Slider
+                      onValueCommit={([value]) => {
+                        const valueFP = parseFixed(
+                          value / 100,
+                          props.market.loanToken.decimals
+                        )
+                        const shortsToAdd = fixed(valueFP)
+                          .mul(props.position.totalDebt, decimals)
+                          .toString()
+
+                        dispatch({
+                          type: "bondAmountInput",
+                          payload: {
+                            amount: shortsToAdd,
+                          },
+                        })
+                      }}
                       value={[sliderValue]}
-                      onValueChange={([value]) => setSliderValue(value)}
+                      onValueChange={([value]) => {
+                        setSliderValue(value)
+                      }}
                       className="h-0.5"
                       max={100}
                       min={percentCovered}
-                      step={1}
+                      step={5}
                     />
                   </div>
                 </div>
@@ -512,11 +576,41 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
               {!borrowFlowData?.error && (
                 <div className="grid grid-cols-2">
-                  <div className="flex flex-col gap-2 text-sm">
-                    <p className="text-secondary-foreground">Your Fixed Rate</p>
+                  <div className="flex flex-col items-start gap-2 text-sm">
+                    <p className="text-secondary-foreground">Your Deposit</p>
                     <div className="space-y-1">
+                      {formattedCostOfCoverage ? (
+                        <p className="font-mono text-h4">
+                          {formattedCostOfCoverage}
+                        </p>
+                      ) : (
+                        <Skeleton className="h-[30px] rounded-sm bg-white/10" />
+                      )}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger className="flex items-center gap-1 text-xs text-secondary-foreground">
+                            <p>What am I paying for?</p>
+                            <Info
+                              className="text-secondary-foreground"
+                              size={14}
+                            />
+                          </TooltipTrigger>
+
+                          <TooltipContent className="max-w-64 space-y-4">
+                            N/A
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-2 text-right text-sm">
+                    <p className="text-secondary-foreground">
+                      Locks in Fixed Rate
+                    </p>
+                    <div className="space-y-1 text-right">
                       {!isNil(formattedRateQuote) ? (
-                        <p className="w-fit font-mono text-h4">
+                        <p className="text-right font-mono text-h4">
                           {formattedRateQuote}
                         </p>
                       ) : (
@@ -543,34 +637,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       ) : (
                         <Skeleton className="h-[14px] rounded-sm bg-white/10" />
                       )}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-2 text-sm">
-                    <p className="text-secondary-foreground">You Pay</p>
-                    <div className="space-y-1">
-                      {formattedCostOfCoverage ? (
-                        <p className="text-right font-mono text-h4">
-                          {formattedCostOfCoverage}
-                        </p>
-                      ) : (
-                        <Skeleton className="h-[30px] rounded-sm bg-white/10" />
-                      )}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger className="flex items-center gap-1 text-xs text-secondary-foreground">
-                            <p>What am I paying for?</p>
-                            <Info
-                              className="text-secondary-foreground"
-                              size={14}
-                            />
-                          </TooltipTrigger>
-
-                          <TooltipContent className="max-w-64 space-y-4">
-                            N/A
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
                     </div>
                   </div>
                 </div>
