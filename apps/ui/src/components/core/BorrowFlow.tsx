@@ -196,6 +196,9 @@ export function BorrowFlow(props: BorrowFlowProps) {
   const formattedMaturityDate = new Date(
     Date.now() + Number(props.market.duration) * 1000
   )
+  const formattedTotalDebt = fixed(props.position.totalDebt, decimals).format({
+    decimals: 2,
+  })
   const formattedRateQuote = rateQuoteData?.quote
     ? rateQuoteData.quote.format({
         decimals: 2,
@@ -326,11 +329,13 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     </div>
                   </div>
 
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm text-secondary-foreground">
                       Current Loan
                     </p>
-                    <p className="font-mono">600 USDC</p>
+                    <p className="font-mono">
+                      {formattedTotalDebt} {props.market.loanToken.symbol}
+                    </p>
                   </div>
                 </div>
 
@@ -550,6 +555,16 @@ export function BorrowFlow(props: BorrowFlowProps) {
               {state.bondAmount === 0n ? (
                 <Button size="lg" className="h-12 w-full text-lg" disabled>
                   Enter an amount
+                </Button>
+              ) : sliderValue > 100 ? (
+                <Button
+                  size="lg"
+                  className="h-12 w-full text-lg"
+                  disabled
+                  // TODO reset to 100%
+                  // onClick={handleOpenShort}
+                >
+                  Input exceeds total debt
                 </Button>
               ) : needsApproval ? (
                 <Button
