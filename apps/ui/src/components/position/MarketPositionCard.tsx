@@ -1,4 +1,4 @@
-import { fixed, FixedPoint } from "@delvtech/fixed-point-wasm"
+import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
 import { OpenShort } from "@delvtech/hyperdrive-viem"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
@@ -15,7 +15,7 @@ import {
 import { CloseCoverageDialog } from "components/core/CloseCoverageDialog"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { ChevronDown } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Market, OpenShortPlusQuote } from "src/types"
 import { Link } from "wouter"
 import { dayInSeconds } from "~/constants"
@@ -57,6 +57,16 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
   const shouldShowAddCoverageButton =
     debtCovered.gt(0n) && debtCovered.lt(FixedPoint.one(decimals))
 
+  const averageFixedRate = useMemo(() => {
+    const weightShortSum = props.shorts.reduce((prev, curr) => {
+      return prev + fixed(curr.bondAmount, 18).mul(curr.rateQuote, 8).bigint
+    }, 0n)
+
+    return fixed(weightShortSum, 18).div(parseFixed(props.shorts.length, 18))
+  }, [props.shorts, debtCovered])
+
+  console.log(averageFixedRate.bigint)
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row justify-between space-y-0">
@@ -95,6 +105,18 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
           </div>
 
           <div className="space-y-1">
+            <p className="text-sm text-secondary-foreground">
+              Average Fixed Rate
+            </p>
+            <p className="font-mono text-lg">
+              {averageFixedRate.format({
+                percent: true,
+                trailingZeros: false,
+              })}
+            </p>
+          </div>
+
+          <div className="space-y-1">
             <p className="text-sm text-secondary-foreground">Next Expiry</p>
             <p className="font-mono text-lg">
               {daysRemaining
@@ -117,7 +139,7 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
             <h6 className="p-4 font-chakra font-medium">
               Fix Rate Debt Positions
             </h6>
-            <Table>
+            <Table className="animate-fadeFast">
               <TableHeader className="[&_tr]:border-b-0">
                 <TableRow className="hover:bg-card">
                   <TableHead className="font-normal text-secondary-foreground">
@@ -168,7 +190,8 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
                       <TableCell className="font-mono">
                         {maturity.toLocaleDateString()}
                       </TableCell>
-                      <TableCell className="font-mono">
+
+                      <TableCell>
                         {isMatured ? (
                           <Button
                             className="ml-auto"
