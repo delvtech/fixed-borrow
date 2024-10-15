@@ -101,9 +101,9 @@ export function HomePage() {
   }, [borrowPositions, allBorrowPositionsQueryStatus, sorting, protocolFilter])
 
   return (
-    <main className="relative m-auto flex max-w-4xl flex-col gap-y-24 px-4 py-8">
+    <main className="relative m-auto flex max-w-3xl animate-fadeFast flex-col gap-y-20 p-4">
       <div className="m-auto max-w-3xl space-y-16">
-        <div className="flex flex-col items-center gap-5">
+        <div className="grid animate-fade justify-items-center gap-4">
           <svg
             className="size-10 sm:size-12"
             viewBox="0 0 224 213"
@@ -116,7 +116,7 @@ export function HomePage() {
             />
           </svg>
 
-          <h1 className="font-chakra text-h3 text-primary sm:text-h2">
+          <h1 className="text-center font-chakra text-h3 font-medium text-primary sm:text-h2">
             Fix Your Borrow Rate. Anytime.
           </h1>
 
@@ -180,7 +180,7 @@ export function HomePage() {
           defaultValue="new"
           className="grid justify-items-center gap-2"
         >
-          <TabsList className="mb-10 w-fit">
+          <TabsList className="mb-5 w-fit">
             <TabsTrigger value="new" className="w-40">
               Fix Your Borrow
             </TabsTrigger>
