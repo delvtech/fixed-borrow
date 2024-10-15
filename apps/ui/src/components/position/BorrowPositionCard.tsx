@@ -22,7 +22,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
   const lowestRate = fixed(props.rates?.lowestRate ?? 0n)
 
   return (
-    <div className="animate-fade grid w-full grid-cols-2">
+    <div className="grid w-full grid-cols-2">
       <Card className="z-10 rounded-xl">
         <CardHeader>
           <MarketHeader market={props.market} className="text-h4" />
