@@ -2,29 +2,35 @@ import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
 import { OpenShort, ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { DialogProps } from "@radix-ui/react-dialog"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import Spinner from "components/animations/Spinner"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogTitle,
-} from "components/base/dialog"
+import { Dialog, DialogContent, DialogTitle } from "components/base/dialog"
 import { Progress } from "components/base/progress"
+import { Skeleton } from "components/base/skeleton"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "components/base/tooltip"
 import SlippageSettings, {
   defaultSlippageAmount,
 } from "components/forms/SlippageSettings"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { cn } from "components/utils"
+import { useEtherscan } from "hooks/base/useEtherscan"
 import { useCloseShort } from "hooks/hyperdrive/useCloseShort"
 import { isNil } from "lodash-es"
-import { ExternalLink } from "lucide-react"
+import { ExternalLink, Info } from "lucide-react"
 import { useReducer, useState } from "react"
 import { Market } from "src/types"
+import { MorphoLogo } from "static/images/MorphoLogo"
 import { match } from "ts-pattern"
 import { formatTermLength } from "utils/formatTermLength"
-import { Address } from "viem"
+import { Address, Chain } from "viem"
 import { useAccount, useChainId, usePublicClient } from "wagmi"
+import { BigNumberInput } from "./BigNumberInput"
 
 const quickTokenAmountWeights = [0.25, 0.5, 0.75, 1] as const
 
@@ -86,16 +92,8 @@ function useCloseCoverageData(
   })
 }
 
-interface CloseCoverageDialogProps extends DialogProps {
-  market: Market
-  short: OpenShort
-}
-
 type State = {
   step: "close" | "pending" | "receipt"
-  // decimals: number
-  // bondAmount: bigint
-  // slippage: bigint
   hash?: Address
 }
 
@@ -114,26 +112,11 @@ type Action =
       type: "reset"
       payload?: undefined
     }
-//   | {
-//       type: "slippageAmountChange"
-//       payload: {
-//         amount: bigint
-//       }
-//     }
 
 const reducer = (state: State, action: Action): State => {
   const { type, payload } = action
 
   switch (type) {
-    //   case "bondAmountInput": {
-    //     const parsedAmount = parseFixed(payload.amount, state.decimals).bigint
-
-    //     return {
-    //       ...state,
-    //       bondAmount: parsedAmount,
-    //     }
-    //   }
-
     case "transactionSent": {
       return {
         ...state,
@@ -155,17 +138,15 @@ const reducer = (state: State, action: Action): State => {
       }
     }
 
-    //   case "slippageAmountChange": {
-    //     return {
-    //       ...state,
-    //       slippage: payload.amount,
-    //     }
-    //   }
-
     default: {
       return state
     }
   }
+}
+
+interface CloseCoverageDialogProps extends DialogProps {
+  market: Market
+  short: OpenShort
 }
 
 export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
@@ -190,6 +171,9 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
     props.short,
     shortAmountInput
   )
+
+  // Computed values
+  const isMatured = new Date() > new Date(Number(props.short.maturity) * 1000)
   const formattedAmountOut = closeCoverageData
     ? fixed(closeCoverageData.amountOut, decimals).format({
         decimals: 2,
@@ -203,7 +187,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
       })
     : undefined
 
-  const { mutateAsync: closeShort } = useCloseShort()
+  const { mutateAsync: closeShort, isPending } = useCloseShort()
   const handleCloseShort = async () => {
     if (isNil(shortAmountInput) || !account || !client || !closeCoverageData)
       return
@@ -240,6 +224,8 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
       await queryClient.invalidateQueries()
     }
   }
+
+  const { url: transactionUrl } = useEtherscan(state.hash, "tx")
 
   const quickAmountValues = quickTokenAmountWeights.map((weight) => {
     // const amount = fixed(props.position.totalDebt).mul(parseFixed(weight))
@@ -298,18 +284,22 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
       {match(state.step)
         .with("close", () => {
           return (
-            <DialogContent aria-describedby={undefined}>
+            <DialogContent
+              aria-describedby={undefined}
+              className="animate-fade"
+            >
               <DialogTitle asChild>
-                <h4 className="gradient-text w-fit font-chakra !text-h4 font-semibold">
-                  Remove Coverage
+                <h4 className="w-fit font-chakra text-h4 text-primary">
+                  {isMatured ? "Close Position" : "Revert to Variable"}
                 </h4>
               </DialogTitle>
 
-              <div className="space-y-8">
-                <div className="space-y-6 rounded-lg bg-gradient-to-b from-background to-[#010713] p-4">
+              <div className="grid gap-6">
+                <div className="space-y-4 rounded-lg bg-accent p-4">
                   <MarketHeader
                     market={props.market}
                     className="text-h5 font-normal"
+                    variant="secondary"
                   />
 
                   <div className="flex justify-between">
@@ -347,10 +337,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                         {formattedTimeLeft} left
                       </p>
                     </div>
-                    <Progress
-                      value={percentMatured}
-                      className="h-1 bg-accent"
-                    />
+                    <Progress value={percentMatured} className="h-1" />
                   </div>
                 </div>
 
@@ -367,12 +354,8 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                     </div>
 
                     <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
-                      <input
-                        className="h-full w-full grow rounded-sm border-none bg-popover p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                        placeholder="0"
-                        type="number"
-                        min={0}
-                        step={1}
+                      <BigNumberInput
+                        className="bg-accent"
                         id="shortAmountInput"
                         onChange={({ target }) =>
                           handleShortAmountInput(target.value)
@@ -397,7 +380,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                               handleQuickAmountAction(quickAction.amount)
                             }
                             className={cn(
-                              "h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground",
+                              "h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/60 hover:text-secondary-foreground",
                               {
                                 "text-foreground/75 hover:text-foreground/75":
                                   shortAmountInput ===
@@ -425,34 +408,90 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                 </div>
 
                 <div className="grid grid-cols-2">
-                  <div className="flex flex-col gap-2 text-sm">
-                    <p className="text-secondary-foreground">Closing Fee</p>
-                    <div className="space-y-1">
-                      <p className="w-fit font-mono text-h4">
+                  <div className="flex flex-col gap-1 text-sm">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger className="flex items-center gap-1">
+                          <p className="text-secondary-foreground">
+                            Closing Fee
+                          </p>
+
+                          <Info
+                            className="text-secondary-foreground"
+                            size={14}
+                          />
+                        </TooltipTrigger>
+
+                        <TooltipContent className="grid max-w-64 gap-4 border border-secondary p-4">
+                          <p>
+                            Fee paid to liquidity providers for closing the
+                            underlying Hyperdrive short position.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    {closeCoverageData ? (
+                      <p className="w-fit animate-fadeFast font-mono text-h5">
                         {formattedFees} {symbol}
                       </p>
-                    </div>
+                    ) : (
+                      <Skeleton className="h-7 w-24" />
+                    )}
                   </div>
 
-                  <div className="flex flex-col items-end gap-2 text-sm">
-                    <p className="text-secondary-foreground">
-                      Rebate to Receive
-                    </p>
-                    <div className="space-y-1">
-                      <p className="w-fit font-mono text-h4">
+                  <div className="flex flex-col items-end gap-1 text-sm">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger className="flex items-center gap-1">
+                          <p className="text-secondary-foreground">
+                            Interest Proceeds
+                          </p>
+
+                          <Info
+                            className="text-secondary-foreground"
+                            size={14}
+                          />
+                        </TooltipTrigger>
+
+                        <TooltipContent className="grid max-w-64 gap-4 border border-secondary p-4">
+                          <p>
+                            This is the interest rebate you receive after
+                            closing your position. You can use these proceeds to
+                            repay interest accrued in your Morpho loan.
+                          </p>
+
+                          <p>
+                            You can learn more about the this process in our
+                            documentation.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    {closeCoverageData ? (
+                      <p className="w-fit animate-fadeFast font-mono text-h5">
                         {formattedAmountOut} {symbol}
                       </p>
-                    </div>
+                    ) : (
+                      <Skeleton className="h-7 w-24" />
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <Button
-                    className="w-full"
+                    className={cn("w-full", {
+                      "animate-pulse": isPending,
+                    })}
                     disabled={executeButtonDisabled}
                     onClick={handleCloseShort}
                   >
-                    Remove
+                    {isPending
+                      ? "Sign Transaction..."
+                      : isMatured
+                        ? "Close Position"
+                        : "Revert to Variable"}
                   </Button>
 
                   {/* <Collapsible
@@ -475,40 +514,13 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
         })
         .with("pending", () => {
           return (
-            <DialogContent aria-describedby={undefined}>
+            <DialogContent
+              aria-describedby={undefined}
+              className="animate-fade"
+            >
               <div className="flex flex-col items-center space-y-2">
                 <div className="w-min rounded-full bg-accent p-4">
-                  <svg
-                    className="animate-spin"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M12 1.43099e-07C18.6274 2.2213e-07 24 5.37258 24 12C24 18.6274 18.6274 24 12 24C5.37258 24 6.40674e-08 18.6274 1.43099e-07 12C2.2213e-07 5.37258 5.37258 6.40674e-08 12 1.43099e-07ZM12 20.04C16.4404 20.04 20.04 16.4404 20.04 12C20.04 7.55963 16.4404 3.96 12 3.96C7.55963 3.96 3.96 7.55963 3.96 12C3.96 16.4404 7.55963 20.04 12 20.04Z"
-                      fill="url(#paint0_angular_153_1604)"
-                    />
-
-                    <defs>
-                      <radialGradient
-                        id="paint0_angular_153_1604"
-                        cx="0"
-                        cy="0"
-                        r="1.25"
-                        gradientUnits="userSpaceOnUse"
-                        gradientTransform="translate(36 36) scale(36)"
-                      >
-                        <stop stopColor="#15ffab" />
-                        <stop
-                          offset="1"
-                          stopColor="#14D0F9"
-                          stopOpacity="0.4"
-                        />
-                      </radialGradient>
-                    </defs>
-                  </svg>
+                  <Spinner />
                 </div>
 
                 <h5 className="font-chakra font-medium">
@@ -516,7 +528,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                 </h5>
 
                 <a
-                  href="https://www.etherscan.com"
+                  href={transactionUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -531,49 +543,66 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
         })
         .with("receipt", () => {
           return (
-            <DialogContent aria-describedby={undefined}>
-              <div className="flex flex-col items-center space-y-2">
-                <div className="w-min rounded-full bg-accent p-4">
-                  <svg
-                    width="26"
-                    height="24"
-                    viewBox="0 0 26 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+            <DialogContent
+              aria-describedby={undefined}
+              className="animate-fade"
+            >
+              <div className="grid gap-8">
+                <div className="flex flex-col items-center space-y-2">
+                  <div className="w-min rounded-full bg-accent p-4">
+                    <svg
+                      width="26"
+                      height="24"
+                      viewBox="0 0 26 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M24.5908 4.79934L9.78382 19.5307L1.40967 11.1993L2.54685 10.068L9.78382 17.268L23.4537 3.66797L24.5908 4.79934Z"
+                        fill="#36D399"
+                      />
+                    </svg>
+                  </div>
+
+                  <h5 className="font-chakra font-medium">
+                    Transaction confirmed...
+                  </h5>
+
+                  <a
+                    href={transactionUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M24.5908 4.79934L9.78382 19.5307L1.40967 11.1993L2.54685 10.068L9.78382 17.268L23.4537 3.66797L24.5908 4.79934Z"
-                      fill="#36D399"
-                    />
-                  </svg>
+                    <p className="flex items-center gap-1 text-sm text-skyBlue hover:underline">
+                      View on Explorer <ExternalLink size={14} />
+                    </p>
+                  </a>
                 </div>
+                {/* <p className="font-medium">Summary</p> */}
 
-                <h5 className="font-chakra font-medium">
-                  Transaction confirmed...
-                </h5>
+                {/* {positionDetails} */}
 
-                <a
-                  href="https://www.etherscan.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <p className="flex items-center gap-1 text-sm text-skyBlue hover:underline">
-                    View on Explorer <ExternalLink size={14} />
+                <div className="w-full space-y-2">
+                  <a
+                    href={getMorphoMarketAppURL(
+                      props.market.metadata.id,
+                      client?.chain
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button className="w-full">
+                      Pay back debt on Morpho <MorphoLogo />
+                    </Button>
+                  </a>
+
+                  <p className="text-center text-sm text-secondary-foreground">
+                    Head to the Morpho App to pay off your accrued debt with
+                    these proceeds.
                   </p>
-                </a>
-              </div>
-              {/* <p className="font-medium">Summary</p> */}
-
-              {/* {positionDetails} */}
-
-              <div className="w-full space-y-2">
-                <DialogClose asChild>
-                  <Button variant="secondary" className="w-full">
-                    Close Receipt
-                  </Button>
-                </DialogClose>
+                </div>
               </div>
             </DialogContent>
           )
@@ -581,4 +610,10 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
         .exhaustive()}
     </Dialog>
   )
+}
+
+function getMorphoMarketAppURL(id: Address, chain?: Chain) {
+  if (!chain) return undefined
+
+  return `https://app.morpho.org/market?id=${id}&network=${chain.name.toLowerCase()}`
 }
