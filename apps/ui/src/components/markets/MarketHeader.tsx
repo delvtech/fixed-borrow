@@ -8,6 +8,7 @@ interface MarketHeaderProps {
   className?: string
   classNameToken?: string
   size?: number
+  variant?: "primary" | "secondary"
 }
 
 export function MarketHeader(props: MarketHeaderProps) {
@@ -39,12 +40,22 @@ export function MarketHeader(props: MarketHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Badge variant="secondary" className="font-mono text-xs">
+        <Badge
+          variant="secondary"
+          className={cn("font-mono text-xs", {
+            "bg-background": props.variant === "secondary",
+          })}
+        >
           <MorphoLogo />
           Morpho
         </Badge>
 
-        <Badge variant="secondary" className="font-mono text-xs">
+        <Badge
+          variant="secondary"
+          className={cn("font-mono text-xs", {
+            "bg-background": props.variant === "secondary",
+          })}
+        >
           LTV: 86%
         </Badge>
       </div>
