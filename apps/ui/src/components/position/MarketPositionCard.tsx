@@ -64,7 +64,7 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
 
         {shouldShowAddCoverageButton && (
           <Link href={`/borrow/${props.market.hyperdrive}`}>
-            <Button>Add Coverage</Button>
+            <Button>Convert More Debt</Button>
           </Link>
         )}
       </CardHeader>
@@ -72,7 +72,9 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-sm text-secondary-foreground">Total Coverage</p>
+            <p className="text-sm text-secondary-foreground">
+              Total Fixed Debt
+            </p>
             <p className="font-mono text-lg">
               {fixed(props.totalCoverage, decimals).format({
                 decimals: 2,
@@ -83,7 +85,7 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
           </div>
 
           <div className="space-y-1">
-            <p className="text-sm text-secondary-foreground">Debt Covered</p>
+            <p className="text-sm text-secondary-foreground">Debt Converted</p>
             <p className="font-mono text-lg">
               {fixed(props.debtCovered, decimals).format({
                 percent: true,
@@ -112,7 +114,9 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
           <CollapsibleContent>
             <Separator />
 
-            <h6 className="p-4 font-chakra font-medium">Coverage Positions</h6>
+            <h6 className="p-4 font-chakra font-medium">
+              Fix Rate Debt Positions
+            </h6>
             <Table>
               <TableHeader className="[&_tr]:border-b-0">
                 <TableRow className="hover:bg-card">
@@ -137,6 +141,8 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
                     Number(short.openedTimestamp) * 1000
                   )
                   const maturity = new Date(Number(short.maturity) * 1000)
+
+                  const isMatured = new Date() > maturity
 
                   return (
                     <TableRow
@@ -163,16 +169,28 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
                         {maturity.toLocaleDateString()}
                       </TableCell>
                       <TableCell className="font-mono">
-                        <Button
-                          variant="secondary"
-                          className="ml-auto"
-                          onClick={() => {
-                            setSelectedOpenShort(short)
-                            setCloseCoverageModalOpen(true)
-                          }}
-                        >
-                          Close Coverage
-                        </Button>
+                        {isMatured ? (
+                          <Button
+                            className="ml-auto"
+                            onClick={() => {
+                              setSelectedOpenShort(short)
+                              setCloseCoverageModalOpen(true)
+                            }}
+                          >
+                            Close Position
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="secondary"
+                            className="ml-auto"
+                            onClick={() => {
+                              setSelectedOpenShort(short)
+                              setCloseCoverageModalOpen(true)
+                            }}
+                          >
+                            Revert to Variable
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   )
