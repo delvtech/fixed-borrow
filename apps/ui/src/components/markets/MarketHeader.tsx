@@ -43,7 +43,7 @@ export function MarketHeader(props: MarketHeaderProps) {
         <Badge
           variant="secondary"
           className={cn("font-mono text-xs", {
-            "bg-background": props.variant === "secondary",
+            "bg-[#16171c]": props.variant === "secondary",
           })}
         >
           <MorphoLogo />
@@ -53,7 +53,7 @@ export function MarketHeader(props: MarketHeaderProps) {
         <Badge
           variant="secondary"
           className={cn("font-mono text-xs", {
-            "bg-background": props.variant === "secondary",
+            "bg-[#16171c]": props.variant === "secondary",
           })}
         >
           LTV: 86%
