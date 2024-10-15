@@ -101,9 +101,9 @@ export function HomePage() {
   }, [borrowPositions, allBorrowPositionsQueryStatus, sorting, protocolFilter])
 
   return (
-    <main className="relative m-auto flex max-w-4xl flex-col gap-y-24 px-4 py-8">
+    <main className="relative m-auto flex max-w-3xl animate-fadeFast flex-col gap-y-12 p-4 sm:gap-y-20">
       <div className="m-auto max-w-3xl space-y-16">
-        <div className="flex flex-col items-center gap-5">
+        <div className="grid animate-fade justify-items-center gap-4">
           <svg
             className="size-10 sm:size-12"
             viewBox="0 0 224 213"
@@ -116,26 +116,26 @@ export function HomePage() {
             />
           </svg>
 
-          <h1 className="font-chakra text-h3 text-primary sm:text-h2">
+          <h1 className="text-center font-chakra text-h3 font-medium text-primary sm:text-h2">
             Fix Your Borrow Rate. Anytime.
           </h1>
 
-          <p className="text-center text-sm font-light text-secondary-foreground sm:text-lg">
+          <p className="text-center text-md font-light text-secondary-foreground sm:text-lg">
             Gain peace of mind with a predictable interest rate.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <Badge className="bg-secondary text-xs font-light sm:text-sm">
+            <Badge className="hidden bg-secondary text-xs font-light sm:flex sm:text-sm">
               <Check size={16} className="mr-1 stroke-aquamarine" /> Protect
               against high future rates
             </Badge>
 
-            <Badge className="bg-secondary text-xs font-light sm:text-sm">
+            <Badge className="hidden bg-secondary text-xs font-light sm:flex sm:text-sm">
               <Check size={16} className="mr-1 stroke-aquamarine" /> Revert to
               variable at any time
             </Badge>
 
-            <Badge className="bg-secondary text-xs font-light sm:text-sm">
+            <Badge className="hidden bg-secondary text-xs font-light sm:flex sm:text-sm">
               <Check size={16} className="mr-1 stroke-aquamarine" />
               Automations remain unaffected
             </Badge>
@@ -167,10 +167,6 @@ export function HomePage() {
                 Explore supported markets below <ArrowDown size={14} />
               </a>
             </Button>
-
-            {/* <Button variant="secondary">
-                        Learn How Fixed Borrow Works
-                      </Button> */}
           </div>
         </div>
       ) : (
@@ -180,7 +176,7 @@ export function HomePage() {
           defaultValue="new"
           className="grid justify-items-center gap-2"
         >
-          <TabsList className="mb-10 w-fit">
+          <TabsList className="mb-5 w-fit">
             <TabsTrigger value="new" className="w-40">
               Fix Your Borrow
             </TabsTrigger>
@@ -263,7 +259,7 @@ export function HomePage() {
         />
 
         <div className="space-y-4 text-center">
-          <h1 className="font-chakra text-h3">Available Morpho Markets</h1>
+          <h1 className="font-chakra text-h3">Start with a Morpho Position</h1>
 
           <p className="text-secondary-foreground">
             Open a supported borrow position on Morpho and return to DELV Fixed

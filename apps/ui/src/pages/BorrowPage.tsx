@@ -1,69 +1,62 @@
-import { useQuery } from "@tanstack/react-query"
+import { Button } from "components/base/button"
 import { Skeleton } from "components/base/skeleton"
 import { BorrowFlow } from "components/core/BorrowFlow"
+import { useBorrowPosition } from "hooks/borrow/useBorrowPosition"
 import { useActivePosition } from "hooks/positions/useActivePosition"
-import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
-import { useState } from "react"
+import { MoveLeft } from "lucide-react"
+import { useMemo } from "react"
 import { getAppConfig } from "utils/getAppConfig"
-import { useAccount, useChainId, usePublicClient } from "wagmi"
-import { useParams } from "wouter"
+import { useChainId } from "wagmi"
+import { Link, useParams } from "wouter"
 import { navigate } from "wouter/use-browser-location"
 import { SupportedChainId } from "~/constants"
-import { Market } from "../types"
-
-export function useBorrowPosition(market?: Market) {
-  const { address: account } = useAccount()
-  const chainId = useChainId()
-  const client = usePublicClient()
-
-  return useQuery({
-    queryKey: ["borrow-position", account],
-    queryFn: async () => {
-      const reader = new MorphoMarketReader(
-        client!,
-        chainId as SupportedChainId
-      )
-
-      return reader.getBorrowPosition(account!, market!)
-    },
-    enabled: !!client && !!account && !!market,
-  })
-}
 
 export function BorrowPage() {
   const params = useParams()
   const chainId = useChainId()
   const appConfig = getAppConfig(chainId as SupportedChainId)
-
   const hyperdrive = params.hyperdrive
 
-  const [market] = useState<Market | undefined>(() => {
-    return appConfig.morphoMarkets.find(
-      (market) => market.hyperdrive === hyperdrive
-    )
-  })
+  const market = useMemo(
+    () =>
+      appConfig.morphoMarkets.find(
+        (market) => market.hyperdrive === hyperdrive
+      ),
+    [appConfig]
+  )
 
   const { data: activePosition } = useActivePosition(market)
-
   const { data: position } = useBorrowPosition(market)
 
+  // Force push to the root page if a market is not found. Ideally this
+  // should not happen, but can if the connected chain changes.
   if (!market) {
+    // TODO show a toast
     navigate("/")
   }
 
   return (
-    <main className="relative my-8 flex flex-col gap-y-24 px-4">
-      <div className="flex flex-col gap-y-12">
-        {market && position && activePosition ? (
-          <BorrowFlow
-            market={market}
-            position={position}
-            activePosition={activePosition}
-          />
-        ) : (
-          <Skeleton className="m-auto h-[647px] w-full max-w-xl bg-accent" />
-        )}
+    <main className="relative z-10 my-2 flex flex-col gap-y-2 px-4">
+      <div>
+        <Link href="/" asChild>
+          <Button
+            variant="ghost"
+            className="flex gap-2 text-primary hover:text-primary"
+          >
+            <MoveLeft size={16} /> Back
+          </Button>
+        </Link>
       </div>
+
+      {market && position && activePosition ? (
+        <BorrowFlow
+          market={market}
+          position={position}
+          activePosition={activePosition}
+        />
+      ) : (
+        <Skeleton className="m-auto h-[647px] w-full max-w-xl bg-accent" />
+      )}
     </main>
   )
 }

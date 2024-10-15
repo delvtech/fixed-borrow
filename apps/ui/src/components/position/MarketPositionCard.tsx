@@ -1,4 +1,4 @@
-import { fixed, FixedPoint } from "@delvtech/fixed-point-wasm"
+import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
 import { OpenShort } from "@delvtech/hyperdrive-viem"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
@@ -15,7 +15,7 @@ import {
 import { CloseCoverageDialog } from "components/core/CloseCoverageDialog"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { ChevronDown } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Market, OpenShortPlusQuote } from "src/types"
 import { Link } from "wouter"
 import { dayInSeconds } from "~/constants"
@@ -57,6 +57,16 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
   const shouldShowAddCoverageButton =
     debtCovered.gt(0n) && debtCovered.lt(FixedPoint.one(decimals))
 
+  const averageFixedRate = useMemo(() => {
+    const weightShortSum = props.shorts.reduce((prev, curr) => {
+      return prev + fixed(curr.bondAmount, 18).mul(curr.rateQuote, 8).bigint
+    }, 0n)
+
+    return fixed(weightShortSum, 18).div(parseFixed(props.shorts.length, 18))
+  }, [props.shorts, debtCovered])
+
+  console.log(averageFixedRate.bigint)
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row justify-between space-y-0">
@@ -64,7 +74,7 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
 
         {shouldShowAddCoverageButton && (
           <Link href={`/borrow/${props.market.hyperdrive}`}>
-            <Button>Add Coverage</Button>
+            <Button>Convert More Debt</Button>
           </Link>
         )}
       </CardHeader>
@@ -72,7 +82,9 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-sm text-secondary-foreground">Total Coverage</p>
+            <p className="text-sm text-secondary-foreground">
+              Total Fixed Debt
+            </p>
             <p className="font-mono text-lg">
               {fixed(props.totalCoverage, decimals).format({
                 decimals: 2,
@@ -83,9 +95,21 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
           </div>
 
           <div className="space-y-1">
-            <p className="text-sm text-secondary-foreground">Debt Covered</p>
+            <p className="text-sm text-secondary-foreground">Debt Converted</p>
             <p className="font-mono text-lg">
               {fixed(props.debtCovered, decimals).format({
+                percent: true,
+                trailingZeros: false,
+              })}
+            </p>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-sm text-secondary-foreground">
+              Average Fixed Rate
+            </p>
+            <p className="font-mono text-lg">
+              {averageFixedRate.format({
                 percent: true,
                 trailingZeros: false,
               })}
@@ -112,8 +136,10 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
           <CollapsibleContent>
             <Separator />
 
-            <h6 className="p-4 font-chakra font-medium">Coverage Positions</h6>
-            <Table>
+            <h6 className="p-4 font-chakra font-medium">
+              Fix Rate Debt Positions
+            </h6>
+            <Table className="animate-fadeFast">
               <TableHeader className="[&_tr]:border-b-0">
                 <TableRow className="hover:bg-card">
                   <TableHead className="font-normal text-secondary-foreground">
@@ -137,6 +163,8 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
                     Number(short.openedTimestamp) * 1000
                   )
                   const maturity = new Date(Number(short.maturity) * 1000)
+
+                  const isMatured = new Date() > maturity
 
                   return (
                     <TableRow
@@ -162,17 +190,30 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
                       <TableCell className="font-mono">
                         {maturity.toLocaleDateString()}
                       </TableCell>
-                      <TableCell className="font-mono">
-                        <Button
-                          variant="secondary"
-                          className="ml-auto"
-                          onClick={() => {
-                            setSelectedOpenShort(short)
-                            setCloseCoverageModalOpen(true)
-                          }}
-                        >
-                          Close Coverage
-                        </Button>
+
+                      <TableCell>
+                        {isMatured ? (
+                          <Button
+                            className="ml-auto"
+                            onClick={() => {
+                              setSelectedOpenShort(short)
+                              setCloseCoverageModalOpen(true)
+                            }}
+                          >
+                            Close Position
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="secondary"
+                            className="ml-auto"
+                            onClick={() => {
+                              setSelectedOpenShort(short)
+                              setCloseCoverageModalOpen(true)
+                            }}
+                          >
+                            Revert to Variable
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   )
