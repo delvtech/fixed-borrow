@@ -6,7 +6,7 @@ export function Navbar() {
   return (
     <div className="grid grid-cols-3 items-center px-8 py-4">
       <div className="flex items-center gap-8">
-        <Button variant="ghost" className="rounded-lg" asChild>
+        <Button variant="ghost" className="shrink-0 rounded-lg" asChild>
           <Link href="/" aria-label="Go to Hyperdrive Home page">
             <img className="h-5" src="/fixed-borrow-logo.png" />
           </Link>
