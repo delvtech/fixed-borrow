@@ -36,7 +36,7 @@ export function BorrowPage() {
   }
 
   return (
-    <main className="my-8 flex flex-col gap-y-12 px-4">
+    <main className="relative z-10 my-2 flex flex-col gap-y-2 px-4">
       <div>
         <Link href="/" asChild>
           <Button
