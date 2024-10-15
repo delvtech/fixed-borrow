@@ -101,7 +101,7 @@ export function HomePage() {
   }, [borrowPositions, allBorrowPositionsQueryStatus, sorting, protocolFilter])
 
   return (
-    <main className="relative m-auto flex max-w-3xl animate-fadeFast flex-col gap-y-20 p-4">
+    <main className="relative m-auto flex max-w-3xl animate-fadeFast flex-col gap-y-12 p-4 sm:gap-y-20">
       <div className="m-auto max-w-3xl space-y-16">
         <div className="grid animate-fade justify-items-center gap-4">
           <svg
@@ -120,22 +120,22 @@ export function HomePage() {
             Fix Your Borrow Rate. Anytime.
           </h1>
 
-          <p className="text-center text-sm font-light text-secondary-foreground sm:text-lg">
+          <p className="text-center text-md font-light text-secondary-foreground sm:text-lg">
             Gain peace of mind with a predictable interest rate.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <Badge className="bg-secondary text-xs font-light sm:text-sm">
+            <Badge className="hidden bg-secondary text-xs font-light sm:flex sm:text-sm">
               <Check size={16} className="mr-1 stroke-aquamarine" /> Protect
               against high future rates
             </Badge>
 
-            <Badge className="bg-secondary text-xs font-light sm:text-sm">
+            <Badge className="hidden bg-secondary text-xs font-light sm:flex sm:text-sm">
               <Check size={16} className="mr-1 stroke-aquamarine" /> Revert to
               variable at any time
             </Badge>
 
-            <Badge className="bg-secondary text-xs font-light sm:text-sm">
+            <Badge className="hidden bg-secondary text-xs font-light sm:flex sm:text-sm">
               <Check size={16} className="mr-1 stroke-aquamarine" />
               Automations remain unaffected
             </Badge>
@@ -167,10 +167,6 @@ export function HomePage() {
                 Explore supported markets below <ArrowDown size={14} />
               </a>
             </Button>
-
-            {/* <Button variant="secondary">
-                        Learn How Fixed Borrow Works
-                      </Button> */}
           </div>
         </div>
       ) : (

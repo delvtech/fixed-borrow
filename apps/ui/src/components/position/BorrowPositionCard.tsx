@@ -22,7 +22,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
   const lowestRate = fixed(props.rates?.lowestRate ?? 0n)
 
   return (
-    <div className="grid w-full grid-cols-2">
+    <div className="grid w-full grid-cols-1 grid-rows-2 sm:grid-cols-2 sm:grid-rows-1">
       <Card className="z-10 rounded-xl">
         <CardHeader>
           <MarketHeader market={props.market} className="text-h4" />
@@ -48,7 +48,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
         </CardContent>
       </Card>
 
-      <div className="-ml-8 flex flex-col items-center gap-5 rounded-xl rounded-l-none border-y border-r bg-background p-6 pl-16">
+      <div className="z-20 -mt-6 flex flex-col items-center gap-5 rounded-xl rounded-t-none border-y border-l border-r bg-background p-6 pl-16 sm:z-0 sm:-ml-8 sm:mt-0 sm:rounded-l-none">
         <div className="flex w-full grow flex-col justify-between">
           <div className="space-y-2 text-center">
             <p className="text-sm text-secondary-foreground">

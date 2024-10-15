@@ -2,7 +2,7 @@ import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
 import Spinner from "components/animations/Spinner"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
-import { Card, CardContent, CardHeader } from "components/base/card"
+import { Card, CardContent, CardHeader, CardTitle } from "components/base/card"
 import {
   Collapsible,
   CollapsibleContent,
@@ -276,9 +276,9 @@ export function BorrowFlow(props: BorrowFlowProps) {
     <Card className="m-auto w-full max-w-lg animate-fade">
       {state.step === "buy" && (
         <CardHeader>
-          <p className="gradient-text w-fit font-chakra text-h4 font-semibold text-ice">
+          <CardTitle className="gradient-text w-fit font-chakra text-ice">
             Convert to Fixed Rate
-          </p>
+          </CardTitle>
         </CardHeader>
       )}
 
