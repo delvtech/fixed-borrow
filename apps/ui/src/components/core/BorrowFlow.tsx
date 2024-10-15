@@ -1,4 +1,5 @@
 import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
+import Spinner from "components/animations/Spinner"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
@@ -34,6 +35,7 @@ import { Address } from "viem"
 import { usePublicClient } from "wagmi"
 import { Link } from "wouter"
 import { BorrowPosition, Market, Position } from "../../types"
+import { BigNumberInput } from "./BigNumberInput"
 
 /**
  * Borrow flow local state
@@ -271,10 +273,10 @@ export function BorrowFlow(props: BorrowFlowProps) {
   )
 
   return (
-    <Card className="animate-fade m-auto w-full max-w-lg">
+    <Card className="m-auto w-full max-w-lg animate-fade">
       {state.step === "buy" && (
         <CardHeader>
-          <p className="gradient-text text-ice w-fit font-chakra text-h4 font-semibold">
+          <p className="gradient-text w-fit font-chakra text-h4 font-semibold text-ice">
             Convert to Fixed Rate
           </p>
         </CardHeader>
@@ -358,39 +360,13 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   </div>
 
                   <div className="flex items-center justify-between rounded-sm bg-secondary font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
-                    <input
-                      className="h-full w-full grow rounded-sm border-none bg-secondary p-4 font-mono text-[24px] [appearance:textfield] focus:border-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                      placeholder="0"
-                      type="number"
+                    <BigNumberInput
                       id="bondAmountInput"
                       disabled={isNil(allowance)}
                       value={fixed(state.bondAmount, decimals).format({
                         group: false,
                         trailingZeros: false,
                       })}
-                      step="any"
-                      min={0}
-                      /** Prevents scrolling from changing the input  */
-                      onWheel={(e) => e.currentTarget.blur()}
-                      onPaste={(e) => {
-                        const clipboardData = e.clipboardData
-                        const pastedData = parseFloat(
-                          clipboardData.getData("text")
-                        )
-
-                        try {
-                          if (pastedData < 0) throw new Error()
-
-                          fixed(pastedData, decimals)
-                        } catch {
-                          e.preventDefault()
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "-" || e.key === "+") {
-                          e.preventDefault()
-                        }
-                      }}
                       onChange={(e) => {
                         try {
                           // sanitize input
@@ -507,7 +483,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   </div>
                 </div>
 
-                <ArrowRight className="text-ice m-auto" />
+                <ArrowRight className="m-auto text-ice" />
 
                 <div className="grid justify-items-end gap-1 text-sm">
                   <p className="text-secondary-foreground">
@@ -525,7 +501,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   {formattedRateImpact ? (
                     <TooltipProvider>
                       <Tooltip>
-                        <TooltipTrigger className="animate-fadeFast flex items-center gap-1 text-xs text-secondary-foreground">
+                        <TooltipTrigger className="flex animate-fadeFast items-center gap-1 text-xs text-secondary-foreground">
                           <p className="font-mono text-xs text-secondary-foreground">
                             Rate Impact {formattedRateImpact}
                           </p>
@@ -614,36 +590,10 @@ export function BorrowFlow(props: BorrowFlowProps) {
           </CardContent>
         ))
         .with("loading", () => (
-          <CardContent className="animate-fade grid gap-8 rounded-xl bg-card pt-6">
+          <CardContent className="grid animate-fade gap-8 rounded-xl bg-card pt-6">
             <div className="flex flex-col items-center space-y-2">
               <div className="w-min rounded-full bg-accent p-4">
-                <svg
-                  className="animate-spin"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 1.43099e-07C18.6274 2.2213e-07 24 5.37258 24 12C24 18.6274 18.6274 24 12 24C5.37258 24 6.40674e-08 18.6274 1.43099e-07 12C2.2213e-07 5.37258 5.37258 6.40674e-08 12 1.43099e-07ZM12 20.04C16.4404 20.04 20.04 16.4404 20.04 12C20.04 7.55963 16.4404 3.96 12 3.96C7.55963 3.96 3.96 7.55963 3.96 12C3.96 16.4404 7.55963 20.04 12 20.04Z"
-                    fill="url(#paint0_angular_153_1604)"
-                  />
-
-                  <defs>
-                    <radialGradient
-                      id="paint0_angular_153_1604"
-                      cx="0"
-                      cy="0"
-                      r="1.25"
-                      gradientUnits="userSpaceOnUse"
-                      gradientTransform="translate(36 36) scale(36)"
-                    >
-                      <stop stopColor="#15ffab" />
-                      <stop offset="1" stopColor="#14D0F9" stopOpacity="0.4" />
-                    </radialGradient>
-                  </defs>
-                </svg>
+                <Spinner />
               </div>
 
               <h5 className="font-chakra font-medium">
@@ -667,7 +617,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
           </CardContent>
         ))
         .with("receipt", () => (
-          <CardContent className="animate-fade grid gap-8 rounded-xl bg-card pt-6">
+          <CardContent className="grid animate-fade gap-8 rounded-xl bg-card pt-6">
             <div className="flex flex-col items-center space-y-2">
               <div className="w-min rounded-full bg-accent p-4">
                 <svg
