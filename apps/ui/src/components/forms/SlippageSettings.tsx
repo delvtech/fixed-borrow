@@ -65,14 +65,6 @@ function SlippageSettings({
           variant="ghost"
           className="h-min rounded-[4px] p-1 px-2 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
         >
-          Slippage:{" "}
-          <span className="font-mono">
-            {fixed(amount).format({
-              decimals: 18,
-              percent: true,
-              trailingZeros: false,
-            })}
-          </span>
           <Settings size={16} />
         </Button>
       </PopoverTrigger>
