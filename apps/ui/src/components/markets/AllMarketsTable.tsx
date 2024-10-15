@@ -68,7 +68,7 @@ export function AllMarketsTable() {
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-background">
+              <TableRow key={headerGroup.id} className="hover:bg-secondary">
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
@@ -87,6 +87,7 @@ export function AllMarketsTable() {
               </TableRow>
             ))}
           </TableHeader>
+
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
@@ -276,7 +277,7 @@ const columns: ColumnDef<MarketInfo>[] = [
             aria-label={`Go to ${props.row.original.market.collateralToken.symbol}/${props.row.original.market.loanToken.symbol} on Morpho`}
             rel="noopener noreferrer"
           >
-            <div className="flex w-min items-center rounded-full bg-accent p-4 text-foreground/60 hover:bg-accent/80">
+            <div className="flex w-min items-center rounded-full bg-accent p-4 text-foreground/60 hover:bg-accent/60">
               <ExternalLink size={16} />
             </div>
           </a>
