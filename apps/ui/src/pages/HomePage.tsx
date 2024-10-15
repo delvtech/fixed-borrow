@@ -263,7 +263,7 @@ export function HomePage() {
         />
 
         <div className="space-y-4 text-center">
-          <h1 className="font-chakra text-h3">Available Morpho Markets</h1>
+          <h1 className="font-chakra text-h3">Start with a Morpho Position</h1>
 
           <p className="text-secondary-foreground">
             Open a supported borrow position on Morpho and return to DELV Fixed
