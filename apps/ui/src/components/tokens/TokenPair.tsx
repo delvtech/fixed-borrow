@@ -10,12 +10,15 @@ export function TokenPair(props: TokenPairProps) {
     <div className="flex">
       <img
         src={props.market.collateralToken.iconUrl}
-        className="size-5"
+        height={props.size ?? 20}
+        width={props.size ?? 20}
         alt={`${props.market.collateralToken.symbol} token symbol`}
       />
       <img
         src={props.market.loanToken.iconUrl}
-        className="-ml-3 size-5"
+        className="-ml-3"
+        height={props.size ?? 20}
+        width={props.size ?? 20}
         alt={`${props.market.loanToken.symbol} token symbol`}
       />
     </div>

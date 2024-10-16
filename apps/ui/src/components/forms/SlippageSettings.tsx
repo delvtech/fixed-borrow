@@ -63,7 +63,7 @@ function SlippageSettings({
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          className="h-min rounded-[4px] p-1 px-2 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground"
+          className="h-min rounded-[4px] p-1 px-2 text-xs text-secondary-foreground hover:bg-accent/80 hover:text-secondary-foreground/80"
         >
           <Settings size={16} />
         </Button>

@@ -8,6 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "components/base/collapsible"
+import { Progress } from "components/base/progress"
 import { Separator } from "components/base/separator"
 import { Skeleton } from "components/base/skeleton"
 import {
@@ -16,18 +17,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "components/base/tooltip"
-import { Slider } from "components/base/ui/slider"
 import SlippageSettings, {
   defaultSlippageAmount,
 } from "components/forms/SlippageSettings"
+import { TokenPair } from "components/tokens/TokenPair"
 import { cn } from "components/utils"
 import { useApproval } from "hooks/base/useApproval"
 import { useEtherscan } from "hooks/base/useEtherscan"
 import { useBorrowRateQuote } from "hooks/borrow/useBorrowRateQuote"
 import { useOpenShort } from "hooks/hyperdrive/useOpenShort"
-import { isNil } from "lodash-es"
+import { isNil, round } from "lodash-es"
 import { ArrowRight, ChevronDown, ExternalLink, Info } from "lucide-react"
-import { useReducer, useState } from "react"
+import { useReducer } from "react"
 import { MorphoLogo } from "static/images/MorphoLogo"
 import { match } from "ts-pattern"
 import { formatTermLength } from "utils/formatTermLength"
@@ -36,6 +37,8 @@ import { usePublicClient } from "wagmi"
 import { Link } from "wouter"
 import { BorrowPosition, Market, Position } from "../../types"
 import { BigNumberInput } from "./BigNumberInput"
+
+const quickTokenAmountWeights = [0.25, 0.5, 0.75, 1] as const
 
 /**
  * Borrow flow local state
@@ -158,7 +161,11 @@ export function BorrowFlow(props: BorrowFlowProps) {
     fixed(props.activePosition.totalCoverage)
       .div(props.position.totalDebt)
       .toNumber() * 100
-  const [sliderValue, setSliderValue] = useState(percentCovered)
+  const newPercentCovered =
+    fixed(props.activePosition.totalCoverage)
+      .add(state.bondAmount)
+      .div(props.position.totalDebt)
+      .toNumber() * 100
 
   // Open short logic
   const { mutateAsync: openShort } = useOpenShort()
@@ -291,21 +298,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 <div className="flex justify-between">
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-center gap-2">
-                      <div className="flex">
-                        <img
-                          src={props.market.collateralToken.iconUrl}
-                          height={24}
-                          width={24}
-                          alt={`${props.market.collateralToken.symbol} token symbol`}
-                        />
-                        <img
-                          src={props.market.loanToken.iconUrl}
-                          className="-ml-2"
-                          height={24}
-                          width={24}
-                          alt={`${props.market.loanToken.symbol} token symbol`}
-                        />
-                      </div>
+                      <TokenPair market={props.market} size={24} />
 
                       <h2 className="font-chakra text-h4 font-medium">
                         {props.market.collateralToken.symbol} /{" "}
@@ -332,9 +325,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   </div>
 
                   <div className="space-y-1">
-                    <p className="text-sm text-secondary-foreground">
-                      Current Loan
-                    </p>
+                    <p className="text-secondary-foreground">Current Loan</p>
                     <p className="font-mono">
                       {formattedTotalDebt} {props.market.loanToken.symbol}
                     </p>
@@ -346,17 +337,27 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     <p className="text-sm text-secondary-foreground">
                       Loan Amount to Fix
                     </p>
-                    <SlippageSettings
-                      amount={state.slippage}
-                      onChange={(slippage) =>
-                        dispatch({
-                          type: "slippageAmountChange",
-                          payload: {
-                            amount: slippage,
-                          },
-                        })
-                      }
-                    />
+
+                    <div className="flex items-center">
+                      <Button
+                        className="h-5 w-fit p-2 text-secondary-foreground hover:bg-primary hover:text-background"
+                        variant="outline"
+                      >
+                        Max
+                      </Button>
+
+                      <SlippageSettings
+                        amount={state.slippage}
+                        onChange={(slippage) =>
+                          dispatch({
+                            type: "slippageAmountChange",
+                            payload: {
+                              amount: slippage,
+                            },
+                          })
+                        }
+                      />
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between rounded-sm bg-secondary font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
@@ -387,8 +388,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
                             totalShortedBonds,
                             decimals
                           ).div(props.position.totalDebt, decimals)
-
-                          setSliderValue(Math.floor(percent.toNumber() * 100))
                         } catch {
                           e.preventDefault()
                         }
@@ -405,40 +404,27 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex justify-between">
                     <p className="text-sm text-secondary-foreground">
-                      Percent of Loan to Fix
+                      Percent Fixed: {round(newPercentCovered, 2)}%
                     </p>
-                    <p className="text-sm">{Math.floor(sliderValue)}%</p>
+                    {/* <p className="text-sm text-secondary-foreground">
+                      Net: 75%
+                    </p> */}
                   </div>
-
-                  <Slider
-                    onValueCommit={([value]) => {
-                      const valueFP = parseFixed(
-                        value / 100,
-                        props.market.loanToken.decimals
-                      )
-                      const shortsToAdd = fixed(valueFP)
-                        .mul(props.position.totalDebt, decimals)
-                        .toString()
-
-                      dispatch({
-                        type: "bondAmountInput",
-                        payload: {
-                          amount: shortsToAdd,
-                        },
-                      })
-                    }}
-                    value={[Math.floor(sliderValue)]}
-                    onValueChange={([value]) => {
-                      if (value <= Math.floor(percentCovered)) return
-                      setSliderValue(value)
-                    }}
-                    className="h-0.5"
-                    max={100}
-                    min={0}
-                    step={1}
+                  <Progress
+                    segments={[
+                      {
+                        value: percentCovered,
+                        color: "bg-primary",
+                      },
+                      {
+                        value: newPercentCovered,
+                        color: "bg-primary/50",
+                      },
+                    ]}
+                    className="h-1"
                   />
                 </div>
               </div>
@@ -532,7 +518,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 <Button size="lg" className="h-12 w-full text-lg" disabled>
                   Enter an amount
                 </Button>
-              ) : sliderValue > 100 ? (
+              ) : newPercentCovered > 100 ? (
                 <Button
                   size="lg"
                   className="h-12 w-full text-lg"
