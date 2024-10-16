@@ -38,8 +38,6 @@ import { Link } from "wouter"
 import { BorrowPosition, Market, Position } from "../../types"
 import { BigNumberInput } from "./BigNumberInput"
 
-const quickTokenAmountWeights = [0.25, 0.5, 0.75, 1] as const
-
 /**
  * Borrow flow local state
  *
@@ -371,23 +369,14 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       onChange={(e) => {
                         try {
                           // sanitize input
-                          const value = parseFixed(
-                            e.currentTarget.value,
-                            decimals
-                          )
+                          parseFixed(e.currentTarget.value, decimals)
+
                           dispatch({
                             type: "bondAmountInput",
                             payload: {
                               amount: e.target.value ?? "0",
                             },
                           })
-
-                          const totalShortedBonds =
-                            props.activePosition.totalCoverage + value.bigint
-                          const percent = fixed(
-                            totalShortedBonds,
-                            decimals
-                          ).div(props.position.totalDebt, decimals)
                         } catch {
                           e.preventDefault()
                         }
