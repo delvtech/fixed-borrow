@@ -280,7 +280,7 @@ export class MorphoMarketReader extends MarketReader {
           publicClient: this.client,
         })
         const liquidity = await hyperdrive.getPresentValue()
-        const fixedRate = await hyperdrive.getFixedApr()
+        const fixedRate = await this.quoteRate(market)
 
         const borrowRate = apys[i]
 

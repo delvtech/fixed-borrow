@@ -251,14 +251,13 @@ export function HomePage() {
         </Tabs>
       )}
 
-      <div className="flex flex-col items-center gap-y-4">
-        <img
-          className="size-12 rounded p-2"
-          src="logos/morpho-logo-dark.svg"
-          alt="Morpho logo"
-        />
-
+      <div className="flex flex-col items-center gap-y-8">
         <div className="space-y-4 text-center">
+          <img
+            className="m-auto size-12 rounded p-2"
+            src="logos/morpho-logo-dark.svg"
+            alt="Morpho logo"
+          />
           <h1 className="font-chakra text-h3">Start with a Morpho Position</h1>
 
           <p className="text-secondary-foreground">
