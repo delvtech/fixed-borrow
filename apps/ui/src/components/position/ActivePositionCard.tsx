@@ -1,4 +1,4 @@
-import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
+import { fixed, FixedPoint } from "@delvtech/fixed-point-wasm"
 import { OpenShort } from "@delvtech/hyperdrive-viem"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
@@ -20,7 +20,7 @@ import { Market, OpenShortPlusQuote } from "src/types"
 import { Link } from "wouter"
 import { dayInSeconds } from "~/constants"
 
-interface MarketPositionsCardProps {
+interface ActivePositionCardProps {
   market: Market
   totalCoverage: bigint
   debtCovered: bigint
@@ -29,7 +29,7 @@ interface MarketPositionsCardProps {
   startOpened?: boolean
 }
 
-export function MarketPositionsCard(props: MarketPositionsCardProps) {
+export function ActivePositionCard(props: ActivePositionCardProps) {
   const [selectedOpenShort, setSelectedOpenShort] = useState<OpenShort>()
   const [tableOpen, setTableOpen] = useState(props.startOpened ?? false)
 
@@ -59,13 +59,15 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
 
   const averageFixedRate = useMemo(() => {
     const weightShortSum = props.shorts.reduce((prev, curr) => {
-      return prev + fixed(curr.bondAmount, 18).mul(curr.rateQuote, 8).bigint
+      return prev + fixed(curr.bondAmount, 18).mul(curr.rateQuote, 6).bigint
     }, 0n)
 
-    return fixed(weightShortSum, 18).div(parseFixed(props.shorts.length, 18))
-  }, [props.shorts, debtCovered])
+    const weightSum = props.shorts.reduce((prev, curr) => {
+      return prev + curr.bondAmount
+    }, 0n)
 
-  console.log(averageFixedRate.bigint)
+    return fixed(weightShortSum, 18).div(weightSum, 18)
+  }, [props.shorts, debtCovered])
 
   return (
     <Card className="w-full">
@@ -110,6 +112,7 @@ export function MarketPositionsCard(props: MarketPositionsCardProps) {
             </p>
             <p className="font-mono text-lg">
               {averageFixedRate.format({
+                decimals: 2,
                 percent: true,
                 trailingZeros: false,
               })}
