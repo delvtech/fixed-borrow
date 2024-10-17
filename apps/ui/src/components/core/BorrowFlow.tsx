@@ -226,7 +226,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
       props.market.loanToken.symbol
     : undefined
   const formattedRateImpact = rateQuoteData
-    ? rateQuoteData.quote.format({
+    ? rateQuoteData.impact.format({
         decimals: 2,
         percent: true,
       })

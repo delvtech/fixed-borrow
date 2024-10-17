@@ -2,6 +2,7 @@ import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader, CardTitle } from "components/base/card"
 import { Skeleton } from "components/base/skeleton"
 import { BorrowFlow } from "components/core/BorrowFlow"
+import { cn } from "components/utils"
 import { useBorrowPosition } from "hooks/borrow/useBorrowPosition"
 import { useActivePosition } from "hooks/positions/useActivePosition"
 import { Book, ChevronsLeft, ChevronsRight, MoveLeft } from "lucide-react"
@@ -38,6 +39,8 @@ export function BorrowPage() {
     navigate("/")
   }
 
+  const queriesReady = market && position && activePosition
+
   return (
     <main className="relative z-10 my-2 flex flex-col gap-y-2 px-4">
       <div>
@@ -51,15 +54,15 @@ export function BorrowPage() {
         </Link>
       </div>
 
-      <div className="m-auto flex w-fit gap-2">
-        {market && position && activePosition ? (
+      <div className="m-auto flex gap-2">
+        {queriesReady ? (
           <BorrowFlow
             market={market}
             position={position}
             activePosition={activePosition}
           />
         ) : (
-          <Skeleton className="m-auto h-[647px] w-full max-w-xl bg-accent" />
+          <Skeleton className="m-auto h-[647px] w-[576px] max-w-xl bg-accent" />
         )}
 
         {showSteps ? (
@@ -67,7 +70,13 @@ export function BorrowPage() {
             <ChevronsLeft className="text-ice opacity-75" />
           </Button>
         ) : (
-          <Button variant="ghost" onClick={() => setShowSteps(true)}>
+          <Button
+            variant="ghost"
+            onClick={() => setShowSteps(true)}
+            className={cn({
+              hidden: !queriesReady,
+            })}
+          >
             <span className="text-ice/75">Show Steps</span>{" "}
             <ChevronsRight className="text-ice opacity-75" />
           </Button>
