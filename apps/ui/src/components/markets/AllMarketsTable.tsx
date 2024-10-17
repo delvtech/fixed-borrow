@@ -1,3 +1,4 @@
+import { fixed } from "@delvtech/fixed-point-wasm"
 import {
   CellContext,
   ColumnDef,
@@ -11,9 +12,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import * as React from "react"
-
-import { fixed } from "@delvtech/fixed-point-wasm"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import {
@@ -24,24 +22,22 @@ import {
   TableHeader,
   TableRow,
 } from "components/base/table"
+import { TokenPair } from "components/tokens/TokenPair"
 import { useAllMarkets } from "hooks/markets/useAllMarkets"
 import { ChevronsUpDown, ExternalLink } from "lucide-react"
-import { formatRate } from "utils/base/formatRate"
+import { useState } from "react"
 import { sepolia } from "viem/chains"
 import { useChainId, usePublicClient } from "wagmi"
-import { Market, MarketInfo } from "../../types"
+import { MarketInfo } from "../../types"
 
 export function AllMarketsTable() {
   const { data = [] } = useAllMarkets()
 
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-
+  // Table state
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = useState({})
   const table = useReactTable({
     data,
     columns,
@@ -62,84 +58,52 @@ export function AllMarketsTable() {
   })
 
   return (
-    <div className="w-full max-w-screen-xl">
-      <div className="flex items-center py-4"></div>
-      <div className="rounded-md border bg-secondary">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-secondary">
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      className="font-normal text-secondary-foreground"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  className="border-b-0 hover:bg-secondary"
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+    <div className="rounded-md border bg-secondary">
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id} className="hover:bg-secondary">
+              {headerGroup.headers.map((header) => (
+                <TableHead
+                  key={header.id}
+                  className="font-normal text-secondary-foreground"
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
                       )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-  )
-}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
 
-interface TokenPairProps {
-  market: Market
-  size?: number
-}
-function TokenPair(props: TokenPairProps) {
-  return (
-    <div className="flex">
-      <img
-        src={props.market.collateralToken.iconUrl}
-        className="size-5"
-        alt={`${props.market.collateralToken.symbol} token symbol`}
-      />
-      <img
-        src={props.market.loanToken.iconUrl}
-        className="-ml-3 size-5"
-        alt={`${props.market.loanToken.symbol} token symbol`}
-      />
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                className="border-b-0 hover:bg-secondary"
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
   )
 }
@@ -171,11 +135,8 @@ const columns: ColumnDef<MarketInfo>[] = [
   },
   {
     id: "Liquidity",
-
+    accessorKey: "liquidity",
     header: () => <div className="text-right">Liquidity</div>,
-    accessorFn: (row) => {
-      return row.liquidity
-    },
     cell: (props: CellContext<MarketInfo, bigint>) => {
       const { getValue } = props
       const liquidity = fixed(getValue())
@@ -192,9 +153,7 @@ const columns: ColumnDef<MarketInfo>[] = [
   },
   {
     id: "Variable",
-    accessorFn: (row) => {
-      return row.borrowRate
-    },
+    accessorKey: "borrowRate",
     enableSorting: true,
     sortingFn: (rowA, rowB) => {
       return Number(rowA.original.borrowRate - rowB.original.borrowRate)
@@ -202,7 +161,7 @@ const columns: ColumnDef<MarketInfo>[] = [
     header: ({ column }) => (
       <Button
         variant="ghost"
-        className="rounded-none"
+        className="rounded"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         <div className="text-right">Variable</div>
@@ -213,6 +172,7 @@ const columns: ColumnDef<MarketInfo>[] = [
       const { getValue } = props
       const borrowRate = fixed(getValue()).format({
         decimals: 2,
+        trailingZeros: false,
         percent: true,
       })
 
@@ -221,9 +181,7 @@ const columns: ColumnDef<MarketInfo>[] = [
   },
   {
     id: "Fixed",
-    accessorFn: (row) => {
-      return row.fixedRate
-    },
+    accessorKey: "fixedRate",
     enableSorting: true,
     sortingFn: (rowA, rowB) => {
       return Number(rowA.original.fixedRate - rowB.original.fixedRate)
@@ -231,7 +189,7 @@ const columns: ColumnDef<MarketInfo>[] = [
     header: ({ column }) => (
       <Button
         variant="ghost"
-        className="justify-end rounded-none"
+        className="rounded"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         <div>Fixed</div>
@@ -241,10 +199,16 @@ const columns: ColumnDef<MarketInfo>[] = [
     cell: (props: CellContext<MarketInfo, bigint>) => {
       const { getValue } = props
 
+      const formattedValue = fixed(getValue()).format({
+        percent: true,
+        trailingZeros: false,
+        decimals: 2,
+      })
+
       return (
         <div className="text-center">
           <span className="gradient-text font-mono font-medium">
-            {formatRate(getValue())}
+            {formattedValue}
           </span>
         </div>
       )
@@ -252,13 +216,11 @@ const columns: ColumnDef<MarketInfo>[] = [
   },
   {
     id: "App Link",
-    accessorFn: (row) => {
-      return row.market
-    },
     header: () => <div></div>,
     cell: (props: CellContext<MarketInfo, bigint>) => {
       const client = usePublicClient()
       const chainId = useChainId()
+
       // TODO will need to generalize when multi-protocol
       const morphoUrl = new URL("market", "https://app.morpho.org")
       morphoUrl.searchParams.set("id", props.row.original.market.metadata.id)

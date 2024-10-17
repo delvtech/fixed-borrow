@@ -337,7 +337,14 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                         {formattedTimeLeft} left
                       </p>
                     </div>
-                    <Progress value={percentMatured} className="h-1" />
+                    <Progress
+                      segments={[
+                        {
+                          value: percentMatured,
+                        },
+                      ]}
+                      className="h-1"
+                    />
                   </div>
                 </div>
 

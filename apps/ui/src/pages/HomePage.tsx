@@ -11,8 +11,8 @@ import {
 import { Skeleton } from "components/base/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/base/tabs"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
+import { ActivePositionCard } from "components/position/ActivePositionCard"
 import { BorrowPositionCard } from "components/position/BorrowPositionCard"
-import { MarketPositionsCard } from "components/position/MarketPositionCard"
 import { useAllBorrowPositions } from "hooks/markets/useAllBorrowPositions"
 import { useActivePositions } from "hooks/positions/useActivePositions"
 import { ArrowDown, Check, CircleSlash } from "lucide-react"
@@ -230,7 +230,7 @@ export function HomePage() {
                     id={position.market.hyperdrive}
                     key={position.market.hyperdrive}
                   >
-                    <MarketPositionsCard
+                    <ActivePositionCard
                       market={position.market}
                       totalCoverage={position.totalCoverage}
                       debtCovered={position.debtCovered.bigint}
@@ -251,14 +251,13 @@ export function HomePage() {
         </Tabs>
       )}
 
-      <div className="flex flex-col items-center gap-y-4">
-        <img
-          className="size-12 rounded p-2"
-          src="logos/morpho-logo-dark.svg"
-          alt="Morpho logo"
-        />
-
+      <div className="flex flex-col items-center gap-y-8">
         <div className="space-y-4 text-center">
+          <img
+            className="m-auto size-12 rounded p-2"
+            src="logos/morpho-logo-dark.svg"
+            alt="Morpho logo"
+          />
           <h1 className="font-chakra text-h3">Start with a Morpho Position</h1>
 
           <p className="text-secondary-foreground">
