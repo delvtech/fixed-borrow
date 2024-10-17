@@ -17,6 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "components/base/tooltip"
+import { Checkbox } from "components/base/ui/checkbox"
 import SlippageSettings, {
   defaultSlippageAmount,
 } from "components/forms/SlippageSettings"
@@ -28,7 +29,7 @@ import { useBorrowRateQuote } from "hooks/borrow/useBorrowRateQuote"
 import { useOpenShort } from "hooks/hyperdrive/useOpenShort"
 import { isNil, round } from "lodash-es"
 import { ArrowRight, ChevronDown, ExternalLink, Info } from "lucide-react"
-import { useReducer } from "react"
+import { useReducer, useState } from "react"
 import { MorphoLogo } from "static/images/MorphoLogo"
 import { match } from "ts-pattern"
 import { formatTermLength } from "utils/formatTermLength"
@@ -151,6 +152,8 @@ export function BorrowFlow(props: BorrowFlowProps) {
       ? rateQuoteData.traderDeposit.mul(parseFixed(0.05, decimals)).bigint
       : undefined
   )
+
+  const [warningAccepted, setWarningAccepted] = useState(false)
 
   const { url } = useEtherscan(state.hash, "tx")
 
@@ -362,10 +365,14 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     <BigNumberInput
                       id="bondAmountInput"
                       disabled={isNil(allowance)}
-                      value={fixed(state.bondAmount, decimals).format({
-                        group: false,
-                        trailingZeros: false,
-                      })}
+                      value={
+                        state.bondAmount === 0n
+                          ? ""
+                          : fixed(state.bondAmount, decimals).format({
+                              group: false,
+                              trailingZeros: false,
+                            })
+                      }
                       onChange={(e) => {
                         try {
                           // sanitize input
@@ -539,14 +546,34 @@ export function BorrowFlow(props: BorrowFlowProps) {
                   {rateQuoteData.error}
                 </Button>
               ) : (
-                <Button
-                  size="lg"
-                  className="h-12 w-full text-lg"
-                  disabled={transactionButtonDisabled}
-                  onClick={handleOpenShort}
-                >
-                  Lock in your rate
-                </Button>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex gap-4 rounded-lg border p-4">
+                      <Checkbox
+                        id="terms"
+                        checked={warningAccepted}
+                        onCheckedChange={() =>
+                          setWarningAccepted(!warningAccepted)
+                        }
+                      />
+                      <label
+                        htmlFor="terms"
+                        className="text-sm leading-none text-secondary-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Acknowledge that you are responsible for maintaining a
+                        healthy loan to value ratio.
+                      </label>
+                    </div>
+                  </div>
+                  <Button
+                    size="lg"
+                    className="h-12 w-full text-lg"
+                    disabled={transactionButtonDisabled || !warningAccepted}
+                    onClick={handleOpenShort}
+                  >
+                    Lock in your rate
+                  </Button>
+                </div>
               )}
             </div>
 

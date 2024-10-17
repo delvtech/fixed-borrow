@@ -57,7 +57,7 @@ export default function AppFooter() {
           </header>
           <a
             target="_blank"
-            rel="noreferrer"
+            rel="noreferrer noopener"
             href="https://docs.hyperdrive.box"
             className="hover:underline"
           >
@@ -65,7 +65,7 @@ export default function AppFooter() {
           </a>
           <a
             target="_blank"
-            rel="noreferrer"
+            rel="noreferrer noopener"
             href="https://hyperdrive.blockanalitica.com"
             className="hover:underline"
           >
@@ -73,7 +73,7 @@ export default function AppFooter() {
           </a>
           <a
             target="_blank"
-            rel="noreferrer"
+            rel="noreferrer noopener"
             href="https://docs.hyperdrive.box/security/security-for-the-hyperdrive-protocol"
             className="hover:underline"
           >
@@ -87,24 +87,24 @@ export default function AppFooter() {
           </header>
           <a
             target="_blank"
-            rel="noreferrer"
-            href="https://docs.hyperdrive.box"
+            rel="noreferrer noopener"
+            href="https://app.hyperdrive.box"
             className="hover:underline"
           >
             Trading App
           </a>
           <a
             target="_blank"
-            rel="noreferrer"
-            href="https://hyperdrive.blockanalitica.com"
+            rel="noreferrer noopener"
+            href="https://delv.tech/discord"
             className="hover:underline"
           >
             Community
           </a>
           <a
             target="_blank"
-            rel="noreferrer"
-            href="https://docs.hyperdrive.box/security/security-for-the-hyperdrive-protocol"
+            rel="noreferrer noopener"
+            href="https://governance.element.fi"
             className="hover:underline"
           >
             Governance
@@ -117,24 +117,24 @@ export default function AppFooter() {
           </header>
           <a
             target="_blank"
-            rel="noreferrer"
-            href="https://docs.hyperdrive.box"
+            rel="noreferrer noopener"
+            href="https://www.delv.tech/"
             className="hover:underline"
           >
             DELV
           </a>
           <a
             target="_blank"
-            rel="noreferrer"
-            href="https://hyperdrive.blockanalitica.com"
+            rel="noreferrer noopener"
+            href="https://blog.delv.tech/"
             className="hover:underline"
           >
             Blog
           </a>
           <a
             target="_blank"
-            rel="noreferrer"
-            href="https://docs.hyperdrive.box/security/security-for-the-hyperdrive-protocol"
+            rel="noreferrer noopener"
+            href="https://github.com/delvtech"
             className="hover:underline"
           >
             GitHub
