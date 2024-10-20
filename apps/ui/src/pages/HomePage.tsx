@@ -152,20 +152,19 @@ export function HomePage() {
           <div className="flex justify-center gap-6">
             <Button
               className="gap-2 bg-[#2E4DFF]/75 font-light text-foreground hover:bg-[#2E4DFF]"
-              asChild
+              onClick={() => {
+                const element = document.getElementById("all-markets")
+                if (element) {
+                  element.scrollIntoView({ behavior: "smooth" })
+                }
+              }}
             >
-              <a
-                href="https://app.morpho.org"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <img
-                  src="/logos/Morpho-logo-symbol-darkmode.svg"
-                  alt="Morpho logo"
-                  className="size-3"
-                />
-                Explore supported markets below <ArrowDown size={14} />
-              </a>
+              <img
+                src="/logos/Morpho-logo-symbol-darkmode.svg"
+                alt="Morpho logo"
+                className="size-3"
+              />
+              Explore supported markets below <ArrowDown size={14} />
             </Button>
           </div>
         </div>
@@ -251,7 +250,7 @@ export function HomePage() {
         </Tabs>
       )}
 
-      <div className="flex flex-col items-center gap-y-8">
+      <div className="flex flex-col items-center gap-y-8" id="all-markets">
         <div className="space-y-4 text-center">
           <img
             className="m-auto size-12 rounded p-2"

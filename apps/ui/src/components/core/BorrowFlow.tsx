@@ -167,6 +167,9 @@ export function BorrowFlow(props: BorrowFlowProps) {
       .add(state.bondAmount)
       .div(props.position.totalDebt)
       .toNumber() * 100
+  const maxBondAmount = fixed(props.position.totalDebt).sub(
+    props.activePosition.totalCoverage
+  )
 
   // Open short logic
   const { mutateAsync: openShort } = useOpenShort()
@@ -281,7 +284,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
   )
 
   return (
-    <Card className="m-auto w-full max-w-lg animate-fade">
+    <Card className="w-full max-w-lg animate-fade">
       {state.step === "buy" && (
         <CardHeader>
           <CardTitle className="gradient-text w-fit font-chakra text-ice">
@@ -343,6 +346,14 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       <Button
                         className="h-5 w-fit p-2 text-secondary-foreground hover:bg-primary hover:text-background"
                         variant="outline"
+                        onClick={() => {
+                          dispatch({
+                            type: "bondAmountInput",
+                            payload: {
+                              amount: maxBondAmount.toString(),
+                            },
+                          })
+                        }}
                       >
                         Max
                       </Button>
@@ -365,14 +376,10 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     <BigNumberInput
                       id="bondAmountInput"
                       disabled={isNil(allowance)}
-                      value={
-                        state.bondAmount === 0n
-                          ? ""
-                          : fixed(state.bondAmount, decimals).format({
-                              group: false,
-                              trailingZeros: false,
-                            })
-                      }
+                      // value={fixed(state.bondAmount, decimals).format({
+                      //   group: false,
+                      //   trailingZeros: false,
+                      // })}
                       onChange={(e) => {
                         try {
                           // sanitize input
