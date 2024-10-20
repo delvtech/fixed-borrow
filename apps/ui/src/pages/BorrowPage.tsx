@@ -54,7 +54,7 @@ export function BorrowPage() {
         </Link>
       </div>
 
-      <div className="m-auto flex gap-2">
+      <div className="flex justify-center gap-2">
         {queriesReady ? (
           <BorrowFlow
             market={market}

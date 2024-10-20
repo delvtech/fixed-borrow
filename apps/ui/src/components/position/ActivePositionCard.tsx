@@ -66,6 +66,10 @@ export function ActivePositionCard(props: ActivePositionCardProps) {
       return prev + curr.bondAmount
     }, 0n)
 
+    if (weightSum === 0n) {
+      return undefined
+    }
+
     return fixed(weightShortSum, 18).div(weightSum, 18)
   }, [props.shorts, debtCovered])
 
@@ -111,11 +115,13 @@ export function ActivePositionCard(props: ActivePositionCardProps) {
               Average Fixed Rate
             </p>
             <p className="font-mono text-lg">
-              {averageFixedRate.format({
-                decimals: 2,
-                percent: true,
-                trailingZeros: false,
-              })}
+              {averageFixedRate
+                ? averageFixedRate.format({
+                    decimals: 2,
+                    percent: true,
+                    trailingZeros: false,
+                  })
+                : "n/a"}
             </p>
           </div>
 
