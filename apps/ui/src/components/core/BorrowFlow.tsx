@@ -23,6 +23,7 @@ import SlippageSettings, {
 } from "components/forms/SlippageSettings"
 import { TokenPair } from "components/tokens/TokenPair"
 import { cn } from "components/utils"
+import { format } from "date-fns"
 import { useApproval } from "hooks/base/useApproval"
 import { useEtherscan } from "hooks/base/useEtherscan"
 import { useBorrowRateQuote } from "hooks/borrow/useBorrowRateQuote"
@@ -295,7 +296,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
   return (
     <div className="relative flex w-full gap-4">
-      <Card className="m-auto w-full max-w-lg animate-fade">
+      <Card className="max-w-lg animate-fade">
         {state.step === "buy" && (
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="gradient-text w-fit font-chakra text-ice">
@@ -464,7 +465,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
               {!rateQuoteData?.error && (
                 <div className="grid grid-cols-3">
                   <div className="grid gap-1 text-sm">
-                    <p className="text-secondary-foreground">Your Deposit</p>
+                    <p className="text-secondary-foreground">Your Payment</p>
                     <div className="space-y-1">
                       {formattedCostOfCoverage ? (
                         <p className="animate-fadeFast font-mono text-h4">
@@ -571,12 +572,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     {props.market.loanToken.symbol} {isApprovalLoading && "..."}
                   </Button>
                 ) : rateQuoteData?.error ? (
-                  <Button
-                    size="lg"
-                    className="h-12 w-full text-lg"
-                    disabled
-                    onClick={handleOpenShort}
-                  >
+                  <Button size="lg" className="h-12 w-full text-lg" disabled>
                     {rateQuoteData.error}
                   </Button>
                 ) : (
@@ -607,6 +603,11 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     >
                       Lock In Your Rate
                     </Button>
+
+                    <p className="text-center text-sm text-secondary-foreground">
+                      Matures {format(formattedMaturityDate, "MMMM do, yyyy")}.
+                      Unfix anytime.
+                    </p>
                   </div>
                 )}
               </div>

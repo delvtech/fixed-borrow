@@ -155,7 +155,7 @@ export function ActivePositionCard(props: ActivePositionCardProps) {
               <TableHeader className="[&_tr]:border-b-0">
                 <TableRow className="hover:bg-card">
                   <TableHead className="font-normal text-secondary-foreground">
-                    Coverage Date
+                    Date Opened
                   </TableHead>
                   <TableHead className="font-normal text-secondary-foreground">
                     Amount

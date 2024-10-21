@@ -38,7 +38,7 @@ export function BorrowPage() {
   const queriesReady = market && position && activePosition
 
   return (
-    <main className="my-2 flex flex-col gap-y-2 px-4">
+    <main className="my-2 flex flex-col gap-y-1 px-4">
       <div>
         <Link href="/" asChild>
           <Button
@@ -50,7 +50,7 @@ export function BorrowPage() {
         </Link>
       </div>
 
-      <div className="flex justify-center gap-2">
+      <div className="m-auto flex justify-center gap-2">
         {queriesReady ? (
           <BorrowFlow
             market={market}

@@ -464,14 +464,10 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                         <TooltipContent className="grid max-w-64 gap-4 border border-secondary p-4">
                           <p>
                             This is the interest rebate you receive after
-                            closing your position. You can use these proceeds to
-                            repay interest accrued in your Morpho loan.
+                            closing your position. Use the proceeds to repay
+                            interest accrued on your Morpho loan.
                           </p>
-
-                          <p>
-                            You can learn more about this process in our
-                            documentation.
-                          </p>
+                          <p>Learn more in the docs.</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
