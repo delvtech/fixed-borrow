@@ -27,6 +27,7 @@ import { format } from "date-fns"
 import { useApproval } from "hooks/base/useApproval"
 import { useEtherscan } from "hooks/base/useEtherscan"
 import { useBorrowRateQuote } from "hooks/borrow/useBorrowRateQuote"
+import { useRegionInfo } from "hooks/compliance/useRegionInfo"
 import { useOpenShort } from "hooks/hyperdrive/useOpenShort"
 import { isNil, round } from "lodash-es"
 import {
@@ -35,6 +36,7 @@ import {
   ChevronDown,
   ChevronsLeft,
   ChevronsRight,
+  EarthLock,
   ExternalLink,
   Info,
 } from "lucide-react"
@@ -133,6 +135,7 @@ interface BorrowFlowProps {
 }
 
 export function BorrowFlow(props: BorrowFlowProps) {
+  const { isReadOnly } = useRegionInfo()
   const client = usePublicClient()
   const decimals = props.market.loanToken.decimals
 
@@ -553,7 +556,17 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
               {/* Button */}
               <div className="space-y-2">
-                {state.bondAmount === 0n ? (
+                {isReadOnly ? (
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    className="w-full items-center gap-2 text-md"
+                    disabled
+                  >
+                    <EarthLock size={16} />
+                    Not available in your region
+                  </Button>
+                ) : state.bondAmount === 0n ? (
                   <Button size="lg" className="w-full text-md" disabled>
                     Enter an amount
                   </Button>

@@ -5,6 +5,7 @@ import { TermsOfServiceDialog } from "components/compliance/TermsOfServiceDialog
 import AppFooter from "components/core/AppFooter"
 import { Navbar } from "components/core/Navigation"
 import { useAddressScreen } from "hooks/compliance/useAddressScreen"
+import { RegionInfoProvider } from "hooks/compliance/useRegionInfo"
 import { useVpnScreen } from "hooks/compliance/useVpnScreen"
 import { BorrowPage } from "pages/BorrowPage"
 import DevPage from "pages/DevPage"
@@ -50,27 +51,29 @@ function App() {
             fontStack: "system",
           })}
         >
-          <Container>
-            <Navbar />
-            <div className="min-h-[calc(100vh-72px)] grow pb-24">
-              <Switch>
-                <Route path="/" component={HomePage} />
-                <Route path="/dev" component={DevPage} />
-                <Route path="/borrow/:hyperdrive" component={BorrowPage} />
-                <Route
-                  path="/restricted_countries"
-                  component={RestrictedCountriesPage}
-                />
+          <RegionInfoProvider>
+            <Container>
+              <Navbar />
+              <div className="min-h-[calc(100vh-72px)] grow pb-24">
+                <Switch>
+                  <Route path="/" component={HomePage} />
+                  <Route path="/dev" component={DevPage} />
+                  <Route path="/borrow/:hyperdrive" component={BorrowPage} />
+                  <Route
+                    path="/restricted_countries"
+                    component={RestrictedCountriesPage}
+                  />
 
-                {/* Default route in a switch */}
-                <Route>404: No such page!</Route>
-              </Switch>
-            </div>
+                  {/* Default route in a switch */}
+                  <Route>404: No such page!</Route>
+                </Switch>
+              </div>
 
-            <TermsOfServiceDialog />
+              <TermsOfServiceDialog />
 
-            <AppFooter />
-          </Container>
+              <AppFooter />
+            </Container>
+          </RegionInfoProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
