@@ -1,13 +1,6 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "components/base/select"
 import { Skeleton } from "components/base/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/base/tabs"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
@@ -17,7 +10,6 @@ import { useAllBorrowPositions } from "hooks/markets/useAllBorrowPositions"
 import { useActivePositions } from "hooks/positions/useActivePositions"
 import { ArrowDown, Check, CircleSlash } from "lucide-react"
 import { useMemo, useState } from "react"
-import { MorphoLogo } from "static/images/MorphoLogo"
 import { match } from "ts-pattern"
 import { useAccount } from "wagmi"
 import { useSearch } from "wouter"
@@ -44,6 +36,7 @@ export function HomePage() {
   const { data: activePositions } = useActivePositions({
     enabled: view === "active",
   })
+  const noActivePositions = activePositions && activePositions.length === 0
 
   const noPositions = borrowPositions && borrowPositions.length === 0
 
@@ -186,14 +179,18 @@ export function HomePage() {
             <TabsTrigger value="new" className="w-40">
               Fix My Borrows
             </TabsTrigger>
-            <TabsTrigger value="active" className="w-40">
+            <TabsTrigger
+              value="active"
+              className="w-40"
+              disabled={noActivePositions}
+            >
               My Fixed Borrows
             </TabsTrigger>
           </TabsList>
 
-          <div className="flex w-full justify-between">
+          {/* <div className="flex w-full justify-between gap-2">
             <Select>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="All Protocols" />
               </SelectTrigger>
 
@@ -209,7 +206,7 @@ export function HomePage() {
             </Select>
 
             <Select>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Sort By: Loan Size" />
               </SelectTrigger>
               <SelectContent>
@@ -217,7 +214,7 @@ export function HomePage() {
                 <SelectItem value="banana">Fixed Rate</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
           <TabsContent value="new" asChild>
             <div className="flex w-full flex-col items-center gap-y-12">

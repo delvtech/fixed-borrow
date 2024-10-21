@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:staging": "tsc && vite build --mode development",
     "preview": "vite preview",
     "format": "prettier --write '**/*.{gql,graphql,js,jsx,ts,tsx,json,md,yaml,yml}'",
     "format:check": "prettier --check '**/*.{gql,graphql,js,jsx,ts,tsx,json,md}'",
@@ -38,6 +39,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "config": "*",
+    "date-fns": "^4.1.0",
     "dnum": "^2.12.0",
     "lodash-es": "^4.17.21",
     "lucide-react": "^0.427.0",

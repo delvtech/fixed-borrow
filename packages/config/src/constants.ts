@@ -2,11 +2,13 @@ import { Address, Chain } from "viem"
 import { mainnet, sepolia } from "viem/chains"
 
 export const delvChain = {
-  id: 42069,
-  name: "☁️Chain",
+  id: 707,
+  name: "HRB Testnet",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: {
-    default: { http: ["https://fork.hyperdrive.money:8545"] },
+    default: {
+      http: ["http://ec2-3-18-106-165.us-east-2.compute.amazonaws.com:8545/"],
+    },
   },
   blockExplorers: {
     default: { name: "Etherscan", url: "https://etherscan.io" },
@@ -32,7 +34,7 @@ export const supportedChainIds: Chain["id"][] = [
   delvChain.id,
 ] as const
 
-export type SupportedChainId = 1 | 11155111 | 42069
+export type SupportedChainId = 1 | 11155111 | 707
 
 export const morphoAddressesByChain: Record<
   SupportedChainId,
@@ -60,21 +62,23 @@ export const whitelistedMetaMorphoMarketsByChain: Record<
   { morphoId: string; hyperdrive: Address }[]
 > = {
   [mainnet.id]: [
+    // sUSDe / DAI 86%
     {
       morphoId:
         "0x39d11026eae1c6ec02aa4c0910778664089cdd97c3fd23f68f7cd05e2e95af48",
       hyperdrive: "0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30",
     },
+    // USDe / DAI 86%
     {
       morphoId:
-        "0x8e6aeb10c401de3279ac79b4b2ea15fc94b7d9cfc098d6c2a1ff7b2b26d9d02c",
+        "0xc581c5f70bd1afa283eed57d1418c6432cbff1d862f94eaf58fdd4e46afbb67f",
       hyperdrive: "0xA29A771683b4857bBd16e1e4f27D5B6bfF53209B",
     },
-    {
-      morphoId:
-        "0xd0e50cdac92fe2172043f5e0c36532c6369d24947e40968f34a5e8819ca9ec5d",
-      hyperdrive: "0xc8D47DE20F7053Cc02504600596A647A482Bbc46",
-    },
+    // {
+    //   morphoId:
+    //     "0xd0e50cdac92fe2172043f5e0c36532c6369d24947e40968f34a5e8819ca9ec5d",
+    //   hyperdrive: "0xc8D47DE20F7053Cc02504600596A647A482Bbc46",
+    // },
   ],
   [sepolia.id]: [
     {

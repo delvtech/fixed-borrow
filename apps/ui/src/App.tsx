@@ -45,7 +45,7 @@ function App() {
         >
           <Container>
             <Navbar />
-            <div className="grow">
+            <div className="min-h-[calc(100vh-72px)] grow">
               <Switch>
                 <Route path="/" component={HomePage} />
                 <Route path="/dev" component={DevPage} />

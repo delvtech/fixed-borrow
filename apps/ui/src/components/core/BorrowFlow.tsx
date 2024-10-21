@@ -23,6 +23,7 @@ import SlippageSettings, {
 } from "components/forms/SlippageSettings"
 import { TokenPair } from "components/tokens/TokenPair"
 import { cn } from "components/utils"
+import { format } from "date-fns"
 import { useApproval } from "hooks/base/useApproval"
 import { useEtherscan } from "hooks/base/useEtherscan"
 import { useBorrowRateQuote } from "hooks/borrow/useBorrowRateQuote"
@@ -234,6 +235,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
         props.market.loanToken.decimals
       ).format({
         decimals: 2,
+        trailingZeros: false,
       }) +
       " " +
       props.market.loanToken.symbol
@@ -242,6 +244,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
     ? rateQuoteData.impact.format({
         decimals: 2,
         percent: true,
+        trailingZeros: false,
       })
     : undefined
   const formattedProjectedMaxDebt = rateQuoteData
@@ -295,12 +298,10 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
   return (
     <div className="relative flex w-full gap-4">
-      <Card className="m-auto w-full max-w-lg animate-fade">
+      <Card className="max-w-lg animate-fade">
         {state.step === "buy" && (
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="gradient-text w-fit font-chakra text-ice">
-              Convert to Fixed Rate
-            </CardTitle>
+            <CardTitle>Convert to Fixed Rate</CardTitle>
 
             {showSteps ? (
               <Button variant="ghost" onClick={() => setShowSteps(false)}>
@@ -364,7 +365,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                         Loan Amount to Fix
                       </p>
 
-                      <div className="flex items-center">
+                      <div className="flex items-center gap-2">
                         <Button
                           className="h-5 w-fit p-2 text-secondary-foreground hover:bg-primary hover:text-background"
                           variant="outline"
@@ -436,12 +437,20 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
                   <div className="space-y-1">
                     <div className="flex justify-between">
-                      <p className="text-sm text-secondary-foreground">
-                        Percent Fixed: {round(newPercentCovered, 2)}%
-                      </p>
-                      {/* <p className="text-sm text-secondary-foreground">
-                      Net: 75%
-                    </p> */}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger className="flex items-center gap-1 text-secondary-foreground">
+                            <p className="text-sm">
+                              Percent Fixed: {round(newPercentCovered, 2)}%
+                            </p>
+                            <Info size={14} />
+                          </TooltipTrigger>
+
+                          <TooltipContent className="border border-secondary p-4 text-sm">
+                            The percent of the loan that is fixed already.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                     <Progress
                       segments={[
@@ -464,7 +473,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
               {!rateQuoteData?.error && (
                 <div className="grid grid-cols-3">
                   <div className="grid gap-1 text-sm">
-                    <p className="text-secondary-foreground">Your Deposit</p>
+                    <p className="text-secondary-foreground">Your Payment</p>
                     <div className="space-y-1">
                       {formattedCostOfCoverage ? (
                         <p className="animate-fadeFast font-mono text-h4">
@@ -545,13 +554,13 @@ export function BorrowFlow(props: BorrowFlowProps) {
               {/* Button */}
               <div className="space-y-2">
                 {state.bondAmount === 0n ? (
-                  <Button size="lg" className="h-12 w-full text-lg" disabled>
+                  <Button size="lg" className="w-full text-md" disabled>
                     Enter an amount
                   </Button>
                 ) : newPercentCovered > 100 ? (
                   <Button
                     size="lg"
-                    className="h-12 w-full text-lg"
+                    className="w-full text-md"
                     disabled
                     // TODO reset to 100%
                     // onClick={handleOpenShort}
@@ -561,7 +570,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 ) : needsApproval ? (
                   <Button
                     size="lg"
-                    className={cn("h-12 w-full text-lg disabled:opacity-100", {
+                    className={cn("w-full text-md disabled:opacity-100", {
                       "animate-pulse": isApprovalLoading,
                     })}
                     disabled={isApprovalLoading}
@@ -571,12 +580,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     {props.market.loanToken.symbol} {isApprovalLoading && "..."}
                   </Button>
                 ) : rateQuoteData?.error ? (
-                  <Button
-                    size="lg"
-                    className="h-12 w-full text-lg"
-                    disabled
-                    onClick={handleOpenShort}
-                  >
+                  <Button size="lg" className="w-full text-md" disabled>
                     {rateQuoteData.error}
                   </Button>
                 ) : (
@@ -601,12 +605,17 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     </div>
                     <Button
                       size="lg"
-                      className="h-12 w-full text-lg"
+                      className="w-full text-md"
                       disabled={transactionButtonDisabled || !warningAccepted}
                       onClick={handleOpenShort}
                     >
                       Lock In Your Rate
                     </Button>
+
+                    <p className="text-center text-sm text-secondary-foreground">
+                      Matures {format(formattedMaturityDate, "MMMM do, yyyy")}.
+                      Unfix anytime.
+                    </p>
                   </div>
                 )}
               </div>

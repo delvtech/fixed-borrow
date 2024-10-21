@@ -39,7 +39,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
             title="Your Current Loan"
             value={`${totalDebt.format({
               decimals: 2,
-              compactDisplay: "short",
+              trailingZeros: false,
             })} ${props.market.loanToken.symbol}`}
             secondaryValue={props.totalDebtUsd}
           />
@@ -54,7 +54,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
         </CardContent>
       </Card>
 
-      <div className="z-20 -mt-6 flex flex-col items-center gap-5 rounded-xl rounded-t-none border-y border-l border-r bg-background p-6 pl-16 sm:z-0 sm:-ml-8 sm:mt-0 sm:rounded-l-none">
+      <div className="z-20 -mt-6 flex flex-col items-center gap-5 rounded-xl rounded-t-none border-y border-l border-r bg-background p-6 pl-6 sm:z-0 sm:-ml-8 sm:mt-0 sm:rounded-l-none sm:pl-16">
         <div className="flex w-full grow flex-col justify-between">
           <div className="space-y-2 text-center">
             <TooltipProvider>

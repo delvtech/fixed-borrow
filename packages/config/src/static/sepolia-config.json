@@ -1,20 +1,6 @@
 {
   "tokens": [
     {
-      "address": "0xe8b99bF4249D90C0eB900651F92485F7160A0513",
-      "symbol": "DAI",
-      "name": "DAI",
-      "decimals": 18,
-      "iconUrl": "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.svg?v=032"
-    },
-    {
-      "address": "0x9458CaACa74249AbBE9E964b3Ce155B98EC88EF2",
-      "symbol": "USDe",
-      "name": "USDe",
-      "decimals": 18,
-      "iconUrl": "https://cdn.morpho.org/assets/logos/susde.svg"
-    },
-    {
       "address": "0x56a50847ba69e9EFAD57eaDf6994CDFbae3d2180",
       "symbol": "USDC",
       "name": "USDC",
@@ -27,6 +13,20 @@
       "name": "Wrapped liquid staked Ether 2.0",
       "decimals": 18,
       "iconUrl": "https://cdn.morpho.org/assets/logos/wsteth.svg"
+    },
+    {
+      "address": "0xe8b99bF4249D90C0eB900651F92485F7160A0513",
+      "symbol": "DAI",
+      "name": "DAI",
+      "decimals": 18,
+      "iconUrl": "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.svg?v=032"
+    },
+    {
+      "address": "0x9458CaACa74249AbBE9E964b3Ce155B98EC88EF2",
+      "symbol": "USDe",
+      "name": "USDe",
+      "decimals": 18,
+      "iconUrl": "https://cdn.morpho.org/assets/logos/susde.svg"
     }
   ],
   "morphoMarkets": [

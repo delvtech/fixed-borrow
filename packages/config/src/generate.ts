@@ -39,7 +39,9 @@ const sepoliaPublicClient = createPublicClient({
 
 const delvChainPublicClient = createPublicClient({
   chain: delvChain,
-  transport: http("https://fork.hyperdrive.money:8545"),
+  transport: http(
+    "http://ec2-3-18-106-165.us-east-2.compute.amazonaws.com:8545/"
+  ),
 })
 
 function getClient(chainId: number) {
