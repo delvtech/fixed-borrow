@@ -299,9 +299,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
       <Card className="max-w-lg animate-fade">
         {state.step === "buy" && (
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="gradient-text w-fit font-chakra text-ice">
-              Convert to Fixed Rate
-            </CardTitle>
+            <CardTitle>Convert to Fixed Rate</CardTitle>
 
             {showSteps ? (
               <Button variant="ghost" onClick={() => setShowSteps(false)}>
@@ -365,7 +363,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                         Loan Amount to Fix
                       </p>
 
-                      <div className="flex items-center">
+                      <div className="flex items-center gap-2">
                         <Button
                           className="h-5 w-fit p-2 text-secondary-foreground hover:bg-primary hover:text-background"
                           variant="outline"
@@ -437,12 +435,20 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
                   <div className="space-y-1">
                     <div className="flex justify-between">
-                      <p className="text-sm text-secondary-foreground">
-                        Percent Fixed: {round(newPercentCovered, 2)}%
-                      </p>
-                      {/* <p className="text-sm text-secondary-foreground">
-                      Net: 75%
-                    </p> */}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger className="flex items-center gap-1 text-secondary-foreground">
+                            <p className="text-sm">
+                              Percent Fixed: {round(newPercentCovered, 2)}%
+                            </p>
+                            <Info size={14} />
+                          </TooltipTrigger>
+
+                          <TooltipContent className="border border-secondary p-4 text-sm">
+                            The percent of the loan that is fixed already.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                     <Progress
                       segments={[
@@ -546,13 +552,13 @@ export function BorrowFlow(props: BorrowFlowProps) {
               {/* Button */}
               <div className="space-y-2">
                 {state.bondAmount === 0n ? (
-                  <Button size="lg" className="h-12 w-full text-lg" disabled>
+                  <Button size="lg" className="h-12 w-full text-md" disabled>
                     Enter an amount
                   </Button>
                 ) : newPercentCovered > 100 ? (
                   <Button
                     size="lg"
-                    className="h-12 w-full text-lg"
+                    className="h-12 w-full text-md"
                     disabled
                     // TODO reset to 100%
                     // onClick={handleOpenShort}
@@ -562,7 +568,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 ) : needsApproval ? (
                   <Button
                     size="lg"
-                    className={cn("h-12 w-full text-lg disabled:opacity-100", {
+                    className={cn("h-12 w-full text-md disabled:opacity-100", {
                       "animate-pulse": isApprovalLoading,
                     })}
                     disabled={isApprovalLoading}
@@ -572,7 +578,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     {props.market.loanToken.symbol} {isApprovalLoading && "..."}
                   </Button>
                 ) : rateQuoteData?.error ? (
-                  <Button size="lg" className="h-12 w-full text-lg" disabled>
+                  <Button size="lg" className="h-12 w-full text-md" disabled>
                     {rateQuoteData.error}
                   </Button>
                 ) : (
@@ -597,7 +603,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     </div>
                     <Button
                       size="lg"
-                      className="h-12 w-full text-lg"
+                      className="h-12 w-full text-md"
                       disabled={transactionButtonDisabled || !warningAccepted}
                       onClick={handleOpenShort}
                     >

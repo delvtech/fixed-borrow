@@ -1,5 +1,4 @@
 import { fixed, FixedPoint } from "@delvtech/fixed-point-wasm"
-import { OpenShort } from "@delvtech/hyperdrive-viem"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
 import { Collapsible, CollapsibleContent } from "components/base/collapsible"
@@ -30,7 +29,8 @@ interface ActivePositionCardProps {
 }
 
 export function ActivePositionCard(props: ActivePositionCardProps) {
-  const [selectedOpenShort, setSelectedOpenShort] = useState<OpenShort>()
+  const [selectedOpenShort, setSelectedOpenShort] =
+    useState<OpenShortPlusQuote>()
   const [tableOpen, setTableOpen] = useState(props.startOpened ?? false)
 
   const [closeCoverageModalOpen, setCloseCoverageModalOpen] = useState(false)

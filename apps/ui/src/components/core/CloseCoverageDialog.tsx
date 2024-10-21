@@ -24,15 +24,13 @@ import { useCloseShort } from "hooks/hyperdrive/useCloseShort"
 import { isNil } from "lodash-es"
 import { ExternalLink, Info } from "lucide-react"
 import { useReducer, useState } from "react"
-import { Market } from "src/types"
+import { Market, OpenShortPlusQuote } from "src/types"
 import { MorphoLogo } from "static/images/MorphoLogo"
 import { match } from "ts-pattern"
 import { formatTermLength } from "utils/formatTermLength"
 import { Address, Chain } from "viem"
 import { useAccount, useChainId, usePublicClient } from "wagmi"
 import { BigNumberInput } from "./BigNumberInput"
-
-const quickTokenAmountWeights = [0.25, 0.5, 0.75, 1] as const
 
 function useCloseCoverageData(
   market: Market,
@@ -146,7 +144,7 @@ const reducer = (state: State, action: Action): State => {
 
 interface CloseCoverageDialogProps extends DialogProps {
   market: Market
-  short: OpenShort
+  short: OpenShortPlusQuote
 }
 
 export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
@@ -174,6 +172,12 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
 
   // Computed values
   const isMatured = new Date() > new Date(Number(props.short.maturity) * 1000)
+  const formattedRateQuote = closeCoverageData
+    ? fixed(props.short.rateQuote, 6).format({
+        percent: true,
+        decimals: 2,
+      })
+    : undefined
   const formattedAmountOut = closeCoverageData
     ? fixed(closeCoverageData.amountOut, decimals).format({
         decimals: 2,
@@ -227,16 +231,6 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
 
   const { url: transactionUrl } = useEtherscan(state.hash, "tx")
 
-  const quickAmountValues = quickTokenAmountWeights.map((weight) => {
-    // const amount = fixed(props.position.totalDebt).mul(parseFixed(weight))
-    const amount = fixed(totalShortAmount).mul(parseFixed(weight))
-
-    return {
-      weight,
-      amount,
-    }
-  })
-
   // const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 
   const { formatted: formattedDuration } = formatTermLength(
@@ -264,18 +258,6 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
     setShortAmountInput(parsed.bigint)
   }
 
-  const handleQuickAmountAction = (amount: FixedPoint) => {
-    const input = document.getElementById(
-      "shortAmountInput"
-    ) as HTMLInputElement
-    input.value = amount.format({
-      trailingZeros: false,
-      group: false,
-    })
-
-    handleShortAmountInput(input.value)
-  }
-
   const executeButtonDisabled =
     shortAmountInput === 0n || isNil(shortAmountInput) || !closeCoverageData
 
@@ -288,17 +270,15 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
               aria-describedby={undefined}
               className="animate-fade"
             >
-              <DialogTitle asChild>
-                <h4 className="w-fit font-chakra text-h4 text-primary">
-                  {isMatured ? "Close Position" : "Revert to Variable"}
-                </h4>
+              <DialogTitle>
+                {isMatured ? "Close Position" : "Revert to Variable"}
               </DialogTitle>
 
               <div className="grid gap-6">
                 <div className="space-y-4 rounded-lg bg-accent p-4">
                   <MarketHeader
                     market={props.market}
-                    className="text-h5 font-normal"
+                    className="text-h5"
                     variant="secondary"
                   />
 
@@ -307,9 +287,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                       <p className="text-sm text-secondary-foreground">
                         Duration
                       </p>
-                      <p className="font-chakra text-lg font-medium">
-                        {formattedDuration}
-                      </p>
+                      <p className="font-mono">{formattedDuration}</p>
                     </div>
 
                     {/* TODO */}
@@ -317,14 +295,14 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                       <p className="text-sm text-secondary-foreground">
                         Fixed Rate
                       </p>
-                      <p className="font-chakra text-lg font-medium">10.70%</p>
+                      <p className="font-mono">{formattedRateQuote}</p>
                     </div>
 
                     <div className="flex flex-col gap-1 whitespace-nowrap">
                       <p className="text-sm text-secondary-foreground">
                         Amount
                       </p>
-                      <p className="font-chakra text-lg font-medium">
+                      <p className="font-mono">
                         {formattedBondAmount} {symbol}
                       </p>
                     </div>
@@ -352,12 +330,34 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-secondary-foreground">
-                        Amount
+                        Amount to Revert
                       </p>
-                      <SlippageSettings
-                        amount={slippage}
-                        onChange={setSlippage}
-                      />
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          className="h-5 w-fit p-2 text-secondary-foreground hover:bg-primary hover:text-background"
+                          variant="outline"
+                          onClick={() => {
+                            setShortAmountInput(props.short.bondAmount)
+                            const inputElement = document.getElementById(
+                              "shortAmountInput"
+                            ) as HTMLInputElement
+                            inputElement.value = fixed(
+                              props.short.bondAmount
+                            ).format({
+                              group: false,
+                              trailingZeros: false,
+                            })
+                          }}
+                        >
+                          Max
+                        </Button>
+
+                        <SlippageSettings
+                          amount={slippage}
+                          onChange={setSlippage}
+                        />
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between rounded-sm bg-popover font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
@@ -376,40 +376,6 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                         />{" "}
                         {props.market.loanToken.symbol}
                       </Badge>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex gap-x-2">
-                        {quickAmountValues.map((quickAction) => (
-                          <Button
-                            key={`quick-action-${quickAction.weight}`}
-                            onClick={() =>
-                              handleQuickAmountAction(quickAction.amount)
-                            }
-                            className={cn(
-                              "h-min rounded-[4px] bg-accent p-1 text-xs text-secondary-foreground hover:bg-accent/60 hover:text-secondary-foreground",
-                              {
-                                "text-foreground/75 hover:text-foreground/75":
-                                  shortAmountInput ===
-                                  quickAction.amount.bigint,
-                              }
-                            )}
-                          >
-                            {quickAction.weight === 1
-                              ? "Max"
-                              : `${quickAction.weight * 100}%`}
-                          </Button>
-                        ))}
-                      </div>
-
-                      <p className="text-right text-sm text-secondary-foreground">
-                        Max:{" "}
-                        {totalShortAmount.format({
-                          decimals: 2,
-                          trailingZeros: false,
-                        })}{" "}
-                        {symbol}
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -484,7 +450,8 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
 
                 <div className="space-y-4">
                   <Button
-                    className={cn("w-full", {
+                    size="lg"
+                    className={cn("h-12 w-full text-md", {
                       "animate-pulse": isPending,
                     })}
                     disabled={executeButtonDisabled}

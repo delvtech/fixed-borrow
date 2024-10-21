@@ -119,6 +119,8 @@ const columns: ColumnDef<MarketInfo>[] = [
 
       const lltv = fixed(row.original.market.lltv).format({
         percent: true,
+        decimals: 1,
+        trailingZeros: false,
       })
 
       return (
