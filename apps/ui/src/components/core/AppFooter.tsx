@@ -3,7 +3,7 @@ export default function AppFooter() {
     <footer className="w-full border-t px-8 py-12">
       <div className="grid grid-cols-[repeat(auto-fit,190px)] gap-8 md:flex-row">
         <div className="space-y-2">
-          <img className="h-5" src="/fixed-borrow-logo.png" />
+          <img className="h-5" src="/assets/logos/fixed-borrow-logo.png" />
 
           <p className="text-sm text-secondary-foreground">
             Copyright © 2024 DELV
@@ -17,7 +17,7 @@ export default function AppFooter() {
               rel="noreferrer noopener"
             >
               <img
-                src="/logos/x.svg"
+                src="/assets/logos/x.svg"
                 className="size-4"
                 alt="Description"
                 loading="lazy"
@@ -31,7 +31,7 @@ export default function AppFooter() {
               rel="noreferrer noopener"
             >
               <img
-                src="/logos/farcaster-light.svg"
+                src="/assets/logos/farcaster-light.svg"
                 className="size-6"
                 alt="Description"
                 loading="lazy"
@@ -44,7 +44,7 @@ export default function AppFooter() {
               rel="noreferrer noopener"
             >
               <img
-                src="/logos/linkedin.svg"
+                src="/assets/logos/linkedin.svg"
                 className="size-6"
                 alt="Description"
                 loading="lazy"
