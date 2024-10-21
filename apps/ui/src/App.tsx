@@ -11,6 +11,7 @@ import { BorrowPage } from "pages/BorrowPage"
 import DevPage from "pages/DevPage"
 import { HomePage } from "pages/HomePage"
 import { RestrictedCountriesPage } from "pages/RestrictedCountriesPage"
+import { VpnNotAllowedPage } from "pages/VpnNotAllowedPage"
 import { PropsWithChildren, useEffect } from "react"
 import { WagmiProvider } from "wagmi"
 import { Route, Switch, useLocation } from "wouter"
@@ -63,6 +64,7 @@ function App() {
                     path="/restricted_countries"
                     component={RestrictedCountriesPage}
                   />
+                  <Route path="/vpn" component={VpnNotAllowedPage} />
 
                   {/* Default route in a switch */}
                   <Route>404: No such page!</Route>

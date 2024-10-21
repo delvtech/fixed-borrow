@@ -160,7 +160,7 @@ export function HomePage() {
               }}
             >
               <img
-                src="/logos/Morpho-logo-symbol-darkmode.svg"
+                src="/assets/logos/Morpho-logo-symbol-darkmode.svg"
                 alt="Morpho logo"
                 className="size-3"
               />
@@ -258,7 +258,7 @@ export function HomePage() {
         <div className="space-y-4 text-center">
           <img
             className="m-auto size-12 rounded p-2"
-            src="logos/morpho-logo-dark.svg"
+            src="assets/logos/morpho-logo-dark.svg"
             alt="Morpho logo"
           />
           <h1 className="font-chakra text-h3">Start with a Morpho Position</h1>
