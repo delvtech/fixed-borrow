@@ -1,6 +1,6 @@
 export default function AppFooter() {
   return (
-    <footer className="mt-24 w-full border-t px-8 py-12">
+    <footer className="w-full border-t px-8 py-12">
       <div className="grid grid-cols-[repeat(auto-fit,190px)] gap-8 md:flex-row">
         <div className="space-y-2">
           <img className="h-5" src="/fixed-borrow-logo.png" />
