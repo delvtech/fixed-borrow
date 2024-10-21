@@ -160,7 +160,6 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
   const symbol = props.market.loanToken.symbol
   const decimals = props.market.loanToken.decimals
 
-  const totalShortAmount = fixed(props.short.bondAmount)
   const [shortAmountInput, setShortAmountInput] = useState<bigint>()
 
   const [slippage, setSlippage] = useState(defaultSlippageAmount)
