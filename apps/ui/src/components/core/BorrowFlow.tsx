@@ -530,7 +530,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                           <TooltipContent className="border border-secondary p-4">
                             <p>
                               The impact your position will have on this
-                              market's fixed rate.
+                              market&apos;s fixed rate.
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -712,7 +712,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
             <div className="flex gap-4">
               <p className="font-chakra text-ice">1</p>
               <p>
-                Enter the amount of your current Morpho loan you'd like to
+                Enter the amount of your current Morpho loan you&apos;d like to
                 convert to a fixed rate.
               </p>
             </div>
@@ -725,7 +725,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
             <div className="flex gap-4">
               <p className="font-chakra text-ice">3</p>
               <p>
-                Monitor your borrow position to ensure it's not at risk of
+                Monitor your borrow position to ensure it&apos;s not at risk of
                 liquidation. Once the fixed rate protection expires, claim the
                 proceeds to pay off any accrued interest on your Morpho borrow
                 position.
