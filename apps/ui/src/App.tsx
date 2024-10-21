@@ -1,11 +1,16 @@
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit"
 import "@rainbow-me/rainbowkit/styles.css"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { TermsOfServiceDialog } from "components/compliance/TermsOfServiceDialog"
 import AppFooter from "components/core/AppFooter"
 import { Navbar } from "components/core/Navigation"
+import { useAddressScreen } from "hooks/compliance/useAddressScreen"
+import { RegionInfoProvider } from "hooks/compliance/useRegionInfo"
+import { useVpnScreen } from "hooks/compliance/useVpnScreen"
 import { BorrowPage } from "pages/BorrowPage"
 import DevPage from "pages/DevPage"
 import { HomePage } from "pages/HomePage"
+import { RestrictedCountriesPage } from "pages/RestrictedCountriesPage"
 import { PropsWithChildren, useEffect } from "react"
 import { WagmiProvider } from "wagmi"
 import { Route, Switch, useLocation } from "wouter"
@@ -20,6 +25,9 @@ const queryClient = new QueryClient({
 })
 
 function Container(props: PropsWithChildren) {
+  useVpnScreen()
+  useAddressScreen()
+
   // Scroll to top for every location change.
   const [location] = useLocation()
   useEffect(() => {
@@ -43,21 +51,29 @@ function App() {
             fontStack: "system",
           })}
         >
-          <Container>
-            <Navbar />
-            <div className="min-h-[calc(100vh-72px)] grow">
-              <Switch>
-                <Route path="/" component={HomePage} />
-                <Route path="/dev" component={DevPage} />
-                <Route path="/borrow/:hyperdrive" component={BorrowPage} />
+          <RegionInfoProvider>
+            <Container>
+              <Navbar />
+              <div className="min-h-[calc(100vh-72px)] grow pb-24">
+                <Switch>
+                  <Route path="/" component={HomePage} />
+                  <Route path="/dev" component={DevPage} />
+                  <Route path="/borrow/:hyperdrive" component={BorrowPage} />
+                  <Route
+                    path="/restricted_countries"
+                    component={RestrictedCountriesPage}
+                  />
 
-                {/* Default route in a switch */}
-                <Route>404: No such page!</Route>
-              </Switch>
-            </div>
+                  {/* Default route in a switch */}
+                  <Route>404: No such page!</Route>
+                </Switch>
+              </div>
 
-            <AppFooter />
-          </Container>
+              <TermsOfServiceDialog />
+
+              <AppFooter />
+            </Container>
+          </RegionInfoProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

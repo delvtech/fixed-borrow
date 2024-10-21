@@ -20,9 +20,10 @@ import SlippageSettings, {
 import { MarketHeader } from "components/markets/MarketHeader"
 import { cn } from "components/utils"
 import { useEtherscan } from "hooks/base/useEtherscan"
+import { useRegionInfo } from "hooks/compliance/useRegionInfo"
 import { useCloseShort } from "hooks/hyperdrive/useCloseShort"
 import { isNil } from "lodash-es"
-import { ExternalLink, Info } from "lucide-react"
+import { EarthLock, ExternalLink, Info } from "lucide-react"
 import { useReducer, useState } from "react"
 import { Market, OpenShortPlusQuote } from "src/types"
 import { MorphoLogo } from "static/images/MorphoLogo"
@@ -153,6 +154,7 @@ interface CloseCoverageDialogProps extends DialogProps {
 }
 
 export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
+  const { isReadOnly } = useRegionInfo()
   const { address: account } = useAccount()
   const client = usePublicClient()
   const queryClient = useQueryClient()
@@ -453,7 +455,18 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                 </div>
 
                 <div className="space-y-4">
-                  {shortAmountInput === undefined || shortAmountInput === 0n ? (
+                  {isReadOnly ? (
+                    <Button
+                      variant="destructive"
+                      size="lg"
+                      className="w-full items-center gap-2 text-md"
+                      disabled
+                    >
+                      <EarthLock size={16} />
+                      Not available in your region
+                    </Button>
+                  ) : shortAmountInput === undefined ||
+                    shortAmountInput === 0n ? (
                     <Button size="lg" className="w-full text-md" disabled>
                       Enter an Amount
                     </Button>
