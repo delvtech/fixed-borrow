@@ -1,5 +1,5 @@
 import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
-import { OpenShort, ReadHyperdrive } from "@delvtech/hyperdrive-viem"
+import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { DialogProps } from "@radix-ui/react-dialog"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import Spinner from "components/animations/Spinner"
@@ -34,7 +34,7 @@ import { BigNumberInput } from "./BigNumberInput"
 
 function useCloseCoverageData(
   market: Market,
-  short: OpenShort,
+  short: OpenShortPlusQuote,
   shortAmount?: bigint
 ) {
   const client = usePublicClient()
@@ -64,6 +64,9 @@ function useCloseCoverageData(
 
       if (shortAmount > 0n) {
         try {
+          if (shortAmount > short.bondAmount) {
+            throw new Error("Amount too large")
+          }
           const closeShortData = await readHyperdrive.previewCloseShort({
             maturityTime: short.maturity,
             shortAmountIn: shortAmount,
@@ -74,13 +77,15 @@ function useCloseCoverageData(
           flatPlusCurveFee = closeShortData.flatPlusCurveFee
         } catch (e) {
           if (e instanceof Error) {
-            if (e.message.includes("MinimumTransactionAmount")) {
+            if (e.message === "MinimumTransactionAmount") {
               error = "Amount too small"
             } else if (
-              e.message.includes("InsufficientLiquidity: Negative Interest")
+              e.message === "InsufficientLiquidity: Negative Interest"
             ) {
               error = "Not Enough Liquidity"
             }
+
+            error = e.message
           }
         }
       }
@@ -449,20 +454,30 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                 </div>
 
                 <div className="space-y-4">
-                  <Button
-                    size="lg"
-                    className={cn("h-12 w-full text-md", {
-                      "animate-pulse": isPending,
-                    })}
-                    disabled={executeButtonDisabled}
-                    onClick={handleCloseShort}
-                  >
-                    {isPending
-                      ? "Sign Transaction..."
-                      : isMatured
-                        ? "Close Position"
-                        : "Revert to Variable"}
-                  </Button>
+                  {shortAmountInput === undefined || shortAmountInput === 0n ? (
+                    <Button size="lg" className="w-full text-md" disabled>
+                      Enter an Amount
+                    </Button>
+                  ) : closeCoverageData?.error ? (
+                    <Button size="lg" className="w-full text-md" disabled>
+                      {closeCoverageData.error}
+                    </Button>
+                  ) : (
+                    <Button
+                      size="lg"
+                      className={cn("w-full text-md", {
+                        "animate-pulse": isPending,
+                      })}
+                      disabled={executeButtonDisabled}
+                      onClick={handleCloseShort}
+                    >
+                      {isPending
+                        ? "Sign Transaction..."
+                        : isMatured
+                          ? "Close Position"
+                          : "Revert to Variable"}
+                    </Button>
+                  )}
 
                   {/* <Collapsible
                     open={isDetailsOpen}

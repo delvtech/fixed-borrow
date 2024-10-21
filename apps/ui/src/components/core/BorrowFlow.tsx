@@ -235,6 +235,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
         props.market.loanToken.decimals
       ).format({
         decimals: 2,
+        trailingZeros: false,
       }) +
       " " +
       props.market.loanToken.symbol
@@ -243,6 +244,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
     ? rateQuoteData.impact.format({
         decimals: 2,
         percent: true,
+        trailingZeros: false,
       })
     : undefined
   const formattedProjectedMaxDebt = rateQuoteData
@@ -552,13 +554,13 @@ export function BorrowFlow(props: BorrowFlowProps) {
               {/* Button */}
               <div className="space-y-2">
                 {state.bondAmount === 0n ? (
-                  <Button size="lg" className="h-12 w-full text-md" disabled>
+                  <Button size="lg" className="w-full text-md" disabled>
                     Enter an amount
                   </Button>
                 ) : newPercentCovered > 100 ? (
                   <Button
                     size="lg"
-                    className="h-12 w-full text-md"
+                    className="w-full text-md"
                     disabled
                     // TODO reset to 100%
                     // onClick={handleOpenShort}
@@ -568,7 +570,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                 ) : needsApproval ? (
                   <Button
                     size="lg"
-                    className={cn("h-12 w-full text-md disabled:opacity-100", {
+                    className={cn("w-full text-md disabled:opacity-100", {
                       "animate-pulse": isApprovalLoading,
                     })}
                     disabled={isApprovalLoading}
@@ -578,7 +580,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     {props.market.loanToken.symbol} {isApprovalLoading && "..."}
                   </Button>
                 ) : rateQuoteData?.error ? (
-                  <Button size="lg" className="h-12 w-full text-md" disabled>
+                  <Button size="lg" className="w-full text-md" disabled>
                     {rateQuoteData.error}
                   </Button>
                 ) : (
@@ -603,7 +605,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     </div>
                     <Button
                       size="lg"
-                      className="h-12 w-full text-md"
+                      className="w-full text-md"
                       disabled={transactionButtonDisabled || !warningAccepted}
                       onClick={handleOpenShort}
                     >
