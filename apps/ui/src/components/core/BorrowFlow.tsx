@@ -458,47 +458,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     />
                   </div>
                 </div>
-
-                <ArrowRight className="m-auto text-ice" />
-
-                <div className="grid justify-items-end gap-1 text-sm">
-                  <p className="text-secondary-foreground">
-                    Locks in Fixed Rate
-                  </p>
-
-                  {formattedRateQuote ? (
-                    <p className="animate-fadeFast font-mono text-h4">
-                      {formattedRateQuote}
-                    </p>
-                  ) : (
-                    <Skeleton className="h-[30px] w-[70px] rounded-sm bg-white/10" />
-                  )}
-
-                  {formattedRateImpact ? (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger className="flex animate-fadeFast items-center gap-1 text-xs text-secondary-foreground">
-                          <p className="font-mono text-xs text-secondary-foreground">
-                            Rate Impact {formattedRateImpact}
-                          </p>
-                          <Info
-                            className="text-secondary-foreground"
-                            size={14}
-                          />
-                        </TooltipTrigger>
-
-                        <TooltipContent className="border border-secondary p-4">
-                          <p>
-                            The impact your position will have on this market's
-                            fixed rate.
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : (
-                    <Skeleton className="h-[14px] w-[130px] rounded-sm bg-white/10" />
-                  )}
-                </div>
               </div>
 
               {/* Stats row */}
@@ -618,7 +577,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     disabled
                     onClick={handleOpenShort}
                   >
-                    Lock In Your Rate
+                    {rateQuoteData.error}
                   </Button>
                 ) : (
                   <div className="space-y-4">
@@ -633,7 +592,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                         />
                         <label
                           htmlFor="terms"
-                          className="text-sm leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          className="text-sm leading-none text-secondary-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
                           Acknowledge that you are responsible for maintaining a
                           healthy loan to value ratio.
