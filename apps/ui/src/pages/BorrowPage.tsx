@@ -92,24 +92,23 @@ export function BorrowPage() {
               <div className="flex gap-4">
                 <p className="font-chakra text-ice">1</p>
                 <p>
-                  Enter the proportion of your current loan you want to receive
-                  a fixed rate.
+                  Enter the amount of your current Morpho loan you'd like to
+                  convert to a fixed rate.
                 </p>
               </div>
 
               <div className="flex gap-4">
                 <p className="font-chakra text-ice">2</p>
-                <p>
-                  Pay a deposit for the fixed rate. You will receive this back.
-                </p>
+                <p>Make an upfront interest payment to convert your loan.</p>
               </div>
 
               <div className="flex gap-4">
                 <p className="font-chakra text-ice">3</p>
                 <p>
-                  Monitor your borrow position to ensure it’s healthy. Once the
-                  fixed rate expires, use the proceeds to pay off any accrued
-                  interest.
+                  Monitor your borrow position to ensure it's not at risk of
+                  liquidation. Once the fixed rate protection expires, claim the
+                  proceeds to pay off any accrued interest on your Morpho borrow
+                  position.
                 </p>
               </div>
 

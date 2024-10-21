@@ -177,10 +177,10 @@ export function HomePage() {
         >
           <TabsList className="mb-5 w-fit">
             <TabsTrigger value="new" className="w-40">
-              Fix Your Borrow
+              Fix My Borrows
             </TabsTrigger>
             <TabsTrigger value="active" className="w-40">
-              Active Fixed Borrows
+              My Fixed Borrows
             </TabsTrigger>
           </TabsList>
 

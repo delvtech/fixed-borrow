@@ -502,7 +502,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
                         <TooltipContent className="border border-secondary p-4">
                           <p>
-                            The impact your position will have on this market’s
+                            The impact your position will have on this market's
                             fixed rate.
                           </p>
                         </TooltipContent>
@@ -578,7 +578,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                     disabled={transactionButtonDisabled || !warningAccepted}
                     onClick={handleOpenShort}
                   >
-                    Lock in your rate
+                    Lock In Your Rate
                   </Button>
                 </div>
               )}
