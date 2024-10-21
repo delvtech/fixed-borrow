@@ -2,6 +2,12 @@ import { fixed } from "@delvtech/fixed-point-wasm"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader } from "components/base/card"
 import { Separator } from "components/base/separator"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "components/base/tooltip"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { ChevronDown } from "lucide-react"
 import { ReactNode } from "react"
@@ -39,7 +45,7 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
           />
 
           <BorrowPositionCardStat
-            title="Your Borrowing Rate"
+            title="Your Borrow Rate"
             value={currentRate.format({
               decimals: 2,
               percent: true,
@@ -51,9 +57,19 @@ export function BorrowPositionCard(props: BorrowPositionCardProps) {
       <div className="z-20 -mt-6 flex flex-col items-center gap-5 rounded-xl rounded-t-none border-y border-l border-r bg-background p-6 pl-16 sm:z-0 sm:-ml-8 sm:mt-0 sm:rounded-l-none">
         <div className="flex w-full grow flex-col justify-between">
           <div className="space-y-2 text-center">
-            <p className="text-sm text-secondary-foreground">
-              Variable Rate 30d
-            </p>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger className="relative z-40" asChild>
+                  <p className="text-sm text-secondary-foreground">
+                    Variable Rate 30d
+                  </p>
+                </TooltipTrigger>
+
+                <TooltipContent className="z-[100] border border-secondary p-4">
+                  The variable rate range on your loan in the last 30 days.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             {props.rates ? (
               <p className="font-chakra text-h4 text-[#D3DAEB]">

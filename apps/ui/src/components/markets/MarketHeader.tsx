@@ -1,3 +1,4 @@
+import { fixed } from "@delvtech/fixed-point-wasm"
 import { Badge } from "components/base/badge"
 import { cn } from "components/utils"
 import { MorphoLogo } from "static/images/MorphoLogo"
@@ -56,7 +57,11 @@ export function MarketHeader(props: MarketHeaderProps) {
             "bg-[#16171c]": props.variant === "secondary",
           })}
         >
-          LTV: 86%
+          LLTV:{" "}
+          {fixed(props.market.lltv).format({
+            decimals: 2,
+            percent: true,
+          })}
         </Badge>
       </div>
     </div>

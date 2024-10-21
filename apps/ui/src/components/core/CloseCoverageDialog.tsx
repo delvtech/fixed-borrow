@@ -469,7 +469,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                           </p>
 
                           <p>
-                            You can learn more about the this process in our
+                            You can learn more about this process in our
                             documentation.
                           </p>
                         </TooltipContent>

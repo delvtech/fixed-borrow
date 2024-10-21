@@ -20,6 +20,7 @@ import { useMemo, useState } from "react"
 import { MorphoLogo } from "static/images/MorphoLogo"
 import { match } from "ts-pattern"
 import { useAccount } from "wagmi"
+import { useSearch } from "wouter"
 
 type Protocol = ["Morpho"][number]
 type SortingKey = ["Loan Size", "Fixed Rate"][number]
@@ -29,7 +30,13 @@ type View = "new" | "active"
 export function HomePage() {
   const { address: account, isConnected } = useAccount()
 
-  const [view, setView] = useState<View>("new")
+  const search = useSearch()
+  const params = new URLSearchParams(search)
+  const tabParam = params.get("tab")
+
+  const [view, setView] = useState<View>(
+    tabParam === "active" ? "active" : "new"
+  )
 
   const { data: borrowPositions, status: allBorrowPositionsQueryStatus } =
     useAllBorrowPositions(account)
@@ -177,10 +184,10 @@ export function HomePage() {
         >
           <TabsList className="mb-5 w-fit">
             <TabsTrigger value="new" className="w-40">
-              Fix Your Borrow
+              Fix My Borrows
             </TabsTrigger>
             <TabsTrigger value="active" className="w-40">
-              Active Fixed Borrows
+              My Fixed Borrows
             </TabsTrigger>
           </TabsList>
 

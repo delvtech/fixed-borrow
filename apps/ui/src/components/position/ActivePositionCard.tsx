@@ -14,7 +14,7 @@ import {
 } from "components/base/table"
 import { CloseCoverageDialog } from "components/core/CloseCoverageDialog"
 import { MarketHeader } from "components/markets/MarketHeader"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Market, OpenShortPlusQuote } from "src/types"
 import { Link } from "wouter"
@@ -136,8 +136,11 @@ export function ActivePositionCard(props: ActivePositionCardProps) {
             </p>
           </div>
 
-          <Button variant="ghost" onClick={() => setTableOpen((open) => !open)}>
-            <p>Manage</p> <ChevronDown />
+          <Button
+            variant="outline"
+            onClick={() => setTableOpen((open) => !open)}
+          >
+            <p>Manage</p> {tableOpen ? <ChevronUp /> : <ChevronDown />}
           </Button>
         </div>
 
