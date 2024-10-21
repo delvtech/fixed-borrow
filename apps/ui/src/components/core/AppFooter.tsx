@@ -5,7 +5,9 @@ export default function AppFooter() {
         <div className="space-y-2">
           <img className="h-5" src="/fixed-borrow-logo.png" />
 
-          <p className="text-secondary-foreground">Fixed Borrow</p>
+          <p className="text-sm text-secondary-foreground">
+            Copyright © 2024 DELV
+          </p>
 
           <div className="mt-2 flex flex-row items-center gap-3">
             <a
