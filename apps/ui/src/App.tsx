@@ -1,6 +1,7 @@
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit"
 import "@rainbow-me/rainbowkit/styles.css"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { TermsOfServiceDialog } from "components/compliance/TermsOfServiceDialog"
 import AppFooter from "components/core/AppFooter"
 import { Navbar } from "components/core/Navigation"
 import { useAddressScreen } from "hooks/compliance/useAddressScreen"
@@ -65,6 +66,8 @@ function App() {
                 <Route>404: No such page!</Route>
               </Switch>
             </div>
+
+            <TermsOfServiceDialog />
 
             <AppFooter />
           </Container>
