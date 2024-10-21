@@ -294,8 +294,8 @@ export function BorrowFlow(props: BorrowFlowProps) {
   )
 
   return (
-    <div className="flex gap-4">
-      <Card className="w-full max-w-lg animate-fade">
+    <div className="relative flex w-full gap-4">
+      <Card className="m-auto w-full max-w-lg animate-fade">
         {state.step === "buy" && (
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="gradient-text w-fit font-chakra text-ice">
@@ -375,6 +375,15 @@ export function BorrowFlow(props: BorrowFlowProps) {
                                 amount: maxBondAmount.toString(),
                               },
                             })
+
+                            const inputElement = document.getElementById(
+                              "bondAmountInput"
+                            ) as HTMLInputElement
+
+                            inputElement.value = fixed(maxBondAmount).format({
+                              group: false,
+                              trailingZeros: false,
+                            })
                           }}
                         >
                           Max
@@ -398,10 +407,6 @@ export function BorrowFlow(props: BorrowFlowProps) {
                       <BigNumberInput
                         id="bondAmountInput"
                         disabled={isNil(allowance)}
-                        // value={fixed(state.bondAmount, decimals).format({
-                        //   group: false,
-                        //   trailingZeros: false,
-                        // })}
                         onChange={(e) => {
                           try {
                             // sanitize input
@@ -486,7 +491,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
                             <p>
                               Learn more about converting your loan from a
-                              variable rate to a fixed rate, in the docs.
+                              variable rate to a fixed rate in the docs.
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -587,7 +592,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                         />
                         <label
                           htmlFor="terms"
-                          className="text-sm leading-none text-secondary-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          className="text-sm leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
                           Acknowledge that you are responsible for maintaining a
                           healthy loan to value ratio.
@@ -685,7 +690,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
 
               <div className="w-full space-y-2">
                 <Button className="w-full" asChild>
-                  <Link href={`/`}>View Position</Link>
+                  <Link href={`/?tab=active`}>View Position</Link>
                 </Button>
 
                 <Button variant="secondary" className="w-full" asChild>
