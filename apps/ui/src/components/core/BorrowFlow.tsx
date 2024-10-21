@@ -592,7 +592,7 @@ export function BorrowFlow(props: BorrowFlowProps) {
                         />
                         <label
                           htmlFor="terms"
-                          className="text-sm leading-none text-secondary-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          className="text-sm leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
                           Acknowledge that you are responsible for maintaining a
                           healthy loan to value ratio.
