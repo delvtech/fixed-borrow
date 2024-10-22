@@ -96,9 +96,6 @@ export function CustomConnectWalletButton() {
                     className="font-chakra font-semibold"
                   >
                     {account.displayName}
-                    {account.displayBalance
-                      ? ` (${account.displayBalance})`
-                      : ""}
                   </Button>
                 </div>
               )
