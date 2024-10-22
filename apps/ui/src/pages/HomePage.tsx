@@ -1,8 +1,8 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Skeleton } from "components/base/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/base/tabs"
+import { CustomConnectWalletButton } from "components/core/CustomConnectWalletButton"
 import { AllMarketsTable } from "components/markets/AllMarketsTable"
 import { ActivePositionCard } from "components/position/ActivePositionCard"
 import { BorrowPositionCard } from "components/position/BorrowPositionCard"
@@ -36,7 +36,8 @@ export function HomePage() {
   const { data: activePositions } = useActivePositions({
     enabled: view === "active",
   })
-  const noActivePositions = activePositions && activePositions.length === 0
+  const disableActivePositions =
+    (activePositions && activePositions.length === 0) || !isConnected
 
   const noPositions = borrowPositions && borrowPositions.length === 0
 
@@ -79,7 +80,7 @@ export function HomePage() {
             </h3>
 
             <div className="flex justify-center gap-6">
-              <ConnectButton />
+              <CustomConnectWalletButton />
             </div>
           </div>
         )
@@ -175,18 +176,20 @@ export function HomePage() {
           defaultValue="new"
           className="grid justify-items-center gap-2"
         >
-          <TabsList className="mb-5 w-fit">
-            <TabsTrigger value="new" className="w-40">
-              Fix My Borrows
-            </TabsTrigger>
-            <TabsTrigger
-              value="active"
-              className="w-40"
-              disabled={noActivePositions}
-            >
-              My Fixed Borrows
-            </TabsTrigger>
-          </TabsList>
+          {isConnected && (
+            <TabsList className="mb-5 w-fit">
+              <TabsTrigger value="new" className="w-40">
+                Fix My Borrows
+              </TabsTrigger>
+              <TabsTrigger
+                value="active"
+                className="w-40"
+                disabled={disableActivePositions}
+              >
+                My Fixed Borrows
+              </TabsTrigger>
+            </TabsList>
+          )}
 
           {/* <div className="flex w-full justify-between gap-2">
             <Select>
