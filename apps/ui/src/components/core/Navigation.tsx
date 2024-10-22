@@ -9,7 +9,7 @@ export function Navbar() {
   return (
     <div className="grid grid-cols-3 items-center px-8 py-4">
       <div className="flex items-center gap-8">
-        <Button variant="ghost" className="shrink-0 rounded-lg" asChild>
+        <Button variant="ghost" className="h-14 shrink-0 rounded-sm" asChild>
           <Link href="/" aria-label="Go to Hyperdrive Home page">
             {isAtLeastSm ? (
               <img
@@ -17,10 +17,7 @@ export function Navbar() {
                 src="/assets/logos/delv-fixed-borrow-logo.svg"
               />
             ) : (
-              <img
-                className="h-5"
-                src="/assets/logos/assets/logos/hyperdrive-logo.svg"
-              />
+              <img className="h-5" src="/assets/logos/hyperdrive-logo.svg" />
             )}
           </Link>
         </Button>
