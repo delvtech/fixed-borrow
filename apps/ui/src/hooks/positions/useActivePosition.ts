@@ -2,11 +2,9 @@ import { fixed } from "@delvtech/fixed-point-wasm"
 import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { QueryKey, useQuery, UseQueryOptions } from "@tanstack/react-query"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
-import { rainbowConfig } from "src/client/rainbowClient"
 import { Market, OpenShortPlusQuote, Position } from "src/types"
 import { Address, fromHex, Hex, parseAbiItem, toFunctionSelector } from "viem"
 import { useAccount, useChainId, usePublicClient } from "wagmi"
-import { getPublicClient } from "wagmi/actions"
 import { SupportedChainId } from "~/constants"
 
 type TypedQueryOptions = Omit<
@@ -25,11 +23,9 @@ export function useActivePosition(
   const enabled = !!address && !!client && !!market
 
   return useQuery({
-    queryKey: [],
+    queryKey: ["active-position", address, market],
     queryFn: enabled
       ? async () => {
-          const client = getPublicClient(rainbowConfig)
-
           const reader = new MorphoMarketReader(
             client,
             chainId as SupportedChainId

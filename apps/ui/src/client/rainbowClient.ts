@@ -2,7 +2,7 @@ import { getDefaultConfig } from "@rainbow-me/rainbowkit"
 import { Chain, mainnet, sepolia } from "viem/chains"
 import { http } from "wagmi"
 
-export const delvChain: Chain = {
+export const delvChain = {
   id: 707,
   name: "HRB Testnet",
 
