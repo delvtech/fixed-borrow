@@ -15,6 +15,7 @@ import { VpnNotAllowedPage } from "pages/VpnNotAllowedPage"
 import { PropsWithChildren, useEffect } from "react"
 import { WagmiProvider } from "wagmi"
 import { Route, Switch, useLocation } from "wouter"
+import { Plausible } from "./analytics/Plausible"
 import { rainbowConfig } from "./client/rainbowClient"
 
 const queryClient = new QueryClient({
@@ -72,7 +73,7 @@ function App() {
               </div>
 
               <TermsOfServiceDialog />
-
+              <Plausible />
               <AppFooter />
             </Container>
           </RegionInfoProvider>
