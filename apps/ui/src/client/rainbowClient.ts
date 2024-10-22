@@ -1,11 +1,11 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit"
-import { createTestClient } from "viem"
 import { Chain, mainnet, sepolia } from "viem/chains"
 import { http } from "wagmi"
 
 export const delvChain = {
   id: 707,
   name: "HRB Testnet",
+
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: {
     default: {
@@ -30,20 +30,26 @@ export const delvChain = {
   },
 } as const satisfies Chain
 
-export const testClient = createTestClient({
-  chain: delvChain,
-  mode: "anvil",
-  transport: http(
-    "http://ec2-3-18-106-165.us-east-2.compute.amazonaws.com:8545/"
-  ),
-})
-
-export const rainbowConfig = getDefaultConfig({
+const productionConfig = getDefaultConfig({
   appName: "Hyperdrive Borrow",
   projectId: import.meta.env.VITE_WALLET_CONNECT_ID,
+  chains: [mainnet],
+  ssr: false,
+  transports: {
+    [mainnet.id]: http(
+      "https://eth-mainnet.g.alchemy.com/v2/jhjiuDykxwKqhI8hEbj15nV2ZKED7O6z",
+      {
+        batch: true,
+      }
+    ),
+  },
+})
 
+const developmentConfig = getDefaultConfig({
+  appName: "Hyperdrive Borrow",
+  projectId: import.meta.env.VITE_WALLET_CONNECT_ID,
   chains: [mainnet, sepolia, delvChain],
-  ssr: false, // If your dApp uses server side rendering (SSR)
+  ssr: false,
   transports: {
     [mainnet.id]: http(
       "https://eth-mainnet.g.alchemy.com/v2/jhjiuDykxwKqhI8hEbj15nV2ZKED7O6z",
@@ -66,4 +72,5 @@ export const rainbowConfig = getDefaultConfig({
   },
 })
 
-export const viemClient = rainbowConfig.getClient()
+export const rainbowConfig =
+  import.meta.env.MODE === "production" ? productionConfig : developmentConfig

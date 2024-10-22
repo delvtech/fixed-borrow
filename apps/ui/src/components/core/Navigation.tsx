@@ -1,7 +1,7 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useMediaQuery } from "@uidotdev/usehooks"
 import { Button } from "components/base/button"
 import { Link } from "wouter"
+import { CustomConnectWalletButton } from "./CustomConnectWalletButton"
 
 export function Navbar() {
   const isAtLeastSm = useMediaQuery("(min-width: 640px)")
@@ -27,17 +27,7 @@ export function Navbar() {
 
       <div className="flex items-center gap-x-2 justify-self-end">
         <div className="min-h-[40px] w-max">
-          <ConnectButton
-            showBalance={false}
-            accountStatus={{
-              smallScreen: "avatar",
-              largeScreen: "full",
-            }}
-            chainStatus={{
-              smallScreen: "icon",
-              largeScreen: "icon",
-            }}
-          />
+          <CustomConnectWalletButton />
         </div>
       </div>
     </div>

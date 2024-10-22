@@ -2,97 +2,107 @@ import { fixed } from "@delvtech/fixed-point-wasm"
 import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { UseQueryOptions } from "@tanstack/react-query"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
-import { rainbowConfig } from "src/client/rainbowClient"
 import { OpenShortPlusQuote, Position } from "src/types"
 import { Address, fromHex, Hex, parseAbiItem, toFunctionSelector } from "viem"
-import { getPublicClient } from "wagmi/actions"
+import { usePublicClient } from "wagmi"
 import { SupportedChainId } from "~/constants"
 
 export function getPositionsQuery(
   chainId: SupportedChainId,
   account?: Address
 ): UseQueryOptions<Position[]> {
+  const client = usePublicClient()
+  const enabled = !!account && !!client
+
   return {
     queryKey: ["positions", account, chainId],
-    queryFn: async () => {
-      if (!account) return []
+    queryFn: enabled
+      ? async () => {
+          const reader = new MorphoMarketReader(
+            client,
+            chainId as SupportedChainId
+          )
+          const borrowPositions = await reader.getBorrowPositions(account)
+          const blockNumber = await client.getBlockNumber()
 
-      const client = getPublicClient(rainbowConfig)
+          return await Promise.all(
+            borrowPositions.map(async (position) => {
+              const readHyperdrive = new ReadHyperdrive({
+                address: position.market.hyperdrive,
+                publicClient: client!,
+              })
 
-      const reader = new MorphoMarketReader(client, chainId as SupportedChainId)
-      const borrowPositions = await reader.getBorrowPositions(account)
-      const blockNumber = await client.getBlockNumber()
+              const logs = await client.getLogs({
+                address: position.market.hyperdrive,
+                args: {
+                  trader: account,
+                },
+                fromBlock: 0n,
+                event: parseAbiItem(
+                  "event OpenShort(address indexed trader,uint256 indexed assetId,uint256 maturityTime,uint256 amount,uint256 vaultSharePrice,bool asBase,uint256 baseProceeds,uint256 bondAmount,bytes extraData)"
+                ),
+              })
 
-      return await Promise.all(
-        borrowPositions.map(async (position) => {
-          const readHyperdrive = new ReadHyperdrive({
-            address: position.market.hyperdrive,
-            publicClient: client!,
-          })
+              const rateQuoteRecord = new Map<string, bigint>()
 
-          const logs = await client.getLogs({
-            address: position.market.hyperdrive,
-            args: {
-              trader: account,
-            },
-            fromBlock: 0n,
-            event: parseAbiItem(
-              "event OpenShort(address indexed trader,uint256 indexed assetId,uint256 maturityTime,uint256 amount,uint256 vaultSharePrice,bool asBase,uint256 baseProceeds,uint256 bondAmount,bytes extraData)"
-            ),
-          })
+              for (const log of logs) {
+                const extraData = log.args.extraData
+                const assetId = log.args.assetId
 
-          const rateQuoteRecord = new Map<string, bigint>()
+                if (extraData && assetId) {
+                  const selector = extraData.slice(0, 10)
+                  const quoteHex = "0x" + extraData.slice(10)
 
-          for (const log of logs) {
-            const extraData = log.args.extraData
-            const assetId = log.args.assetId
-
-            if (extraData && assetId) {
-              const selector = extraData.slice(0, 10)
-              const quoteHex = "0x" + extraData.slice(10)
-
-              if (toFunctionSelector("frb(uint24)") === (selector as Address)) {
-                rateQuoteRecord.set(
-                  assetId.toString(),
-                  fromHex(quoteHex as Hex, "bigint")
-                )
+                  if (
+                    toFunctionSelector("frb(uint24)") === (selector as Address)
+                  ) {
+                    rateQuoteRecord.set(
+                      assetId.toString(),
+                      fromHex(quoteHex as Hex, "bigint")
+                    )
+                  }
+                }
               }
-            }
-          }
 
-          const decimals = position.market.loanToken.decimals
+              const decimals = position.market.loanToken.decimals
 
-          const shorts = await readHyperdrive.getOpenShorts({
-            account: account,
-            options: {
-              blockNumber,
-            },
-          })
+              const shorts = await readHyperdrive.getOpenShorts({
+                account: account,
+                options: {
+                  blockNumber,
+                },
+              })
 
-          const frbShorts: OpenShortPlusQuote[] = shorts
-            .filter((short) => rateQuoteRecord.has(short.assetId.toString()))
-            .map((short) => ({
-              ...short,
-              rateQuote: rateQuoteRecord.get(short.assetId.toString())!,
-            }))
-          const totalCoverage = shorts.reduce((prev, curr) => {
-            return prev + curr.bondAmount
-          }, 0n)
+              const frbShorts: OpenShortPlusQuote[] = shorts
+                .filter((short) =>
+                  rateQuoteRecord.has(short.assetId.toString())
+                )
+                .map((short) => ({
+                  ...short,
+                  rateQuote: rateQuoteRecord.get(short.assetId.toString())!,
+                }))
+              const totalCoverage = shorts.reduce((prev, curr) => {
+                return prev + curr.bondAmount
+              }, 0n)
 
-          const debtCovered =
-            position.totalDebt === 0n
-              ? fixed(0n, decimals)
-              : fixed(totalCoverage, decimals).div(position.totalDebt, decimals)
+              const debtCovered =
+                position.totalDebt === 0n
+                  ? fixed(0n, decimals)
+                  : fixed(totalCoverage, decimals).div(
+                      position.totalDebt,
+                      decimals
+                    )
 
-          return {
-            market: position.market,
-            position,
-            shorts: frbShorts,
-            totalCoverage,
-            debtCovered,
-          }
-        })
-      )
-    },
+              return {
+                market: position.market,
+                position,
+                shorts: frbShorts,
+                totalCoverage,
+                debtCovered,
+              }
+            })
+          )
+        }
+      : undefined,
   }
 }
