@@ -12,7 +12,10 @@ export function Navbar() {
         <Button variant="ghost" className="shrink-0 rounded-lg" asChild>
           <Link href="/" aria-label="Go to Hyperdrive Home page">
             {isAtLeastSm ? (
-              <img className="h-5" src="/assets/logos/fixed-borrow-logo.png" />
+              <img
+                className="h-10"
+                src="/assets/logos/delv-fixed-borrow-logo.svg"
+              />
             ) : (
               <img
                 className="h-5"
