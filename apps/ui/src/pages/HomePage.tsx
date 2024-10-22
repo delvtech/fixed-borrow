@@ -93,7 +93,7 @@ export function HomePage() {
             </div>
             <div>
               Unable to load borrow positions. Please contact our support
-              service.
+              service in Discord.
             </div>
           </div>
         )
@@ -145,9 +145,9 @@ export function HomePage() {
       </div>
 
       {noPositions ? (
-        <div className="space-y-6 text-center">
+        <div className="animate-fade space-y-6 text-center">
           <h3 className="font-chakra text-h4 font-light">
-            You don’t have any supported borrow positions on Morpho
+            You don't have any supported borrow positions on Morpho
           </h3>
 
           <div className="flex justify-center gap-6">
