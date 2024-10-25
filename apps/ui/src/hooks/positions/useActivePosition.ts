@@ -23,7 +23,7 @@ export function useActivePosition(
   const enabled = !!address && !!client && !!market
 
   return useQuery({
-    queryKey: ["active-position", address, market],
+    queryKey: ["active-position", address, market?.hyperdrive],
     queryFn: enabled
       ? async () => {
           const reader = new MorphoMarketReader(
