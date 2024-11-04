@@ -20,8 +20,8 @@ export function Plausible(): ReactNode {
     <Helmet>
       <script
         defer={true}
-        src="https://plausible.io/js/script.manual.js"
-        data-domain={window.location.host}
+        src="https://plausible.io/js/script.hash.outbound-links.pageview-props.tagged-events.js"
+        data-domain="fixed-borrow.hyperdrive.box"
       ></script>
     </Helmet>
   ) : null
