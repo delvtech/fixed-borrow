@@ -1,44 +1,49 @@
-<!-- [![License](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](https://github.com/delvtech/hyperdrive-frontend/blob/master/LICENSE) -->
+[![License](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](https://github.com/delvtech/hyperdrive-frontend/blob/master/LICENSE)
 
 [![Static Badge](https://img.shields.io/badge/DELV-Terms%20Of%20Service-orange)](https://delv-public.s3.us-east-2.amazonaws.com/delv-terms-of-service.pdf)
 
-## Hyperdrive-Borrow
+# DELV Fixed Borrow
 
-A TypeScript monorepo containing apps and packages for integrating and
-interacting with Hyperdrive Borrow.
+DELV Fixed Borrow enables existing DeFi borrowers on Morpho to fix their interest rates and gain predictability on borrow costs.
 
-Powered by [TurboRepo](https://turbo.build).
+## Getting Started
 
-## What is inside?
+### Prerequisites
 
-Apps
+- Node.js (version >=20.0)
+- Yarn (version 1.22.22)
 
-- [@hyperdrive-borrow/ui](apps/hyperdrive-trading/) - A frontend for interacting with Hyperdrive Borrow
+### Installation
 
-Packages
+1. Clone the repository:
 
-- [@hyperdrive-borrow/artifacts](packages/artifacts/) - ABIs and bytecode for protocol contracts
-- [@hyperdrive-borrow/config](packages/config/) - Hyperdrive Borrow static metadata by chain
+```
+git clone https://github.com/delvetch/delv-fixed-borrow.git
+```
 
-<!-- ### Creating a release
+2. Install dependencies:
 
-This repo uses [changesets](https://github.com/changesets/changesets) to manage
-versioning and changelogs. This means you shouldn't need to manually change of
-the internal package versions.
+```
+cd delv-fixed-borrow yarn install
+```
 
-Before opening a PR, run `yarn changeset` and follow the prompts to describe the
-changes you've made. This will create a changeset file that should be committed.
+## Project Structure
 
-As changesets are committed to the `main` branch, the [changesets github
-action](https://github.com/changesets/action) in the release workflow will
-automatically keep track of the pending `package.json` and `CHANGELOG.md`
-updates in an open PR titled `chore: version packages`.
+This repository is organized as a monorepo using Turborepo. Here's an overview of the main packages:
 
-Once this PR is merged, the release workflow will be triggered, creating new
-tags and github releases, and publishing the updated packages to NPM. **These
-PRs should be carefully reviewed!** -->
+- [apps/ui](cci:7://file:///Users/cashdeleon/workspace/delv/fixed-borrow-interface/apps/ui:0:0-0:0): The main user interface for DELV Fixed Borrow
+- [packages/config](cci:7://file:///Users/cashdeleon/workspace/delv/fixed-borrow-interface/packages/config:0:0-0:0): Shared configuration files
+- [packages/artifacts](cci:7://file:///Users/cashdeleon/workspace/delv/fixed-borrow-interface/packages/artifacts:0:0-0:0): ABI artifacts
 
-# Disclaimer
+## Contributing
+
+We welcome contributions to DELV Fixed Borrow! Please see our [Contributing Guide](CONTRIBUTING.md) for more details on how to get started.
+
+## License
+
+This project is licensed under the GNU Affero General Public License Version 3.0 (AGPL-3.0). See the [LICENSE](LICENSE) file for details.
+
+## Disclaimer
 
 The language used in this code and documentation is not intended to, and does not, have any particular financial, legal, or regulatory significance.
 
@@ -46,8 +51,6 @@ The language used in this code and documentation is not intended to, and does no
 
 Copyright © 2024 DELV
 
-<!-- Licensed under the GNU Affero General Public License Version 3.0 (the "OSS License").
+This project is open source software licensed under the AGPL-3.0 license. By accessing or using this code, you agree to comply with the terms of the AGPL-3.0 license and DELV's Terms of Service. If you do not agree to these terms, you are prohibited from accessing or using this code.
 
-By accessing or using this code, you signify that you have read, understand and agree to be bound by and to comply with the [OSS License](https://www.gnu.org/licenses/gpl-3.0.html) and [DELV's Terms of Service](https://delv-public.s3.us-east-2.amazonaws.com/delv-terms-of-service.pdf). If you do not agree to those terms, you are prohibited from accessing or using this code.
-
-Unless required by applicable law or agreed to in writing, software distributed under the OSS License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the OSS License and the DELV Terms of Service for the specific language governing permissions and limitations. -->
+Unless required by applicable law or agreed to in writing, software distributed under the AGPL-3.0 license is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the AGPL-3.0 license and the DELV Terms of Service for the specific language governing permissions and limitations.
