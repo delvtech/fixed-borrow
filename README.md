@@ -1,5 +1,4 @@
 [![License](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](https://github.com/delvtech/hyperdrive-frontend/blob/master/LICENSE)
-
 [![Static Badge](https://img.shields.io/badge/DELV-Terms%20Of%20Service-orange)](https://delv-public.s3.us-east-2.amazonaws.com/delv-terms-of-service.pdf)
 
 # DELV Fixed Borrow
