@@ -60,7 +60,7 @@ export default function AppFooter() {
           <a
             target="_blank"
             rel="noreferrer noopener"
-            href="https://docs.hyperdrive.box"
+            href="https://docs.hyperdrive.box/quick-start/faqs-fixed-borrow"
             className="hover:underline"
           >
             Documentation
