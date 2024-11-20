@@ -1,5 +1,6 @@
 import { FixedPoint } from "@delvtech/fixed-point-wasm"
 import { OpenShort } from "@delvtech/hyperdrive-viem"
+import { Market as CustomMarket } from "dfb-config"
 import { Address } from "viem"
 
 /** Interface that includes useful market state data.  */
@@ -24,29 +25,8 @@ export interface MarketInfo {
 }
 
 /** The core interface for a market that contains critical information. */
-export interface Market {
-  /** Loan token information. */
-  loanToken: Token
-
-  /** Collateral token information. */
-  collateralToken: Token
-
-  /** The max loan to value ratio for the market,
-   * priced in 18 point decimals.
-   */
-  lltv: bigint
-
-  /** Hyperdrive contract address */
-  hyperdrive: Address
-
-  /** Hyperdrive term duration */
-  duration: bigint
-
-  /** Special metadata related to the market, this can differ
-   * in structure depending on the market type.
-   */
-  metadata: MorphoMarketMetadata
-}
+// TODO: Remove this and replace with Market type from dfb-config
+export type Market = CustomMarket
 
 export interface MorphoMarketMetadata {
   id: Address

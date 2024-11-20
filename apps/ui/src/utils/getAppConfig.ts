@@ -1,51 +1,23 @@
-import { Address } from "viem"
-import { SupportedChainId } from "../constants"
-
-import { delvChainConfig, mainnetConfig, sepoliaConfig } from "config"
+import {
+  Config,
+  dfbChainConfig,
+  ethereumConfig,
+  sepoliaConfig,
+} from "dfb-config"
 import { delvChain } from "src/client/rainbowClient"
 import { mainnet } from "viem/chains"
-import { ArrayElement, Market } from "../types"
+import { SupportedChainId } from "../constants"
 
-function transformMetaMorphoMarkets(
-  rawData: ArrayElement<(typeof sepoliaConfig)["morphoMarkets"]>
-): Market {
-  return {
-    loanToken: {
-      ...rawData.loanToken,
-      address: rawData.loanToken.address as Address,
-    },
-    collateralToken: {
-      ...rawData.collateralToken,
-      address: rawData.collateralToken.address as Address,
-    },
-    hyperdrive: rawData.hyperdrive as Address,
-    duration: BigInt(rawData.duration),
-    lltv: BigInt(rawData.lltv),
-    metadata: {
-      id: rawData.id as Address,
-      oracle: rawData.oracle as Address,
-      irm: rawData.irm as Address,
-    },
-  }
-}
-
-function transfromAppConfig(config: typeof sepoliaConfig) {
-  return {
-    ...config,
-    morphoMarkets: config.morphoMarkets.map(transformMetaMorphoMarkets),
-  }
-}
-
-export function getAppConfig(chainId: SupportedChainId) {
+export function getAppConfig(chainId: SupportedChainId): Config {
   let config = sepoliaConfig
 
   if (chainId === mainnet.id) {
-    config = mainnetConfig
+    config = ethereumConfig
   }
 
   if (chainId === delvChain.id) {
-    config = delvChainConfig
+    config = dfbChainConfig
   }
 
-  return transfromAppConfig(config)
+  return config
 }
