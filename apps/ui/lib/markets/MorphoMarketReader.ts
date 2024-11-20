@@ -10,8 +10,8 @@ import {
 import { AdaptiveCurveIrmAbi } from "artifacts/morpho/AdaptiveCurveIrmAbi"
 import { MorphoBlueAbi } from "artifacts/morpho/MorphoBlueAbi"
 import { OracleAbi } from "artifacts/morpho/OracleAbi"
+import { SupportedChainId, morphoAddressesByChain } from "dfb-config"
 import { Address, PublicClient } from "viem"
-import { SupportedChainId, morphoAddressesByChain } from "../../src/constants"
 import {
   BorrowPosition,
   Market,

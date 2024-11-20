@@ -17,9 +17,8 @@
     "noUnusedParameters": false,
     "preserveWatchOutput": true,
     "skipLibCheck": true,
-    "strict": true,
-    "resolveJsonModule": true
+    "strict": true
   },
-  "include": ["./src/static/*.ts"],
+  "include": ["src/index.ts"],
   "exclude": ["node_modules"]
 }

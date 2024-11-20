@@ -1,11 +1,11 @@
 import { fixed } from "@delvtech/fixed-point-wasm"
 import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { UseQueryOptions } from "@tanstack/react-query"
+import { SupportedChainId } from "dfb-config"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { OpenShortPlusQuote, Position } from "src/types"
 import { Address, fromHex, Hex, parseAbiItem, toFunctionSelector } from "viem"
 import { usePublicClient } from "wagmi"
-import { SupportedChainId } from "~/constants"
 
 export function getPositionsQuery(
   chainId: SupportedChainId,

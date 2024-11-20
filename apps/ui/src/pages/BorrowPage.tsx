@@ -1,6 +1,7 @@
 import { Button } from "components/base/button"
 import { Skeleton } from "components/base/skeleton"
 import { BorrowFlow } from "components/core/BorrowFlow"
+import { SupportedChainId } from "dfb-config"
 import { useBorrowPosition } from "hooks/borrow/useBorrowPosition"
 import { useActivePosition } from "hooks/positions/useActivePosition"
 import { MoveLeft } from "lucide-react"
@@ -9,7 +10,6 @@ import { getAppConfig } from "utils/getAppConfig"
 import { useChainId } from "wagmi"
 import { Link, useParams } from "wouter"
 import { navigate } from "wouter/use-browser-location"
-import { SupportedChainId } from "~/constants"
 
 export function BorrowPage() {
   const params = useParams()

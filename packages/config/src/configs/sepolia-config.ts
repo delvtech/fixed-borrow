@@ -1,4 +1,7 @@
-{
+
+  // This file is auto-generated. Do not edit manually.
+  import { Config } from "../types";
+  export const sepoliaConfig: Config = {
   "tokens": [
     {
       "address": "0x56a50847ba69e9EFAD57eaDf6994CDFbae3d2180",
@@ -31,7 +34,6 @@
   ],
   "morphoMarkets": [
     {
-      "id": "0xb9049de02baa044eb4bf58fc00f772c310bac9e9d1857c3517aa9d41b12fe762",
       "hyperdrive": "0x00583284597c48A5de4753A2374076C289B93505",
       "loanToken": {
         "address": "0x56a50847ba69e9EFAD57eaDf6994CDFbae3d2180",
@@ -47,13 +49,15 @@
         "decimals": 18,
         "iconUrl": "https://cdn.morpho.org/assets/logos/wsteth.svg"
       },
-      "oracle": "0x8f1AE6B11a339e829243fe0404b9496631E2AC64",
-      "irm": "0x0fB591F09ab2eB967c0EFB9eE0EF6642c2abe6Ab",
-      "lltv": "860000000000000000",
-      "duration": "1209600"
+      "lltv": 860000000000000000n,
+      "duration": 1209600n,
+      "metadata": {
+        "id": "0xb9049de02baa044eb4bf58fc00f772c310bac9e9d1857c3517aa9d41b12fe762",
+        "oracle": "0x8f1AE6B11a339e829243fe0404b9496631E2AC64",
+        "irm": "0x0fB591F09ab2eB967c0EFB9eE0EF6642c2abe6Ab"
+      }
     },
     {
-      "id": "0x3ac16258a0f8e99f393bf117c45048187f87beacc8d7873d52436a003726b2d5",
       "hyperdrive": "0x0399BBA8DE5959007148a95ADaaD04eA3172513E",
       "loanToken": {
         "address": "0xe8b99bF4249D90C0eB900651F92485F7160A0513",
@@ -69,10 +73,14 @@
         "decimals": 18,
         "iconUrl": "https://cdn.morpho.org/assets/logos/susde.svg"
       },
-      "oracle": "0x23F3A48121861b78f66BbE3DF60AD24A21c4DDad",
-      "irm": "0x0fB591F09ab2eB967c0EFB9eE0EF6642c2abe6Ab",
-      "lltv": "980000000000000000",
-      "duration": "1209600"
+      "lltv": 980000000000000000n,
+      "duration": 1209600n,
+      "metadata": {
+        "id": "0x3ac16258a0f8e99f393bf117c45048187f87beacc8d7873d52436a003726b2d5",
+        "oracle": "0x23F3A48121861b78f66BbE3DF60AD24A21c4DDad",
+        "irm": "0x0fB591F09ab2eB967c0EFB9eE0EF6642c2abe6Ab"
+      }
     }
   ]
-}
+} as const;
+  

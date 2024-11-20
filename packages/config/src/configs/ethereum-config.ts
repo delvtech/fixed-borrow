@@ -1,4 +1,7 @@
-{
+
+  // This file is auto-generated. Do not edit manually.
+  import { Config } from "../types";
+  export const ethereumConfig: Config = {
   "tokens": [
     {
       "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
@@ -24,7 +27,6 @@
   ],
   "morphoMarkets": [
     {
-      "id": "0x39d11026eae1c6ec02aa4c0910778664089cdd97c3fd23f68f7cd05e2e95af48",
       "hyperdrive": "0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30",
       "loanToken": {
         "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
@@ -40,13 +42,15 @@
         "decimals": 18,
         "iconUrl": "https://cdn.morpho.org/assets/logos/usde.svg"
       },
-      "oracle": "0x5D916980D5Ae1737a8330Bf24dF812b2911Aae25",
-      "irm": "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-      "lltv": "860000000000000000",
-      "duration": "15724800"
+      "lltv": 860000000000000000n,
+      "duration": 15724800n,
+      "metadata": {
+        "id": "0x39d11026eae1c6ec02aa4c0910778664089cdd97c3fd23f68f7cd05e2e95af48",
+        "oracle": "0x5D916980D5Ae1737a8330Bf24dF812b2911Aae25",
+        "irm": "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC"
+      }
     },
     {
-      "id": "0xc581c5f70bd1afa283eed57d1418c6432cbff1d862f94eaf58fdd4e46afbb67f",
       "hyperdrive": "0xA29A771683b4857bBd16e1e4f27D5B6bfF53209B",
       "loanToken": {
         "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
@@ -62,10 +66,14 @@
         "decimals": 18,
         "iconUrl": "https://cdn.morpho.org/assets/logos/susde.svg"
       },
-      "oracle": "0xaE4750d0813B5E37A51f7629beedd72AF1f9cA35",
-      "irm": "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-      "lltv": "860000000000000000",
-      "duration": "15724800"
+      "lltv": 860000000000000000n,
+      "duration": 15724800n,
+      "metadata": {
+        "id": "0xc581c5f70bd1afa283eed57d1418c6432cbff1d862f94eaf58fdd4e46afbb67f",
+        "oracle": "0xaE4750d0813B5E37A51f7629beedd72AF1f9cA35",
+        "irm": "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC"
+      }
     }
   ]
-}
+} as const;
+  

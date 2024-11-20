@@ -147,7 +147,7 @@ export function HomePage() {
       {noPositions ? (
         <div className="animate-fade space-y-6 text-center">
           <h3 className="font-chakra text-h4 font-light">
-            You don't have any supported borrow positions on Morpho
+            You don&apos;t have any supported borrow positions on Morpho
           </h3>
 
           <div className="flex justify-center gap-6">

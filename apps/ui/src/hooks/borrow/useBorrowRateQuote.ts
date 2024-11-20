@@ -2,10 +2,10 @@ import { fixed, FixedPoint } from "@delvtech/fixed-point-wasm"
 import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { useQuery } from "@tanstack/react-query"
 import { useDebounce } from "@uidotdev/usehooks"
+import { SupportedChainId } from "dfb-config"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { isNil } from "lodash-es"
 import { useChainId, usePublicClient } from "wagmi"
-import { SupportedChainId } from "~/constants"
 import { Market } from "../../types"
 
 /**
