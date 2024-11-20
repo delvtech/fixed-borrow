@@ -1,7 +1,7 @@
+import { SupportedChainId } from "dfb-config"
 import { delvChain } from "src/client/rainbowClient"
 import { Address, parseUnits } from "viem"
 import { mainnet, sepolia } from "viem/chains"
-import { SupportedChainId } from "../constants"
 
 const tokenUsdPriceResolvers: Record<
   SupportedChainId,

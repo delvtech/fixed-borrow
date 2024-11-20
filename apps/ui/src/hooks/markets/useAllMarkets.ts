@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
+import { SupportedChainId } from "dfb-config"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { useChainId, usePublicClient } from "wagmi"
-import { SupportedChainId } from "../../constants"
 import { MarketInfo } from "../../types"
 
 export function useAllMarkets() {

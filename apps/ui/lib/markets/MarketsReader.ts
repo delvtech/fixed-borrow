@@ -1,6 +1,6 @@
+import { SupportedChainId } from "dfb-config"
 import { Address, Block, PublicClient } from "viem"
 import { mainnet } from "viem/chains"
-import { SupportedChainId } from "../../src/constants"
 import { BorrowPosition, Market, MarketInfo } from "../../src/types"
 
 /**

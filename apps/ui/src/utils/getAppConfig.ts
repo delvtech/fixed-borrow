@@ -3,10 +3,10 @@ import {
   dfbChainConfig,
   ethereumConfig,
   sepoliaConfig,
+  SupportedChainId,
 } from "dfb-config"
 import { delvChain } from "src/client/rainbowClient"
 import { mainnet } from "viem/chains"
-import { SupportedChainId } from "../constants"
 
 export function getAppConfig(chainId: SupportedChainId): Config {
   let config = sepoliaConfig

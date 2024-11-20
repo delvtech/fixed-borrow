@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
+import { SupportedChainId } from "dfb-config"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { Market } from "src/types"
 import { useAccount, useChainId, usePublicClient } from "wagmi"
-import { SupportedChainId } from "~/constants"
 
 /**
  * Hook for fetching borrow information data for a singular market.

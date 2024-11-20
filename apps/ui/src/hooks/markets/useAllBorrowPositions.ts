@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
+import { SupportedChainId } from "dfb-config"
 import { MorphoMarketReader } from "lib/markets/MorphoMarketReader"
 import { Address } from "viem"
 import { useChainId, usePublicClient } from "wagmi"
-import { SupportedChainId } from "~/constants"
 
 export function useAllBorrowPositions(account?: Address) {
   const chainId = useChainId()

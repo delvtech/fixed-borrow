@@ -16,8 +16,8 @@ import { MarketHeader } from "components/markets/MarketHeader"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { useMemo, useState } from "react"
 import { Market, OpenShortPlusQuote } from "src/types"
+import { dayInSeconds } from "utils/constants"
 import { Link } from "wouter"
-import { dayInSeconds } from "~/constants"
 
 interface ActivePositionCardProps {
   market: Market
