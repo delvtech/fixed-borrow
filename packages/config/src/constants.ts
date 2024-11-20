@@ -3,7 +3,7 @@ import { mainnet, sepolia } from "viem/chains"
 
 export const delvChain = {
   id: 707,
-  name: "HRB Testnet",
+  name: "DFB Chain",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: {
     default: {

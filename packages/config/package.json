@@ -1,5 +1,5 @@
 {
-  "name": "config",
+  "name": "dfb-config",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -9,18 +9,18 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --project tsconfig.build.json && yarn format",
-    "format": " prettier --write '**/*.{js,jsx,ts,tsx,json}'",
-    "gen": "npx tsx ./src/generate.ts"
+    "build": "yarn format && tsc --project tsconfig.build.json",
+    "format": "prettier --write 'src/*.{js,jsx,ts,tsx,json}'",
+    "gen": "npx tsx ./src/generate.ts && prettier --write 'src/static/*.ts'"
   },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
     "artifacts": "*",
+    "eslint": "^9.10.0",
     "globals": "^15.9.0",
+    "lodash-es": "^4.17.21",
     "tsx": "^4.16.2",
     "typescript": "^5.2.2",
-    "typescript-eslint": "^8.5.0",
-    "eslint": "^9.10.0"
-  },
-  "dependencies": {}
+    "typescript-eslint": "^8.5.0"
+  }
 }

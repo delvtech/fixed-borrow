@@ -20,6 +20,6 @@
     "strict": true,
     "resolveJsonModule": true
   },
-  "include": ["./src/static/*.ts"],
+  "include": ["src/index.ts"],
   "exclude": ["node_modules"]
 }

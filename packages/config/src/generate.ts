@@ -2,18 +2,17 @@ import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { ERC20Abi } from "artifacts/base/ERC20"
 import { MorphoBlueAbi } from "artifacts/morpho/MorphoBlueAbi"
 import * as fs from "fs"
-import { Address, createPublicClient, http } from "viem"
-import { mainnet, sepolia } from "viem/chains"
+import { camelCase } from "lodash-es"
+import { Address } from "viem"
+import { getClient } from "./clients"
 import {
   SupportedChainId,
-  delvChain,
   morphoAddressesByChain,
   supportedChainIds,
   tokenIconBySymbol,
   whitelistedMetaMorphoMarketsByChain,
 } from "./constants"
-
-// TODO @cashd: Improve performance of this script with batching RPC calls with Promise.all.
+import { Config, Market } from "./types"
 
 export interface Token {
   symbol: string
@@ -22,35 +21,9 @@ export interface Token {
   address: Address
   iconUrl?: string
 }
-
-const mainnetPublicClient = createPublicClient({
-  chain: mainnet,
-  transport: http(
-    "https://eth-mainnet.g.alchemy.com/v2/jhjiuDykxwKqhI8hEbj15nV2ZKED7O6z"
-  ),
-})
-
-const sepoliaPublicClient = createPublicClient({
-  chain: sepolia,
-  transport: http(
-    "https://eth-sepolia.g.alchemy.com/v2/1lwuV3-H1ieTJ_tXRFJz2s5cXpmtJTvD"
-  ),
-})
-
-const delvChainPublicClient = createPublicClient({
-  chain: delvChain,
-  transport: http(
-    "http://ec2-3-18-106-165.us-east-2.compute.amazonaws.com:8545/"
-  ),
-})
-
-function getClient(chainId: number) {
-  if (chainId === 1) {
-    return mainnetPublicClient
-  } else if (chainId === sepolia.id) {
-    return sepoliaPublicClient
-  }
-  return delvChainPublicClient
+// custom polyfill to serialize a bigint.
+;(BigInt.prototype as any).toJSON = function () {
+  return this.toString() + "n"
 }
 
 supportedChainIds.forEach(async (chainId) => {
@@ -62,8 +35,7 @@ supportedChainIds.forEach(async (chainId) => {
 
   const tokens: Array<Token> = []
 
-  // loanToken address, collateralToken address, oracle address, irm address, lltv uint256
-  const morphoMarkets = await Promise.all(
+  const morphoMarkets: Market[] = await Promise.all(
     morphoMarketIds.map(async (market) => {
       const [loanTokenAddress, collateralTokenAddress, oracle, irm, lltv] =
         await client.readContract({
@@ -73,37 +45,45 @@ supportedChainIds.forEach(async (chainId) => {
           args: [market.morphoId as Address],
         })
 
-      const loanTokenSymbol = await client.readContract({
-        abi: ERC20Abi,
-        address: loanTokenAddress,
-        functionName: "symbol",
-      })
-      const loanTokenName = await client.readContract({
-        abi: ERC20Abi,
-        address: loanTokenAddress,
-        functionName: "name",
-      })
-      const loanTokenDecimals = await client.readContract({
-        abi: ERC20Abi,
-        address: loanTokenAddress,
-        functionName: "decimals",
-      })
-
-      const collateralTokenSymbol = await client.readContract({
-        abi: ERC20Abi,
-        address: collateralTokenAddress,
-        functionName: "symbol",
-      })
-      const collateralTokenName = await client.readContract({
-        abi: ERC20Abi,
-        address: collateralTokenAddress,
-        functionName: "name",
-      })
-      const collateralTokenDecimals = await client.readContract({
-        abi: ERC20Abi,
-        address: collateralTokenAddress,
-        functionName: "decimals",
-      })
+      const [
+        loanTokenSymbol,
+        loanTokenName,
+        loanTokenDecimals,
+        collateralTokenSymbol,
+        collateralTokenName,
+        collateralTokenDecimals,
+      ] = await Promise.all([
+        await client.readContract({
+          abi: ERC20Abi,
+          address: loanTokenAddress,
+          functionName: "symbol",
+        }),
+        await client.readContract({
+          abi: ERC20Abi,
+          address: loanTokenAddress,
+          functionName: "name",
+        }),
+        await client.readContract({
+          abi: ERC20Abi,
+          address: loanTokenAddress,
+          functionName: "decimals",
+        }),
+        await client.readContract({
+          abi: ERC20Abi,
+          address: collateralTokenAddress,
+          functionName: "symbol",
+        }),
+        await client.readContract({
+          abi: ERC20Abi,
+          address: collateralTokenAddress,
+          functionName: "name",
+        }),
+        await client.readContract({
+          abi: ERC20Abi,
+          address: collateralTokenAddress,
+          functionName: "decimals",
+        }),
+      ])
 
       const loanToken = {
         address: loanTokenAddress,
@@ -133,26 +113,36 @@ supportedChainIds.forEach(async (chainId) => {
 
       const hyperdrivePoolConfig = await readHyperdrive.getPoolConfig()
 
-      const duration = hyperdrivePoolConfig.positionDuration.toString()
-
-      return {
-        id: market.morphoId,
+      const duration = hyperdrivePoolConfig.positionDuration
+      const marketObj: Market = {
         hyperdrive: market.hyperdrive,
         loanToken,
         collateralToken,
-        oracle,
-        irm,
-        lltv: lltv.toString(),
+        lltv,
         duration,
+        metadata: {
+          id: market.morphoId as Address,
+          oracle,
+          irm,
+        },
       }
+
+      return marketObj
     })
   )
 
-  fs.writeFileSync(
-    `src/static/${client.chain.name.toLowerCase()}-config.json`,
-    JSON.stringify({
-      tokens,
-      morphoMarkets,
-    })
-  )
+  const config: Config = {
+    tokens,
+    morphoMarkets,
+  }
+
+  const chainName = camelCase(client.chain?.name)
+
+  const tsContent = `
+  // This file is auto-generated. Do not edit manually.
+  import { Config } from "../types";
+  export const ${chainName}Config: Config = ${JSON.stringify(config, null, 2).replace(/"(\d+n)"/g, "$1")} as const;
+  `
+
+  fs.writeFileSync(`src/configs/${chainName}-config.ts`, tsContent)
 })
