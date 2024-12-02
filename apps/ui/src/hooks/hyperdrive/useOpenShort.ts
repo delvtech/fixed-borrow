@@ -39,7 +39,7 @@ export function useOpenShort() {
       return await writeHyperdrive.openShort({
         args: {
           destination: account,
-          minVaultSharePrice: 0n,
+          minVaultSharePrice: 0n, // TODO fix this
           maxDeposit: maxUint256,
           asBase: true,
           bondAmount: vars.bondAmount,
