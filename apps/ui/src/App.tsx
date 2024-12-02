@@ -10,6 +10,7 @@ import { useVpnScreen } from "hooks/compliance/useVpnScreen"
 import { BorrowPage } from "pages/BorrowPage"
 import DevPage from "pages/DevPage"
 import { HomePage } from "pages/HomePage"
+import { OTCPage } from "pages/OTCPage"
 import { RestrictedCountriesPage } from "pages/RestrictedCountriesPage"
 import { VpnNotAllowedPage } from "pages/VpnNotAllowedPage"
 import { PropsWithChildren, useEffect } from "react"
@@ -66,7 +67,7 @@ function App() {
                     component={RestrictedCountriesPage}
                   />
                   <Route path="/vpn" component={VpnNotAllowedPage} />
-
+                  <Route path="/otc/:hyperdrive" component={OTCPage} />
                   {/* Default route in a switch */}
                   <Route>404: No such page!</Route>
                 </Switch>
