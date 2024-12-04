@@ -18,6 +18,7 @@ import { WagmiProvider } from "wagmi"
 import { Route, Switch, useLocation } from "wouter"
 import { Plausible } from "./analytics/Plausible"
 import { rainbowConfig } from "./client/rainbowClient"
+import { NewOrder } from "./otc/flow/NewOrder"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,7 +58,7 @@ function App() {
           <RegionInfoProvider>
             <Container>
               <Navbar />
-              <div className="min-h-[calc(100vh-72px)] grow pb-24">
+              <div className="grow pb-24">
                 <Switch>
                   <Route path="/" component={HomePage} />
                   <Route path="/dev" component={DevPage} />
@@ -67,7 +68,8 @@ function App() {
                     component={RestrictedCountriesPage}
                   />
                   <Route path="/vpn" component={VpnNotAllowedPage} />
-                  <Route path="/otc/:hyperdrive" component={OTCPage} />
+                  <Route path="/otc" component={OTCPage} />
+                  <Route path="/otc/new" component={NewOrder} />
                   {/* Default route in a switch */}
                   <Route>404: No such page!</Route>
                 </Switch>
