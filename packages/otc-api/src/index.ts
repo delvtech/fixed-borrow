@@ -16,6 +16,9 @@ import {
 
 const bucketName = process.env.BUCKET_NAME
 
+// List of allowed origins
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(/,\s*/) || []
+
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
@@ -23,20 +26,26 @@ export const handler = async (
     return errorResponse(500, "BUCKET_NAME environment variable is not set")
   }
 
-  // Handle CORS preflight requests
-  if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type,Authorization",
-      },
-      body: "",
-    }
-  }
-
   try {
+    const { httpMethod } = event
+
+    // Handle CORS preflight
+    if (httpMethod === "OPTIONS") {
+      const origin = event.headers.origin || event.headers.Origin
+      const allowOrigin =
+        origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] // fallback to first allowed origin
+
+      return {
+        statusCode: 200,
+        headers: {
+          "Access-Control-Allow-Origin": allowOrigin,
+          "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type,Authorization",
+        },
+        body: "",
+      }
+    }
+
     switch (event.httpMethod) {
       // Create order
       case "POST": {
@@ -231,7 +240,6 @@ function errorResponse(statusCode: number, error: any) {
     statusCode,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
     },
     body: JSON.stringify({ error }),
   }
@@ -243,7 +251,6 @@ function successResponse(data: any) {
     statusCode: 200,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
     },
     body: typeof data === "string" ? data : JSON.stringify(data),
   }
