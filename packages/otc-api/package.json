@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "dist/lib/schemas.d.ts",
+  "main": "dist/lib/schemas.js",
   "types": "dist/lib/schemas.d.ts",
   "scripts": {
     "build": "tsc && tsx scripts/buildLambda.ts"
