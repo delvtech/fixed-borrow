@@ -42,7 +42,6 @@ const zip = zipDir(outDir)
 
 // add other files
 zip.file("README.md", readFileSync("README.md"))
-zip.file("package.json", readFileSync("package.json"))
 zip.file(".env.example", readFileSync(".env.example"))
 
 // write zip
