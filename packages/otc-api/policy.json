@@ -1,0 +1,33 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "logs:CreateLogGroup",
+      "Resource": "arn:aws:logs:us-east-2:700205878891:*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogStream", "logs:PutLogEvents"],
+      "Resource": [
+        "arn:aws:logs:us-east-2:700205878891:log-group:/aws/lambda/hyperdriveOrders:*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:RestoreObject",
+        "s3:CreateBucket",
+        "s3:ListBucket",
+        "s3:DeleteObject",
+        "s3:DeleteBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::hyperdrive-orders",
+        "arn:aws:s3:::hyperdrive-orders/*"
+      ]
+    }
+  ]
+}
