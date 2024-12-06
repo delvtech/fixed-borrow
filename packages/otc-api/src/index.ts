@@ -3,9 +3,7 @@ import { createOrderKey, getOrder } from "./lib/orders.js"
 import { s3 } from "./lib/s3.js"
 import {
 	DeleteRequestSchema,
-	type GetRequest,
 	GetRequestSchema,
-	type Order,
 	type OrderQueryResponse,
 	PostRequestSchema,
 	PutRequestSchema,
@@ -23,12 +21,12 @@ if (!bucketName) {
 // Helper functions for responses
 const successResponse = (body: Record<string, any>, statusCode = 200) => ({
   statusCode,
-  body: JSON.stringify(body),
+  body: JSON.stringify(body, bigintReplacer),
 })
 
 const errorResponse = (message: string, statusCode = 400) => ({
   statusCode,
-  body: JSON.stringify({ error: message }),
+  body: JSON.stringify({ error: message }, bigintReplacer),
 })
 
 export const handler = async (event: any) => {
@@ -55,42 +53,43 @@ export const handler = async (event: any) => {
       // Query orders //
 
       case "GET": {
-        let req: GetRequest
-        try {
-          req = GetRequestSchema.parse(event.queryStringParameters || {})
-        } catch (error: any) {
-          return errorResponse(error, 400)
+        const { data, error, success } = GetRequestSchema.safeParse(
+          event.queryStringParameters || {}
+        )
+
+        if (!success) {
+          return errorResponse(`Invalid request: ${error.format()}`)
         }
 
         // If a key is provided, get the specific order
-        if (req.key) {
-          const order = await getOrder(req.key, bucketName)
+        if (data.key) {
+          const order = await getOrder(data.key, bucketName)
           return order
-            ? successResponse({ key: req.key, order })
+            ? successResponse({ key: data.key, order })
             : errorResponse("Order not found", 404)
         }
 
         // Otherwise, list objects
         let prefix: string | undefined
-        if (req.trader) {
-          prefix += `${req.trader}:`
-          if (req.hyperdrive) {
-            prefix += `${req.hyperdrive}:`
+        if (data.trader) {
+          prefix += `${data.trader}:`
+          if (data.hyperdrive) {
+            prefix += `${data.hyperdrive}:`
           }
         }
         const list = await s3.send(
           new ListObjectsV2Command({
             Bucket: bucketName,
             Prefix: prefix,
-            ContinuationToken: req.continuationToken,
+            ContinuationToken: data.continuationToken,
           })
         )
 
         // Apply hyperdrive filter if no trader available for the prefix
-        if (!req.trader && req.hyperdrive) {
+        if (!data.trader && data.hyperdrive) {
           list.Contents?.filter((obj) => {
             const [, hyperdrive] = obj.Key?.split(":") || []
-            return hyperdrive === req.hyperdrive
+            return hyperdrive === data.hyperdrive
           })
         }
 
@@ -122,25 +121,29 @@ export const handler = async (event: any) => {
 
       case "POST": {
         if (!event.body) {
-          return errorResponse("Missing request body", 400)
+          return errorResponse("Missing request body")
         }
 
-        let key: string
-        let order: Order
+        const { data, error, success } = PostRequestSchema.safeParse(
+          JSON.parse(event.body)
+        )
+
+        if (!success) {
+          return errorResponse(`Invalid request: ${error.format()}`)
+        }
+
+        const order = data.order
+        const key = createOrderKey(order.trader, order.hyperdrive, order.salt)
+        const existingOrder = await getOrder(key, bucketName)
+
+        if (existingOrder) {
+          return errorResponse("Order already exists", 409)
+        }
+
         try {
-          const req = PostRequestSchema.parse(JSON.parse(event.body))
-          order = req.order
-          key = createOrderKey(order.trader, order.hyperdrive, order.salt)
-
-          // Check if order exists
-          const existingOrder = await getOrder(key, bucketName)
-          if (existingOrder) {
-            return errorResponse("Order already exists", 409)
-          }
-
           await verifyOrder(order)
         } catch (error: any) {
-          return errorResponse(error, 400)
+          return errorResponse(error)
         }
 
         // Save order
@@ -148,7 +151,7 @@ export const handler = async (event: any) => {
           new PutObjectCommand({
             Bucket: bucketName,
             Key: key,
-            Body: JSON.stringify(order),
+            Body: JSON.stringify(order, bigintReplacer),
           })
         )
 
@@ -166,29 +169,33 @@ export const handler = async (event: any) => {
 
       case "PUT": {
         if (!event.body) {
-          return errorResponse("Missing request body", 400)
+          return errorResponse("Missing request body")
         }
 
-        let updatedKey: string
-        let order: Order
+        const { data, error, success } = PutRequestSchema.safeParse(
+          JSON.parse(event.body)
+        )
+
+        if (!success) {
+          return errorResponse(`Invalid request: ${error.format()}`)
+        }
+
+        const order = data.order
+        const updatedKey = createOrderKey(
+          order.trader,
+          order.hyperdrive,
+          order.salt
+        )
+        const existingOrder = await getOrder(updatedKey, bucketName)
+
+        if (!existingOrder) {
+          return errorResponse("Order not found", 404)
+        }
+
         try {
-          const req = PutRequestSchema.parse(JSON.parse(event.body))
-          order = req.order
-          updatedKey = createOrderKey(
-            order.trader,
-            order.hyperdrive,
-            order.salt
-          )
-
-          // Check if order exists
-          const existingOrder = await getOrder(updatedKey, bucketName)
-          if (!existingOrder) {
-            return errorResponse("Order not found", 404)
-          }
-
           await verifyOrder(order)
         } catch (error: any) {
-          return errorResponse(error, 401)
+          return errorResponse(error)
         }
 
         // Update order
@@ -196,7 +203,7 @@ export const handler = async (event: any) => {
           new PutObjectCommand({
             Bucket: bucketName,
             Key: updatedKey,
-            Body: JSON.stringify(order),
+            Body: JSON.stringify(order, bigintReplacer),
           })
         )
 
@@ -211,24 +218,27 @@ export const handler = async (event: any) => {
 
       case "DELETE": {
         if (!event.body) {
-          return errorResponse("Missing request body", 400)
+          return errorResponse("Missing request body")
         }
 
-        let key: string
-        let order: Order | null
+        const { data, error, success } = DeleteRequestSchema.safeParse(
+          JSON.parse(event.body)
+        )
+
+        if (!success) {
+          return errorResponse(`Invalid request: ${error.format()}`)
+        }
+
+        const order = await getOrder(data.key, bucketName)
+
+        if (!order) {
+          return errorResponse("Order not found", 404)
+        }
+
         try {
-          const req = DeleteRequestSchema.parse(JSON.parse(event.body))
-          key = req.key
-
-          // Get existing order
-          order = await getOrder(key, bucketName)
-          if (!order) {
-            return errorResponse("Order not found", 404)
-          }
-
           await verifyOrder(order)
         } catch (error: any) {
-          return errorResponse(error, 401)
+          return errorResponse(error)
         }
 
         // Mark order as cancelled
@@ -242,14 +252,14 @@ export const handler = async (event: any) => {
         await s3.send(
           new PutObjectCommand({
             Bucket: bucketName,
-            Key: key,
-            Body: JSON.stringify(updatedOrder),
+            Key: data.key,
+            Body: JSON.stringify(updatedOrder, bigintReplacer),
           })
         )
 
         return successResponse({
           message: "Order cancelled",
-          key,
+          key: data.key,
         })
       }
 
@@ -260,4 +270,11 @@ export const handler = async (event: any) => {
     console.error("Error:", error)
     return errorResponse("Internal server error", 500)
   }
+}
+
+function bigintReplacer(key: string, value: any) {
+  if (typeof value === "bigint") {
+    return value.toString()
+  }
+  return value
 }
