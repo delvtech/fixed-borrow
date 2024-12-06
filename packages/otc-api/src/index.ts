@@ -1,257 +1,244 @@
+import { ListObjectsV2Command, PutObjectCommand } from "@aws-sdk/client-s3"
+import { createOrderKey, getOrder } from "./lib/orders.js"
+import { s3 } from "./lib/s3.js"
 import {
-  DeleteObjectCommand,
-  GetObjectCommand,
-  ListObjectsV2Command,
-  PutObjectCommand,
-} from "@aws-sdk/client-s3"
-import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
-import { s3Client } from "./lib/s3-client.js"
-import {
-  DeleteSchema,
-  GetSchema,
-  PostSchema,
-  PutSchema,
-  type Order,
+	DeleteRequestSchema,
+	GetRequestSchema,
+	type OrderQueryResponse,
+	PostRequestSchema,
+	PutRequestSchema,
 } from "./lib/schemas.js"
-
-const bucketName = process.env.BUCKET_NAME
+import { verifyOrder } from "./lib/verify.js"
 
 // List of allowed origins
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(/,\s*/) || []
+const bucketName = process.env.BUCKET_NAME
 
-export const handler = async (
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
-  if (!bucketName) {
-    return errorResponse(500, "BUCKET_NAME environment variable is not set")
-  }
+if (!bucketName) {
+  throw new Error("BUCKET_NAME environment variable is required")
+}
 
+// Helper functions for responses
+const successResponse = (body: Record<string, any>, statusCode = 200) => ({
+  statusCode,
+  body: JSON.stringify(body),
+})
+
+const errorResponse = (message: string, statusCode = 400) => ({
+  statusCode,
+  body: JSON.stringify({ error: message }),
+})
+
+export const handler = async (event: any) => {
   try {
-    const { httpMethod } = event
-
-    // Handle CORS preflight
-    if (httpMethod === "OPTIONS") {
-      const origin = event.headers.origin || event.headers.Origin
-      const allowOrigin =
-        origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] // fallback to first allowed origin
-
-      return {
-        statusCode: 200,
-        headers: {
-          "Access-Control-Allow-Origin": allowOrigin,
-          "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type,Authorization",
-        },
-        body: "",
-      }
-    }
-
     switch (event.httpMethod) {
-      // Create order
-      case "POST": {
-        if (!event.body) {
-          return errorResponse(400, "Missing request body")
+      case "OPTIONS": {
+        // Handle CORS preflight
+        const origin = event.headers.origin || event.headers.Origin
+        const allowOrigin =
+          origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] // fallback to first allowed origin
+
+        return {
+          statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin": allowOrigin,
+            "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization",
+          },
+          body: "",
         }
-
-        const body = JSON.parse(event.body)
-        const { order } = PostSchema.parse(body)
-        const key = `${order.trader}:${order.hyperdrive}:${order.salt}.json`
-
-        await s3Client.send(
-          new PutObjectCommand({
-            Bucket: bucketName,
-            Key: key,
-            Body: JSON.stringify(order),
-            ContentType: "application/json",
-          })
-        )
-
-        return successResponse({ message: "Order created", key })
       }
-
       // Query orders
       case "GET": {
-        const params = GetSchema.parse(event.queryStringParameters || {})
+        const req = GetRequestSchema.parse(event.queryStringParameters || {})
 
-        // If key is provided, get specific order
-        if (params.key) {
-          const response = await s3Client.send(
-            new GetObjectCommand({
-              Bucket: bucketName,
-              Key: params.key,
-            })
-          )
-
-          const bodyContents = await response.Body?.transformToString()
-          return successResponse(bodyContents)
+        // If a key is provided, get the specific order
+        if (req.key) {
+          const order = await getOrder(req.key, bucketName)
+          return order
+            ? successResponse({ key: req.key, order })
+            : errorResponse("Order not found", 404)
         }
 
         // Otherwise, list objects
-
         let prefix: string | undefined
-        if (params.trader) {
-          prefix += `${params.trader}:`
-          if (params.hyperdrive) {
-            prefix += `${params.hyperdrive}:`
+        if (req.trader) {
+          prefix += `${req.trader}:`
+          if (req.hyperdrive) {
+            prefix += `${req.hyperdrive}:`
           }
         }
-
-        const list = await s3Client.send(
+        const list = await s3.send(
           new ListObjectsV2Command({
             Bucket: bucketName,
             Prefix: prefix,
-            ContinuationToken: params.continuationToken,
+            ContinuationToken: req.continuationToken,
           })
         )
 
-        if (!params.trader && params.hyperdrive) {
+        // Apply hyperdrive filter if no trader available for the prefix
+        if (!req.trader && req.hyperdrive) {
           list.Contents?.filter((obj) => {
             const [, hyperdrive] = obj.Key?.split(":") || []
-            return hyperdrive === params.hyperdrive
+            return hyperdrive === req.hyperdrive
           })
         }
 
-        const orders = await Promise.all(
+        // Fetch full orders
+        const orders: OrderQueryResponse["orders"] = []
+        await Promise.all(
           list.Contents?.map(async ({ Key }) => {
-            const response = await s3Client.send(
-              new GetObjectCommand({
-                Bucket: bucketName,
-                Key,
+            if (!Key) return
+            const order = await getOrder(Key, bucketName)
+            if (order) {
+              orders.push({
+                key: Key,
+                order,
               })
-            )
-
-            if (!response.Body) {
-              return null
             }
-
-            const bodyContents = await response.Body?.transformToString()
-            return JSON.parse(bodyContents)
           }) || []
         )
 
-        return successResponse(
-          list.Contents?.map((obj, i) => ({
-            key: obj.Key,
-            lastModified: obj.LastModified,
-            size: obj.Size,
-            order: orders[i],
-            hasMore: list.IsTruncated,
-            nextContinuationToken: list.NextContinuationToken,
-          }))
+        const response = {
+          orders,
+          hasMore: !!list.IsTruncated,
+          nextContinuationToken: list.NextContinuationToken,
+        } as OrderQueryResponse
+
+        return successResponse(response)
+      }
+
+      // Create order
+      case "POST": {
+        if (!event.body) {
+          return errorResponse("Missing request body", 400)
+        }
+
+        const { order, ...req } = PostRequestSchema.parse(
+          JSON.parse(event.body)
         )
+        const key = createOrderKey(order.trader, order.hyperdrive, order.salt)
+
+        // Check if order exists
+        const existingOrder = await getOrder(key, bucketName)
+        if (existingOrder) {
+          return errorResponse("Order already exists", 409)
+        }
+
+        try {
+          await verifyOrder(order)
+
+          // Save order
+          await s3.send(
+            new PutObjectCommand({
+              Bucket: bucketName,
+              Key: key,
+              Body: JSON.stringify(order),
+            })
+          )
+
+          return successResponse(
+            {
+              message: "Order created",
+              key,
+              order,
+            },
+            201
+          )
+        } catch (error) {
+          return errorResponse("Unauthorized", 401)
+        }
       }
 
       // Update order
       case "PUT": {
         if (!event.body) {
-          return errorResponse(400, "Missing request body")
+          return errorResponse("Missing request body", 400)
         }
 
-        const body = JSON.parse(event.body)
-        const { key, order } = PutSchema.parse(body)
+        const { order, ...req } = PutRequestSchema.parse(JSON.parse(event.body))
+        const updatedKey = createOrderKey(
+          order.trader,
+          order.hyperdrive,
+          order.salt
+        )
 
         // Check if order exists
-        let existingOrder: Order | undefined
+        const existingOrder = await getOrder(updatedKey, bucketName)
+        if (!existingOrder) {
+          return errorResponse("Order not found", 404)
+        }
+
         try {
-          const response = await s3Client.send(
-            new GetObjectCommand({
+          await verifyOrder(order)
+
+          // Update order
+          await s3.send(
+            new PutObjectCommand({
               Bucket: bucketName,
-              Key: key,
+              Key: updatedKey,
+              Body: JSON.stringify(order),
             })
           )
 
-          const bodyContents = await response.Body?.transformToString()
-          if (bodyContents) {
-            existingOrder = JSON.parse(bodyContents)
-          }
-        } catch (error: any) {
-          if (error.name === "NoSuchKey") {
-            return errorResponse(404, "Order not found")
-          }
-          throw error
-        }
-
-        // Update order
-        await s3Client.send(
-          new PutObjectCommand({
-            Bucket: bucketName,
-            Key: key,
-            Body: JSON.stringify({
-              ...existingOrder,
-              ...order,
-            }),
-            ContentType: "application/json",
+          return successResponse({
+            message: "Order updated",
+            key: updatedKey,
+            order,
           })
-        )
-
-        return successResponse({ message: "Order updated", key })
+        } catch (error) {
+          return errorResponse("Unauthorized", 401)
+        }
       }
 
-      // Delete order
       case "DELETE": {
         if (!event.body) {
-          return errorResponse(400, "Missing request body")
+          return errorResponse("Missing request body", 400)
         }
 
-        const body = JSON.parse(event.body)
-        const { key } = DeleteSchema.parse(body)
-
-        // Check if order exists
-        try {
-          await s3Client.send(
-            new GetObjectCommand({
-              Bucket: bucketName,
-              Key: key,
-            })
-          )
-        } catch (error: any) {
-          if (error.name === "NoSuchKey") {
-            return errorResponse(404, "Order not found")
-          }
-          throw error
-        }
-
-        // Delete order
-        await s3Client.send(
-          new DeleteObjectCommand({
-            Bucket: bucketName,
-            Key: key,
-          })
+        const { key, ...req } = DeleteRequestSchema.parse(
+          JSON.parse(event.body)
         )
 
-        return successResponse({ message: "Order deleted", key })
+        // Get existing order
+        const order = await getOrder(key, bucketName)
+        if (!order) {
+          return errorResponse("Order not found", 404)
+        }
+
+        try {
+          await verifyOrder(order)
+
+          // Mark order as cancelled
+          const updatedOrder = {
+            ...order,
+            cancelled: true,
+            cancelledAt: Date.now(),
+          }
+
+          // Update order
+          await s3.send(
+            new PutObjectCommand({
+              Bucket: bucketName,
+              Key: key,
+              Body: JSON.stringify(updatedOrder),
+            })
+          )
+
+          return successResponse({
+            message: "Order cancelled",
+            key,
+          })
+        } catch (error) {
+          return errorResponse("Unauthorized", 401)
+        }
       }
 
       default:
-        return errorResponse(405, "Method not allowed")
+        return errorResponse("Method not allowed", 405)
     }
-  } catch (error: any) {
-    console.error("Error processing request:", error)
-    return errorResponse(
-      error.name === "ZodError" ? 400 : 500,
-      error.name === "ZodError" ? error.errors : "Internal server error"
-    )
-  }
-}
-
-// Helper for consistent error responses
-function errorResponse(statusCode: number, error: any) {
-  return {
-    statusCode,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ error }),
-  }
-}
-
-// Helper for successful responses
-function successResponse(data: any) {
-  return {
-    statusCode: 200,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: typeof data === "string" ? data : JSON.stringify(data),
+  } catch (error) {
+    console.error("Error:", error)
+    return errorResponse("Internal server error", 500)
   }
 }

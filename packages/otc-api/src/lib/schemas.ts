@@ -1,27 +1,31 @@
 import { z } from "zod"
 
 export const OrderSchema = z.object({
-  signature: z.string().optional(),
-  trader: z.string(),
-  hyperdrive: z.string(),
+  // Signature may be pending
+  signature: z.string().transform(hexTransform).optional(),
+  trader: z.string().transform(hexTransform),
+  hyperdrive: z.string().transform(hexTransform),
   amount: z.string(),
   slippageGuard: z.string(),
   minVaultSharePrice: z.string(),
   options: z.object({
     asBase: z.boolean(),
-    destination: z.string(),
-    extraData: z.string(),
+    destination: z.string().transform(hexTransform),
+    extraData: z.string().transform(hexTransform),
   }),
-  orderType: z.enum(["OpenLong", "OpenShort"]),
+  orderType: z.number().min(0).max(1),
   expiry: z.string(),
-  salt: z.string(),
+  salt: z.string().transform(hexTransform),
+  // Track match status
+  matched: z.boolean().optional(),
+  matchedAt: z.number().optional(),
+  matchKey: z.string().optional(),
+  // Track cancellation status
+  cancelled: z.boolean().optional(),
+  cancelledAt: z.number().optional(),
 })
 
-export const PostSchema = z.object({
-  order: OrderSchema,
-})
-
-export const GetSchema = z
+export const GetRequestSchema = z
   // By key
   .object({
     key: z.string(),
@@ -39,17 +43,40 @@ export const GetSchema = z
     })
   )
 
-export const PutSchema = z.object({
-  key: z.string(),
-  order: OrderSchema.partial(),
+export const QueryResponseSchema = z
+  .object({
+    orders: z.array(z.object({ key: z.string(), order: OrderSchema })),
+  })
+  .and(
+    z.discriminatedUnion("hasMore", [
+      z.object({
+        hasMore: z.literal(false),
+        nextContinuationToken: z.undefined().optional(),
+      }),
+      z.object({
+        hasMore: z.literal(true),
+        nextContinuationToken: z.string(),
+      }),
+    ])
+  )
+
+export const PostRequestSchema = z.object({
+  order: OrderSchema,
 })
 
-export const DeleteSchema = z.object({
+export const PutRequestSchema = PostRequestSchema
+
+export const DeleteRequestSchema = z.object({
   key: z.string(),
 })
 
 export type Order = z.infer<typeof OrderSchema>
-export type PostRequest = z.infer<typeof PostSchema>
-export type GetRequest = z.infer<typeof GetSchema>
-export type PutRequest = z.infer<typeof PutSchema>
-export type DeleteRequest = z.infer<typeof DeleteSchema>
+export type PostRequest = z.infer<typeof PostRequestSchema>
+export type GetRequest = z.infer<typeof GetRequestSchema>
+export type OrderQueryResponse = z.infer<typeof QueryResponseSchema>
+export type PutRequest = z.infer<typeof PutRequestSchema>
+export type DeleteRequest = z.infer<typeof DeleteRequestSchema>
+
+function hexTransform(value: string): `0x${string}` {
+  return `0x${value}`
+}
