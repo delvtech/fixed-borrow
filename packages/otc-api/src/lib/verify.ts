@@ -35,34 +35,41 @@ const ORDER_INTENT_TYPE = {
 /**
  * Verify a signed request including nonce and timestamp checks
  */
-export async function verifyOrder(order: Order): Promise<boolean> {
-  if (!order.signature) return true
+export async function verifyOrder(order: Order): Promise<
+  | {
+      valid: true
+      error?: undefined
+    }
+  | { valid: false; error: string }
+> {
+  if (!order.signature) {
+    return {
+      valid: true,
+    }
+  }
 
   // Verify EIP-712 signature
-  try {
-    const valid = await verifyTypedData({
-      address: order.trader,
-      domain,
-      types: ORDER_INTENT_TYPE,
-      primaryType: "Order",
-      message: {
-        trader: order.trader,
-        hyperdrive: order.hyperdrive,
-        amount: BigInt(order.amount),
-        slippageGuard: BigInt(order.slippageGuard),
-        minVaultSharePrice: BigInt(order.minVaultSharePrice),
-        options: order.options,
-        orderType: order.orderType,
-        expiry: BigInt(order.expiry),
-        salt: order.salt,
-      },
-      signature: order.signature,
-    })
-    if (!valid) {
-      throw new Error("Invalid signature")
-    }
-    return true
-  } catch (error) {
-    throw new Error("Invalid signature")
-  }
+  const valid = await verifyTypedData({
+    address: order.trader,
+    domain,
+    types: ORDER_INTENT_TYPE,
+    primaryType: "Order",
+    message: {
+      trader: order.trader,
+      hyperdrive: order.hyperdrive,
+      amount: BigInt(order.amount),
+      slippageGuard: BigInt(order.slippageGuard),
+      minVaultSharePrice: BigInt(order.minVaultSharePrice),
+      options: order.options,
+      orderType: order.orderType,
+      expiry: BigInt(order.expiry),
+      salt: order.salt,
+    },
+    signature: order.signature,
+  })
+
+  return {
+    valid,
+    error: valid ? undefined : "Invalid signature",
+  } as any
 }
