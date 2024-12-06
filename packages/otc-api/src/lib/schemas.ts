@@ -5,9 +5,9 @@ export const OrderSchema = z.object({
   signature: z.string().transform(hexTransform).optional(),
   trader: z.string().transform(hexTransform),
   hyperdrive: z.string().transform(hexTransform),
-  amount: z.string(),
-  slippageGuard: z.string(),
-  minVaultSharePrice: z.string(),
+  amount: z.coerce.bigint(),
+  slippageGuard: z.coerce.bigint(),
+  minVaultSharePrice: z.coerce.bigint(),
   options: z.object({
     asBase: z.boolean(),
     destination: z.string().transform(hexTransform),
@@ -37,8 +37,8 @@ export const GetRequestSchema = z
     // By optional prefix
     z.object({
       key: z.undefined().optional(),
-      trader: z.string().optional(),
-      hyperdrive: z.string().optional(),
+      trader: z.string().transform(hexTransform).optional(),
+      hyperdrive: z.string().transform(hexTransform).optional(),
       continuationToken: z.string().optional(),
     })
   )
