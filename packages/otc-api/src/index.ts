@@ -3,7 +3,9 @@ import { createOrderKey, getOrder } from "./lib/orders.js"
 import { s3 } from "./lib/s3.js"
 import {
 	DeleteRequestSchema,
+	type GetRequest,
 	GetRequestSchema,
+	type Order,
 	type OrderQueryResponse,
 	PostRequestSchema,
 	PutRequestSchema,
@@ -32,8 +34,9 @@ const errorResponse = (message: string, statusCode = 400) => ({
 export const handler = async (event: any) => {
   try {
     switch (event.httpMethod) {
+      // Handle CORS preflight //
+
       case "OPTIONS": {
-        // Handle CORS preflight
         const origin = event.headers.origin || event.headers.Origin
         const allowOrigin =
           origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] // fallback to first allowed origin
@@ -48,9 +51,16 @@ export const handler = async (event: any) => {
           body: "",
         }
       }
-      // Query orders
+
+      // Query orders //
+
       case "GET": {
-        const req = GetRequestSchema.parse(event.queryStringParameters || {})
+        let req: GetRequest
+        try {
+          req = GetRequestSchema.parse(event.queryStringParameters || {})
+        } catch (error: any) {
+          return errorResponse(error, 400)
+        }
 
         // If a key is provided, get the specific order
         if (req.key) {
@@ -108,130 +118,139 @@ export const handler = async (event: any) => {
         return successResponse(response)
       }
 
-      // Create order
+      // Create order //
+
       case "POST": {
         if (!event.body) {
           return errorResponse("Missing request body", 400)
         }
 
-        const { order, ...req } = PostRequestSchema.parse(
-          JSON.parse(event.body)
-        )
-        const key = createOrderKey(order.trader, order.hyperdrive, order.salt)
-
-        // Check if order exists
-        const existingOrder = await getOrder(key, bucketName)
-        if (existingOrder) {
-          return errorResponse("Order already exists", 409)
-        }
-
+        let key: string
+        let order: Order
         try {
+          const req = PostRequestSchema.parse(JSON.parse(event.body))
+          order = req.order
+          key = createOrderKey(order.trader, order.hyperdrive, order.salt)
+
+          // Check if order exists
+          const existingOrder = await getOrder(key, bucketName)
+          if (existingOrder) {
+            return errorResponse("Order already exists", 409)
+          }
+
           await verifyOrder(order)
-
-          // Save order
-          await s3.send(
-            new PutObjectCommand({
-              Bucket: bucketName,
-              Key: key,
-              Body: JSON.stringify(order),
-            })
-          )
-
-          return successResponse(
-            {
-              message: "Order created",
-              key,
-              order,
-            },
-            201
-          )
-        } catch (error) {
-          return errorResponse("Unauthorized", 401)
+        } catch (error: any) {
+          return errorResponse(error, 400)
         }
+
+        // Save order
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: bucketName,
+            Key: key,
+            Body: JSON.stringify(order),
+          })
+        )
+
+        return successResponse(
+          {
+            message: "Order created",
+            key,
+            order,
+          },
+          201
+        )
       }
 
-      // Update order
+      // Update order //
+
       case "PUT": {
         if (!event.body) {
           return errorResponse("Missing request body", 400)
         }
 
-        const { order, ...req } = PutRequestSchema.parse(JSON.parse(event.body))
-        const updatedKey = createOrderKey(
-          order.trader,
-          order.hyperdrive,
-          order.salt
-        )
-
-        // Check if order exists
-        const existingOrder = await getOrder(updatedKey, bucketName)
-        if (!existingOrder) {
-          return errorResponse("Order not found", 404)
-        }
-
+        let updatedKey: string
+        let order: Order
         try {
-          await verifyOrder(order)
-
-          // Update order
-          await s3.send(
-            new PutObjectCommand({
-              Bucket: bucketName,
-              Key: updatedKey,
-              Body: JSON.stringify(order),
-            })
+          const req = PutRequestSchema.parse(JSON.parse(event.body))
+          order = req.order
+          updatedKey = createOrderKey(
+            order.trader,
+            order.hyperdrive,
+            order.salt
           )
 
-          return successResponse({
-            message: "Order updated",
-            key: updatedKey,
-            order,
-          })
-        } catch (error) {
-          return errorResponse("Unauthorized", 401)
+          // Check if order exists
+          const existingOrder = await getOrder(updatedKey, bucketName)
+          if (!existingOrder) {
+            return errorResponse("Order not found", 404)
+          }
+
+          await verifyOrder(order)
+        } catch (error: any) {
+          return errorResponse(error, 401)
         }
+
+        // Update order
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: bucketName,
+            Key: updatedKey,
+            Body: JSON.stringify(order),
+          })
+        )
+
+        return successResponse({
+          message: "Order updated",
+          key: updatedKey,
+          order,
+        })
       }
+
+      // Cancel order //
 
       case "DELETE": {
         if (!event.body) {
           return errorResponse("Missing request body", 400)
         }
 
-        const { key, ...req } = DeleteRequestSchema.parse(
-          JSON.parse(event.body)
-        )
-
-        // Get existing order
-        const order = await getOrder(key, bucketName)
-        if (!order) {
-          return errorResponse("Order not found", 404)
-        }
-
+        let key: string
+        let order: Order | null
         try {
-          await verifyOrder(order)
+          const req = DeleteRequestSchema.parse(JSON.parse(event.body))
+          key = req.key
 
-          // Mark order as cancelled
-          const updatedOrder = {
-            ...order,
-            cancelled: true,
-            cancelledAt: Date.now(),
+          // Get existing order
+          order = await getOrder(key, bucketName)
+          if (!order) {
+            return errorResponse("Order not found", 404)
           }
 
-          // Update order
-          await s3.send(
-            new PutObjectCommand({
-              Bucket: bucketName,
-              Key: key,
-              Body: JSON.stringify(updatedOrder),
-            })
-          )
-
-          return successResponse({
-            message: "Order cancelled",
-            key,
-          })
-        } catch (error) {
-          return errorResponse("Unauthorized", 401)
+          await verifyOrder(order)
+        } catch (error: any) {
+          return errorResponse(error, 401)
         }
+
+        // Mark order as cancelled
+        const updatedOrder = {
+          ...order,
+          cancelled: true,
+          cancelledAt: Date.now(),
+        }
+
+        // Update order
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: bucketName,
+            Key: key,
+            Body: JSON.stringify(updatedOrder),
+          })
+        )
+
+        return successResponse({
+          message: "Order cancelled",
+          key,
+        })
       }
 
       default:
