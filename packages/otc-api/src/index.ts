@@ -2,13 +2,13 @@ import { ListObjectsV2Command, PutObjectCommand } from "@aws-sdk/client-s3"
 import { createOrderKey, getOrder } from "./lib/orders.js"
 import { s3 } from "./lib/s3.js"
 import {
-	DeleteRequestSchema,
-	GetRequestSchema,
-	type OrderQueryResponse,
-	PostRequestSchema,
-	PutRequestSchema,
+  DeleteRequestSchema,
+  GetRequestSchema,
+  type OrderQueryResponse,
+  PostRequestSchema,
+  PutRequestSchema,
 } from "./lib/schemas.js"
-import { verifyOrder } from "./lib/verify.js"
+// import { verifyOrder } from "./lib/verify.js"
 
 // List of allowed origins
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(/,\s*/) || []
@@ -70,7 +70,7 @@ export const handler = async (event: any) => {
         }
 
         // Otherwise, list objects
-        let prefix: string | undefined
+        let prefix = ""
         if (data.trader) {
           prefix += `${data.trader}:`
           if (data.hyperdrive) {
@@ -80,7 +80,7 @@ export const handler = async (event: any) => {
         const list = await s3.send(
           new ListObjectsV2Command({
             Bucket: bucketName,
-            Prefix: prefix,
+            Prefix: prefix || undefined,
             ContinuationToken: data.continuationToken,
           })
         )
@@ -140,11 +140,11 @@ export const handler = async (event: any) => {
           return errorResponse("Order already exists", 409)
         }
 
-        try {
-          await verifyOrder(order)
-        } catch (error: any) {
-          return errorResponse(error)
-        }
+        // try {
+        //   await verifyOrder(order)
+        // } catch (error: any) {
+        //   return errorResponse(error)
+        // }
 
         // Save order
         await s3.send(
@@ -192,11 +192,11 @@ export const handler = async (event: any) => {
           return errorResponse("Order not found", 404)
         }
 
-        try {
-          await verifyOrder(order)
-        } catch (error: any) {
-          return errorResponse(error)
-        }
+        // try {
+        //   await verifyOrder(order)
+        // } catch (error: any) {
+        //   return errorResponse(error)
+        // }
 
         // Update order
         await s3.send(
@@ -235,11 +235,11 @@ export const handler = async (event: any) => {
           return errorResponse("Order not found", 404)
         }
 
-        try {
-          await verifyOrder(order)
-        } catch (error: any) {
-          return errorResponse(error)
-        }
+        // try {
+        //   await verifyOrder(order)
+        // } catch (error: any) {
+        //   return errorResponse(error)
+        // }
 
         // Mark order as cancelled
         const updatedOrder = {
