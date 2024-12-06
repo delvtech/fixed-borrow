@@ -27,7 +27,6 @@ const mockOrderIntents: OrderIntent[] = [
     options: {
       asBase: true,
       destination: "0x9876543210987654321098765432109876543210",
-      extraData: "0x1234",
     },
     orderType: OrderType.OpenLong,
     signature:
@@ -44,7 +43,6 @@ const mockOrderIntents: OrderIntent[] = [
     options: {
       asBase: false,
       destination: "0xa987654321098765432109876543210987654321",
-      extraData: "0x5678",
     },
     orderType: OrderType.OpenShort,
     signature:
@@ -61,7 +59,6 @@ const mockOrderIntents: OrderIntent[] = [
     options: {
       asBase: true,
       destination: "0xb098765432109876543210987654321098765432",
-      extraData: "0x9abc",
     },
     orderType: OrderType.OpenLong,
     signature:
@@ -78,7 +75,6 @@ const mockOrderIntents: OrderIntent[] = [
     options: {
       asBase: false,
       destination: "0xc109876543210987654321098765432109876543",
-      extraData: "0xdef0",
     },
     orderType: OrderType.OpenShort,
     signature:

@@ -1,9 +1,19 @@
-function Spinner() {
+interface SpinnerProps {
+  firstColor?: string
+  secondColor?: string
+  size?: number
+}
+
+function Spinner({
+  firstColor = "#15ffab",
+  secondColor = "#14D0F9",
+  size = 24,
+}: SpinnerProps) {
   return (
     <svg
       className="animate-spin"
-      width="24"
-      height="24"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -22,8 +32,8 @@ function Spinner() {
           gradientUnits="userSpaceOnUse"
           gradientTransform="translate(36 36) scale(36)"
         >
-          <stop stopColor="#15ffab" />
-          <stop offset="1" stopColor="#14D0F9" stopOpacity="0.4" />
+          <stop stopColor={firstColor} />
+          <stop offset="1" stopColor={secondColor} stopOpacity="0.4" />
         </radialGradient>
       </defs>
     </svg>

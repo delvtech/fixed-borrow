@@ -1,22 +1,23 @@
-import { Address, Hex, WalletClient, zeroAddress } from "viem"
+import { Address, Hex, WalletClient } from "viem"
 
 // we need to construct a hash order object
 // then sign it via signTypedData
 
 // TODO update with live data
-const domain = {
-  name: "Hyperdrive Matching Engine",
-  version: "1",
-  chainId: 1,
-  verifyingContract: zeroAddress,
-}
 
 // create a function using viem that signs a message with the connect wallet
-async function signMessage(
+export async function signOrderIntent(
+  matchingEngineAddress: Address,
   walletClient: WalletClient,
   address: Address,
-  orderIntent: OrderIntent
+  order: Order
 ) {
+  const domain = {
+    name: "Hyperdrive Matching Engine",
+    version: "1",
+    chainId: walletClient.chain!.id,
+    verifyingContract: matchingEngineAddress,
+  }
   const signature = await walletClient.signTypedData({
     account: address,
     domain,
@@ -42,21 +43,21 @@ async function signMessage(
     },
     primaryType: "Order",
     message: {
-      trader: orderIntent.trader,
-      hyperdrive: orderIntent.hyperdrive,
-      amount: orderIntent.amount,
-      slippageGuard: orderIntent.slippageGuard,
-      minVaultSharePrice: orderIntent.minVaultSharePrice,
+      trader: order.trader,
+      hyperdrive: order.hyperdrive,
+      amount: order.amount,
+      slippageGuard: order.slippageGuard,
+      minVaultSharePrice: order.minVaultSharePrice,
       options: {
         asBase: true, // base always true
-        destination: orderIntent.options.destination,
-        // extraData: orderIntent.options.extraData,
+        destination: order.options.destination,
+        // extraData: order.options.extraData,
       },
-      orderType: orderIntent.orderType,
+      orderType: order.orderType,
       // this is used for eip-1271
       //   signature: "0x",
-      expiry: orderIntent.expiry,
-      salt: orderIntent.salt,
+      expiry: order.expiry,
+      salt: order.salt,
     },
   })
 
@@ -68,7 +69,7 @@ async function signMessage(
 interface Options {
   asBase: boolean
   destination: Address
-  extraData: Hex
+  // extraData: Hex
 }
 
 export enum OrderType {
@@ -76,7 +77,7 @@ export enum OrderType {
   OpenShort,
 }
 
-export interface OrderIntent {
+export interface Order {
   trader: Address
   hyperdrive: Address
   amount: bigint
@@ -84,7 +85,10 @@ export interface OrderIntent {
   minVaultSharePrice: bigint
   options: Options
   orderType: OrderType
-  signature: Hex
   expiry: bigint
   salt: Hex
+}
+
+export interface OrderIntent extends Order {
+  signature: Hex
 }

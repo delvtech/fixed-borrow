@@ -1,11 +1,12 @@
 "use client"
 
-import { ArrowLeft, HelpCircle, Info } from "lucide-react"
+import { ArrowLeft, HelpCircle } from "lucide-react"
 
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader, CardTitle } from "components/base/card"
 // import { Label } from "components/base/label"
-import { parseFixed } from "@delvtech/fixed-point-wasm"
+import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
+import Spinner from "components/animations/Spinner"
 import { Badge } from "components/base/badge"
 import {
   Select,
@@ -14,16 +15,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "components/base/select"
+import { Separator } from "components/base/separator"
 import { Tabs, TabsList, TabsTrigger } from "components/base/tabs"
 import { Label } from "components/base/ui/label"
 import { RadioGroup, RadioGroupItem } from "components/base/ui/radio-group"
 import { BigNumberInput } from "components/core/BigNumberInput"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { useApproval } from "hooks/base/useApproval"
-import { useEffect, useState } from "react"
+import { useSignOrder } from "hooks/otc/useSignOrder"
+import { useState } from "react"
 import { Market } from "src/types"
-import { Address } from "viem"
+import { Address, maxUint256 } from "viem"
+import { useAccount, useWalletClient } from "wagmi"
 import { Link } from "wouter"
+import { OrderType } from "../utils"
 
 const market: Market = {
   hyperdrive: "0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30",
@@ -53,26 +58,62 @@ const market: Market = {
 const decimals = market.loanToken.decimals
 const hyperdriveMatchingAddress: Address =
   "0x6662B6e771FACD61E33cCAfDc23BE16B4eAd0666"
+function computeDepositAmount(
+  amount: bigint,
+  view: "long" | "short",
+  desiredRate: bigint
+) {
+  if (view === "long") {
+    const bondPrice = FixedPoint.one().sub(desiredRate)
+    return fixed(amount).mul(bondPrice).bigint
+  } else {
+    // short
+    // desired rate should be [0, 1]
+    const x = FixedPoint.one().add(desiredRate)
+    const z = FixedPoint.one().div(x)
+    const shortPrice = FixedPoint.one().sub(z)
+    return fixed(amount).mul(shortPrice).bigint
+  }
+}
+
 export function NewOrder() {
   const [amount, setAmount] = useState<bigint>(0n)
   const [longSize, setLongSize] = useState<bigint>(0n)
   const [expiry, setExpiry] = useState<bigint>(0n)
   const [view, setView] = useState<"long" | "short">("long")
+  const [desiredRate, setDesiredRate] = useState<bigint>(0n)
+  const depositAmount = computeDepositAmount(amount, view, desiredRate)
+  const [step, setStep] = useState<"review" | "sign">("review")
 
-  const { approve, needsApproval } = useApproval(
+  const [unlimitedApproval, setUnlimitedApproval] = useState(true)
+
+  const approvalAmount = unlimitedApproval ? maxUint256 : depositAmount
+  const { approve, needsApproval, isLoading } = useApproval(
     market.collateralToken.address,
     hyperdriveMatchingAddress,
-    amount
+    approvalAmount
   )
 
   // effect for on view change to reset values
-  useEffect(() => {
-    setAmount(0n)
-    // select amount input and set value to zero
-    const input = document.getElementById("amount") as HTMLInputElement
-    input.value = "0"
-  }, [view])
+  // useEffect(() => {
+  //   setAmount(0n)
+  //   // select amount input and set value to zero
+  //   const input = document.getElementById("amount") as HTMLInputElement
+  //   input && (input.value = "0")
+  // }, [view])
+  const { address: account } = useAccount()
+  const { data: walletClient } = useWalletClient()
 
+  const { mutate: signOrderMutation } = useSignOrder(hyperdriveMatchingAddress)
+  const handleOrderSigning = async () => {
+    signOrderMutation({
+      hyperdrive: market.hyperdrive,
+      amount: amount,
+      slippageGuard: 0n,
+      expiry: expiry,
+      orderType: view === "long" ? OrderType.OpenLong : OrderType.OpenShort,
+    })
+  }
   const handleOnExpiryChange = (value: string) => {
     try {
       const valueNum = BigInt(value)
@@ -81,7 +122,7 @@ export function NewOrder() {
       console.error(error)
     }
   }
-
+  const inputsDisabled = isLoading
   return (
     <div className="mx-auto max-w-xl">
       <Link
@@ -92,136 +133,278 @@ export function NewOrder() {
         All orders
       </Link>
 
-      <Card className="border-0 bg-[#13151C]">
+      <Card className="border-0 bg-[#0E1320]">
         <CardHeader>
-          <CardTitle className="text-xl font-medium">New order</CardTitle>
+          {step === "review" && (
+            <CardTitle className="text-xl font-medium text-white">
+              New order
+            </CardTitle>
+          )}
         </CardHeader>
-        <CardContent className="space-y-6">
-          <Tabs
-            className="w-full"
-            value={view}
-            onValueChange={(value) => setView(value as "long" | "short")}
-          >
-            <TabsList className="w-full border-none bg-[#1C1E25] p-1">
-              <TabsTrigger
-                value="long"
-                className="w-full data-[state=active]:bg-[#2D313E] data-[state=active]:text-white"
+
+        {step === "review" ? (
+          <CardContent className="space-y-6">
+            <Tabs
+              className="w-full"
+              value={view}
+              onValueChange={(value) => setView(value as "long" | "short")}
+            >
+              <TabsList className="w-full border-none bg-[#1C1E25] p-1">
+                <TabsTrigger
+                  value="long"
+                  className="w-full data-[state=active]:bg-[#2D313E] data-[state=active]:text-white"
+                >
+                  Long
+                </TabsTrigger>
+                <TabsTrigger
+                  value="short"
+                  className="w-full data-[state=active]:bg-[#2D313E] data-[state=active]:text-white"
+                >
+                  Short
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <MarketHeader market={market} className="text-[20px]" />
+            <div className="space-y-2">
+              <Label htmlFor="amount" className="text-secondary-foreground">
+                {view === "long" ? "Long size" : "Short size"}
+              </Label>
+              <div className="flex items-center justify-between rounded-sm bg-[#1A1F2E] bg-secondary font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
+                <BigNumberInput
+                  disabled={inputsDisabled}
+                  className="bg-[#1A1F2E]"
+                  id="amount"
+                  onChange={(e) => {
+                    try {
+                      // sanitize input
+                      const sanitizedAmount = parseFixed(
+                        e.currentTarget.value,
+                        decimals
+                      )
+                      setAmount(sanitizedAmount.bigint)
+                    } catch {
+                      e.preventDefault()
+                    }
+                  }}
+                />
+
+                <Badge className="m-4 flex h-6 items-center justify-center gap-1 border-none bg-[#1A1F2E] p-2 py-4 font-sans font-medium hover:bg-none">
+                  <img src={market.loanToken.iconUrl} className="size-4" />{" "}
+                  {market.loanToken.symbol}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-secondary-foreground" htmlFor="max-rate">
+                {view === "long" ? "Min rate" : "Max rate"}
+              </Label>
+              <div className="relative">
+                <BigNumberInput
+                  disabled={inputsDisabled || amount === 0n}
+                  className="bg-[#1A1F2E]"
+                  id="max-rate"
+                  onChange={(e) => {
+                    try {
+                      // sanitize input
+                      const sanitizedAmount = parseFixed(
+                        e.currentTarget.value,
+                        decimals
+                      ).div(parseFixed(100, 18))
+
+                      setDesiredRate(sanitizedAmount.bigint)
+                    } catch {
+                      e.preventDefault()
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="order-expiry"
+                className="text-secondary-foreground"
               >
-                Long
-              </TabsTrigger>
-              <TabsTrigger
-                value="short"
-                className="w-full data-[state=active]:bg-[#2D313E] data-[state=active]:text-white"
-              >
-                Short
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <MarketHeader market={market} />
-          <div className="space-y-2">
-            <Label htmlFor="amount" className="text-secondary-foreground">
-              {view === "long" ? "Long size" : "Short size"}
-            </Label>
-            <div className="flex items-center justify-between rounded-sm bg-secondary font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
-              <BigNumberInput
-                id="amount"
-                onChange={(e) => {
-                  try {
-                    // sanitize input
-                    const sanitizedAmount = parseFixed(
-                      e.currentTarget.value,
-                      decimals
-                    )
-                    setAmount(sanitizedAmount.bigint)
-                  } catch {
-                    e.preventDefault()
-                  }
-                }}
-              />
-
-              <Badge className="m-4 flex h-6 items-center justify-center gap-1 border-none bg-secondary p-2 py-4 font-sans font-medium hover:bg-none">
-                <img src={market.loanToken.iconUrl} className="size-4" />{" "}
-                {market.loanToken.symbol}
-              </Badge>
+                Order Expiry
+              </Label>
+              <Select defaultValue="1" onValueChange={handleOnExpiryChange}>
+                <SelectTrigger id="order-expiry" className="bg-[#1A1F2E]">
+                  <SelectValue placeholder="Select expiry" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 day</SelectItem>
+                  <SelectItem value="3">3 days</SelectItem>
+                  <SelectItem value="7">1 week</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="order-expiry">Order expiry</Label>
-            <Select defaultValue="1" onValueChange={handleOnExpiryChange}>
-              <SelectTrigger id="order-expiry">
-                <SelectValue placeholder="Select expiry" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 week</SelectItem>
-                <SelectItem value="2">2 weeks</SelectItem>
-                <SelectItem value="3">1 month</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-secondary-foreground" htmlFor="max-rate">
-              {view === "long" ? "Min rate" : "Max rate"}
-            </Label>
-            <div className="relative">
-              <BigNumberInput id="max-rate" />
+            <div className="flex flex-col items-center gap-2 border-t border-[#2D313E] pt-4 text-secondary-foreground">
+              <span>Your Deposit</span>
+              <div className="flex items-center gap-2">
+                <img
+                  src={market.loanToken.iconUrl}
+                  alt="{market.loanToken.symbol}"
+                  width={20}
+                  height={20}
+                  className="h-5 w-5"
+                />
+                <span className="text-h5 font-medium text-white">
+                  {fixed(depositAmount).format({
+                    decimals: 4,
+                    trailingZeros: false,
+                  })}{" "}
+                  {market.loanToken.symbol}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span>What am I paying for?</span>
+                <HelpCircle className="h-4 w-4" />
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-col items-center gap-2 border-t border-[#2D313E] pt-4 text-secondary-foreground">
-            <span>Your Deposit</span>
-            <div className="flex items-center gap-2">
-              <img
-                src={market.loanToken.iconUrl}
-                alt="USDC"
-                width={20}
-                height={20}
-                className="h-5 w-5"
-              />
-              <span className="text-h5 font-medium text-white">47.20 USDC</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span>What am I paying for?</span>
-              <HelpCircle className="h-4 w-4" />
-            </div>
-          </div>
-
-          {needsApproval ? (
-            <>
-              <div className="space-y-4 rounded border p-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-white">
-                    Approve USDC
-                  </h3>
-                  <Info className="h-4 w-4 text-[#B0B4BD]" />
+            {needsApproval ? (
+              <>
+                <div className="space-y-4 rounded border p-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium text-white">
+                      Approve {market.loanToken.symbol}
+                    </h3>
+                  </div>
+                  <p className="text-sm text-secondary-foreground">
+                    Approve this market to spend your {market.loanToken.symbol}
+                  </p>
+                  <RadioGroup
+                    disabled={inputsDisabled}
+                    defaultValue="unlimited"
+                    onValueChange={(value) =>
+                      setUnlimitedApproval(value === "unlimited")
+                    }
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="unlimited" id="unlimited" />
+                      <Label htmlFor="unlimited">
+                        Unlimited {market.loanToken.symbol}
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="custom" id="custom" />
+                      <Label htmlFor="custom">
+                        {fixed(depositAmount).format({
+                          decimals: 4,
+                          trailingZeros: false,
+                        })}{" "}
+                        {market.loanToken.symbol}
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
-                <p className="text-sm text-[#B0B4BD]">
-                  Approve this market to spend your USDC
+
+                <Button
+                  disabled={inputsDisabled}
+                  className="w-full font-semibold text-black"
+                  onClick={() => approve()}
+                >
+                  {isLoading ? "Approving" : "Approve"}{" "}
+                  {market.loanToken.symbol}{" "}
+                  {isLoading && (
+                    <Spinner firstColor="#000" secondColor="#000" size={16} />
+                  )}
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={() => setStep("sign")}
+                className="w-full font-semibold text-black"
+                disabled={amount === 0n || desiredRate === 0n}
+              >
+                Review Order
+              </Button>
+            )}
+          </CardContent>
+        ) : (
+          <CardContent className="space-y-6">
+            <div className="m-auto w-fit text-center">
+              <MarketHeader className="text-h5 font-medium" market={market} />
+            </div>
+            <Separator />
+
+            <div className="grid gap-8">
+              <div className="flex items-center justify-between">
+                <p className="text-secondary-foreground">
+                  {view === "long" ? "Long" : "Short"} Size
                 </p>
-                <RadioGroup defaultValue="500">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="unlimited" id="unlimited" />
-                    <Label htmlFor="unlimited">Unlimited USDC</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="500" id="500" />
-                    <Label htmlFor="500">500 USDC</Label>
-                  </div>
-                </RadioGroup>
+                <div className="flex items-center gap-2">
+                  <img src={market.loanToken.iconUrl} className="size-4" />
+
+                  <p className="font-mono text-lg">
+                    {fixed(depositAmount).format({
+                      decimals: 4,
+                      trailingZeros: false,
+                    })}
+                  </p>
+
+                  {/* <p className="text-secondary-foreground">
+                    {market.loanToken.symbol}
+                  </p> */}
+                </div>
               </div>
 
-              <Button className="w-full font-semibold text-black">
-                Approve USDC
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <p className="text-secondary-foreground">Order Expiry</p>
+
+                <div className="space-y-2 text-right font-mono">
+                  <p className="text-lg">1 week </p>
+                  <p className="text-secondary-foreground">
+                    12/02/2024 1:44 PM{" "}
+                  </p>
+                </div>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <p className="text-secondary-foreground">
+                  {view === "long" ? "Min" : "Max"} rate
+                </p>
+                <div>
+                  {fixed(desiredRate).format({
+                    decimals: 2,
+                    percent: true,
+                    trailingZeros: false,
+                  })}
+                </div>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <p className="text-secondary-foreground">Your Deposit</p>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center gap-2">
+                    <img src={market.loanToken.iconUrl} className="size-4" />
+                    <span className="font-mono text-h5">
+                      {fixed(depositAmount).format({
+                        decimals: 4,
+                        trailingZeros: false,
+                      })}{" "}
+                      {market.loanToken.symbol}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-secondary-foreground">
+                      What am I paying for?
+                    </span>
+                    <HelpCircle className="h-4 w-4 text-secondary-foreground" />
+                  </div>
+                </div>
+              </div>
+
+              <Button className="mt-8" size="lg" onClick={handleOrderSigning}>
+                Sign & Submit
               </Button>
-            </>
-          ) : (
-            <Button className="w-full font-semibold text-black">
-              Place Order
-            </Button>
-          )}
-        </CardContent>
+            </div>
+          </CardContent>
+        )}
       </Card>
     </div>
   )
