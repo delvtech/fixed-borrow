@@ -1,12 +1,22 @@
-import { ListObjectsV2Command, PutObjectCommand } from "@aws-sdk/client-s3"
+import {
+  DeleteObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3"
+import {
+  LambdaFunctionURLEvent,
+  LambdaFunctionURLResult,
+  type APIGatewayProxyStructuredResultV2,
+} from "aws-lambda"
 import { createOrderKey, getOrder } from "./lib/orders.js"
 import { s3 } from "./lib/s3.js"
 import {
   DeleteRequestSchema,
   GetRequestSchema,
-  type OrderQueryResponse,
   PostRequestSchema,
   PutRequestSchema,
+  type CanceledOrder,
+  type OrderQueryResponse,
 } from "./lib/schemas.js"
 // import { verifyOrder } from "./lib/verify.js"
 
@@ -19,35 +29,49 @@ if (!bucketName) {
 }
 
 // Helper functions for responses
-const successResponse = (body: Record<string, any>, statusCode = 200) => ({
-  statusCode,
+const successResponse = ({
+  status = 200,
+  headers,
+  body = {},
+}: {
+  headers: APIGatewayProxyStructuredResultV2["headers"]
+  body?: Record<string, any>
+  status?: number
+}): LambdaFunctionURLResult => ({
+  statusCode: status,
+  headers,
   body: JSON.stringify(body, bigintReplacer),
 })
 
-const errorResponse = (message: string, statusCode = 400) => ({
-  statusCode,
+const errorResponse = ({
+  status = 400,
+  headers,
+  message,
+}: {
+  headers: APIGatewayProxyStructuredResultV2["headers"]
+  message: string
+  status?: number
+}): LambdaFunctionURLResult => ({
+  statusCode: status,
+  headers,
   body: JSON.stringify({ error: message }, bigintReplacer),
 })
 
-export const handler = async (event: any) => {
+export const handler = async (event: LambdaFunctionURLEvent) => {
+  const origin = event.headers.origin || event.headers.Origin
+  const allowOrigin =
+    origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] // fallback to first allowed origin
+  const headers = {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type,Authorization",
+  }
+
   try {
-    switch (event.httpMethod) {
-      // Handle CORS preflight //
-
+    switch (event.requestContext.http.method) {
+      // CORS preflight //
       case "OPTIONS": {
-        const origin = event.headers.origin || event.headers.Origin
-        const allowOrigin =
-          origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] // fallback to first allowed origin
-
-        return {
-          statusCode: 200,
-          headers: {
-            "Access-Control-Allow-Origin": allowOrigin,
-            "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type,Authorization",
-          },
-          body: "",
-        }
+        return successResponse({ headers })
       }
 
       // Query orders //
@@ -58,25 +82,36 @@ export const handler = async (event: any) => {
         )
 
         if (!success) {
-          return errorResponse(`Invalid request: ${error.format()}`)
+          return errorResponse({
+            message: `Invalid request: ${error.format()}`,
+            headers,
+          })
         }
 
         // If a key is provided, get the specific order
-        if (data.key) {
+        if ("key" in data) {
           const order = await getOrder(data.key, bucketName)
           return order
-            ? successResponse({ key: data.key, order })
-            : errorResponse("Order not found", 404)
+            ? successResponse({ headers, body: { key: data.key, order } })
+            : errorResponse({
+                status: 404,
+                headers,
+                message: "Order not found",
+              })
         }
 
         // Otherwise, list objects
-        let prefix = ""
+
+        // Orders are stored in subfolders named after their status
+        let prefix = data.status
+
         if (data.trader) {
           prefix += `${data.trader}:`
           if (data.hyperdrive) {
             prefix += `${data.hyperdrive}:`
           }
         }
+
         const list = await s3.send(
           new ListObjectsV2Command({
             Bucket: bucketName,
@@ -114,14 +149,14 @@ export const handler = async (event: any) => {
           nextContinuationToken: list.NextContinuationToken,
         } as OrderQueryResponse
 
-        return successResponse(response)
+        return successResponse({ headers, body: response })
       }
 
       // Create order //
 
       case "POST": {
         if (!event.body) {
-          return errorResponse("Missing request body")
+          return errorResponse({ headers, message: "Missing request body" })
         }
 
         const { data, error, success } = PostRequestSchema.safeParse(
@@ -129,15 +164,34 @@ export const handler = async (event: any) => {
         )
 
         if (!success) {
-          return errorResponse(`Invalid request: ${error.format()}`)
+          return errorResponse({
+            headers,
+            message: `Invalid request: ${error.format()}`,
+          })
         }
 
         const order = data.order
-        const key = createOrderKey(order.trader, order.hyperdrive, order.salt)
+        let key = createOrderKey({
+          status: order.signature ? "pending" : "awaiting_signature",
+          trader: order.trader,
+          hyperdrive: order.hyperdrive,
+          orderType: order.orderType,
+          salt: order.salt,
+        })
         const existingOrder = await getOrder(key, bucketName)
 
         if (existingOrder) {
-          return errorResponse("Order already exists", 409)
+          return errorResponse({
+            headers,
+            message: "Order already exists",
+            status: 409,
+          })
+        }
+
+        let status = "pending"
+        if (!order.signature) {
+          status = "awaiting_signature"
+          key = `${key}`
         }
 
         // try {
@@ -155,21 +209,22 @@ export const handler = async (event: any) => {
           })
         )
 
-        return successResponse(
-          {
+        return successResponse({
+          headers,
+          body: {
             message: "Order created",
             key,
             order,
           },
-          201
-        )
+          status: 201,
+        })
       }
 
       // Update order //
 
       case "PUT": {
         if (!event.body) {
-          return errorResponse("Missing request body")
+          return errorResponse({ headers, message: "Missing request body" })
         }
 
         const { data, error, success } = PutRequestSchema.safeParse(
@@ -177,19 +232,28 @@ export const handler = async (event: any) => {
         )
 
         if (!success) {
-          return errorResponse(`Invalid request: ${error.format()}`)
+          return errorResponse({
+            headers,
+            message: `Invalid request: ${error.format()}`,
+          })
         }
 
         const order = data.order
-        const updatedKey = createOrderKey(
-          order.trader,
-          order.hyperdrive,
-          order.salt
-        )
+        const updatedKey = createOrderKey({
+          status: order.signature ? "pending" : "awaiting_signature",
+          trader: order.trader,
+          hyperdrive: order.hyperdrive,
+          orderType: order.orderType,
+          salt: order.salt,
+        })
         const existingOrder = await getOrder(updatedKey, bucketName)
 
         if (!existingOrder) {
-          return errorResponse("Order not found", 404)
+          return errorResponse({
+            headers,
+            message: "Order not found",
+            status: 404,
+          })
         }
 
         // try {
@@ -208,9 +272,12 @@ export const handler = async (event: any) => {
         )
 
         return successResponse({
-          message: "Order updated",
-          key: updatedKey,
-          order,
+          headers,
+          body: {
+            message: "Order updated",
+            key: updatedKey,
+            order,
+          },
         })
       }
 
@@ -218,7 +285,7 @@ export const handler = async (event: any) => {
 
       case "DELETE": {
         if (!event.body) {
-          return errorResponse("Missing request body")
+          return errorResponse({ headers, message: "Missing request body" })
         }
 
         const { data, error, success } = DeleteRequestSchema.safeParse(
@@ -226,13 +293,20 @@ export const handler = async (event: any) => {
         )
 
         if (!success) {
-          return errorResponse(`Invalid request: ${error.format()}`)
+          return errorResponse({
+            headers,
+            message: `Invalid request: ${error.format()}`,
+          })
         }
 
         const order = await getOrder(data.key, bucketName)
 
         if (!order) {
-          return errorResponse("Order not found", 404)
+          return errorResponse({
+            headers,
+            message: "Order not found",
+            status: 404,
+          })
         }
 
         // try {
@@ -242,37 +316,62 @@ export const handler = async (event: any) => {
         // }
 
         // Mark order as cancelled
-        const updatedOrder = {
+        const updatedOrder: CanceledOrder = {
           ...order,
           cancelled: true,
           cancelledAt: Date.now(),
         }
 
+        // Delete order
+        await s3.send(
+          new DeleteObjectCommand({
+            Bucket: bucketName,
+            Key: data.key,
+          })
+        )
+
         // Update order
         await s3.send(
           new PutObjectCommand({
             Bucket: bucketName,
-            Key: data.key,
+            Key: createOrderKey({
+              status: "cancelled",
+              trader: order.trader,
+              hyperdrive: order.hyperdrive,
+              orderType: order.orderType,
+              salt: order.salt,
+            }),
             Body: JSON.stringify(updatedOrder, bigintReplacer),
           })
         )
 
         return successResponse({
-          message: "Order cancelled",
-          key: data.key,
+          headers,
+          body: {
+            message: "Order cancelled",
+            key: data.key,
+          },
         })
       }
 
       default:
-        return errorResponse("Method not allowed", 405)
+        return errorResponse({
+          headers,
+          message: "Method not allowed",
+          status: 405,
+        })
     }
   } catch (error) {
     console.error("Error:", error)
-    return errorResponse("Internal server error", 500)
+    return errorResponse({
+      headers,
+      message: "Internal server error",
+      status: 500,
+    })
   }
 }
 
-function bigintReplacer(key: string, value: any) {
+function bigintReplacer(_: string, value: any) {
   if (typeof value === "bigint") {
     return value.toString()
   }

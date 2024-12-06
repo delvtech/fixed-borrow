@@ -1,20 +1,19 @@
 import { GetObjectCommand, NoSuchKey } from "@aws-sdk/client-s3"
 import { s3 } from "./s3.js"
-import { OrderSchema } from "./schemas.js"
+import { OrderSchema, type GetRequestParams, type Order } from "./schemas.js"
 
 /**
- * Create an order key
- * @param trader the address of the trader
- * @param hyperdrive the address of the hyperdrive
- * @param salt a random string used to prevent collisions
- * @returns the key for the order object in S3
+ * Create an order key for an object in S3
  */
-export function createOrderKey(
-  trader: string,
-  hyperdrive: string,
-  salt: string
-) {
-  return `${trader}:${hyperdrive}:${salt}.json`
+export function createOrderKey({
+  status,
+  trader,
+  hyperdrive,
+  orderType,
+  salt,
+}: Required<Pick<GetRequestParams, "status">> &
+  Pick<Order, "trader" | "hyperdrive" | "orderType" | "salt">) {
+  return `${status}/${trader}:${hyperdrive}:${orderType}:${salt}.json`
 }
 
 /**
@@ -35,8 +34,7 @@ export async function getOrder(key: string, bucketName: string) {
     }
 
     const obj = JSON.parse(orderData)
-    const order = OrderSchema.parse(obj)
-    return order.cancelled || order.matched ? null : order
+    return OrderSchema.parse(obj)
   } catch (error) {
     if (error instanceof NoSuchKey) {
       return null
