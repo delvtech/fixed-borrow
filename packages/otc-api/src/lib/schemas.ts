@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export const OrderSchema = z.object({
-  // Signature may be pending
+  /** Signature may be pending */
   signature: z.string().transform(hexTransform).optional(),
   trader: z.string().transform(hexTransform),
   hyperdrive: z.string().transform(hexTransform),
@@ -16,32 +16,33 @@ export const OrderSchema = z.object({
   orderType: z.number().min(0).max(1),
   expiry: z.string(),
   salt: z.string().transform(hexTransform),
-  // Track match status
+})
+
+export const MatchedOrderSchema = OrderSchema.extend({
   matched: z.boolean().optional(),
   matchedAt: z.number().optional(),
   matchKey: z.string().optional(),
-  // Track cancellation status
+})
+
+export const CanceledOrderSchema = OrderSchema.extend({
   cancelled: z.boolean().optional(),
   cancelledAt: z.number().optional(),
 })
 
-export const GetRequestSchema = z
-  // By key
-  .object({
+export const GetRequestParamsSchema = z.object({
+  trader: z.string().transform(hexTransform).optional(),
+  hyperdrive: z.string().transform(hexTransform).optional(),
+  status: z
+    .enum(["pending", "matched", "cancelled", "awaiting_signature"])
+    .optional(),
+  continuationToken: z.string().optional(),
+})
+
+export const GetRequestSchema = GetRequestParamsSchema.or(
+  z.object({
     key: z.string(),
-    trader: z.undefined().optional(),
-    hyperdrive: z.undefined().optional(),
-    continuationToken: z.undefined().optional(),
   })
-  .or(
-    // By optional prefix
-    z.object({
-      key: z.undefined().optional(),
-      trader: z.string().transform(hexTransform).optional(),
-      hyperdrive: z.string().transform(hexTransform).optional(),
-      continuationToken: z.string().optional(),
-    })
-  )
+)
 
 export const QueryResponseSchema = z
   .object({
@@ -71,8 +72,11 @@ export const DeleteRequestSchema = z.object({
 })
 
 export type Order = z.infer<typeof OrderSchema>
+export type MatchedOrder = z.infer<typeof MatchedOrderSchema>
+export type CanceledOrder = z.infer<typeof CanceledOrderSchema>
 export type PostRequest = z.infer<typeof PostRequestSchema>
 export type GetRequest = z.infer<typeof GetRequestSchema>
+export type GetRequestParams = z.infer<typeof GetRequestParamsSchema>
 export type OrderQueryResponse = z.infer<typeof QueryResponseSchema>
 export type PutRequest = z.infer<typeof PutRequestSchema>
 export type DeleteRequest = z.infer<typeof DeleteRequestSchema>
