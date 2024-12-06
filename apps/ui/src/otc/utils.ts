@@ -1,17 +1,22 @@
 import { Address, Hex, WalletClient } from "viem"
 
-// we need to construct a hash order object
-// then sign it via signTypedData
-
-// TODO update with live data
-
-// create a function using viem that signs a message with the connect wallet
+/**
+ * Signs an order intent with the given wallet client and address, using the given matching engine address.
+ *
+ * @param matchingEngineAddress The address of the Hyperdrive Matching Engine contract.
+ * @param walletClient The wallet client to use for signing.
+ * @param address The address of the user signing the order.
+ * @param order The order to sign, in the form of an object.
+ * @returns An object with the following properties:
+ *   - `signature`: The signature of the signed order, as a hex string.
+ *   - All of the properties of the original `order` object.
+ */
 export async function signOrderIntent(
   matchingEngineAddress: Address,
   walletClient: WalletClient,
   address: Address,
   order: Order
-) {
+): Promise<OrderIntent> {
   const domain = {
     name: "Hyperdrive Matching Engine",
     version: "1",
@@ -31,45 +36,28 @@ export async function signOrderIntent(
         { name: "options", type: "Options" },
         // enum as uint8
         { name: "orderType", type: "uint8" },
-        // { name: "signature", type: "bytes" },
         { name: "expiry", type: "uint256" },
         { name: "salt", type: "bytes32" },
       ],
       Options: [
         { name: "destination", type: "address" },
         { name: "asBase", type: "bool" },
-        // { name: "extraData", type: "bytes" },
       ],
     },
     primaryType: "Order",
-    message: {
-      trader: order.trader,
-      hyperdrive: order.hyperdrive,
-      amount: order.amount,
-      slippageGuard: order.slippageGuard,
-      minVaultSharePrice: order.minVaultSharePrice,
-      options: {
-        asBase: true, // base always true
-        destination: order.options.destination,
-        // extraData: order.options.extraData,
-      },
-      orderType: order.orderType,
-      // this is used for eip-1271
-      //   signature: "0x",
-      expiry: order.expiry,
-      salt: order.salt,
-    },
+    message: order,
   })
 
-  return signature
+  return {
+    signature,
+    ...order,
+  }
 }
-
-// types
 
 interface Options {
   asBase: boolean
   destination: Address
-  // extraData: Hex
+  extraData: Hex
 }
 
 export enum OrderType {

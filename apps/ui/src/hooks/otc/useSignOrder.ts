@@ -43,6 +43,7 @@ export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
           options: {
             destination: account,
             asBase: true,
+            extraData: "0x",
           },
           salt: "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`,
         }

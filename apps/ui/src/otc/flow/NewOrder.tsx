@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowLeft, HelpCircle } from "lucide-react"
+import { ArrowLeft, Check, HelpCircle } from "lucide-react"
 
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader, CardTitle } from "components/base/card"
@@ -23,8 +23,10 @@ import { BigNumberInput } from "components/core/BigNumberInput"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { useApproval } from "hooks/base/useApproval"
 import { useSignOrder } from "hooks/otc/useSignOrder"
+import { PostSchema } from "otc-api"
 import { useState } from "react"
 import { Market } from "src/types"
+import { convertBigIntsToStrings } from "utils/bigint"
 import { Address, maxUint256 } from "viem"
 import { useAccount, useWalletClient } from "wagmi"
 import { Link } from "wouter"
@@ -104,16 +106,48 @@ export function NewOrder() {
   const { address: account } = useAccount()
   const { data: walletClient } = useWalletClient()
 
-  const { mutate: signOrderMutation } = useSignOrder(hyperdriveMatchingAddress)
+  const {
+    mutateAsync: signOrderMutation,
+    isPending: isOrderSigningPending,
+    isSuccess: isOrderIntentSuccess,
+  } = useSignOrder(hyperdriveMatchingAddress)
   const handleOrderSigning = async () => {
-    signOrderMutation({
+    const orderIntent = await signOrderMutation({
       hyperdrive: market.hyperdrive,
       amount: amount,
       slippageGuard: 0n,
       expiry: expiry,
       orderType: view === "long" ? OrderType.OpenLong : OrderType.OpenShort,
     })
+
+    try {
+      // validate schema
+      const body = convertBigIntsToStrings({
+        order: {
+          ...orderIntent,
+          orderType:
+            orderIntent.orderType === OrderType.OpenLong
+              ? "OpenLong"
+              : "OpenShort",
+        },
+      })
+
+      PostSchema.parse(body)
+
+      // const res = await fetch("/api/otc", {
+      //   method: "POST",
+      //   body: JSON.stringify({
+      //     order: validatedOrder,
+      //   }),
+      // })
+      // const data = await res.json()
+
+      // console.log(data)
+    } catch (error) {
+      console.error(error)
+    }
   }
+
   const handleOnExpiryChange = (value: string) => {
     try {
       const valueNum = BigInt(value)
@@ -264,7 +298,7 @@ export function NewOrder() {
               </div>
             </div>
 
-            {needsApproval ? (
+            {needsApproval && amount > 0n ? (
               <>
                 <div className="space-y-4 rounded border p-4">
                   <div className="flex items-center justify-between">
@@ -399,9 +433,44 @@ export function NewOrder() {
                 </div>
               </div>
 
-              <Button className="mt-8" size="lg" onClick={handleOrderSigning}>
-                Sign & Submit
-              </Button>
+              {isOrderIntentSuccess ? (
+                <div className="grid grid-cols-2 grid-rows-2 gap-2">
+                  <Button
+                    disabled={isOrderSigningPending}
+                    className="pointer-events-none col-span-2 mt-8 border-2 hover:bg-transparent"
+                    variant="ghost"
+                    size="lg"
+                    onClick={handleOrderSigning}
+                  >
+                    <Check className="text-aquamarine" size={18} /> Order
+                    Submitted
+                  </Button>
+                  <Link asChild to="/otc">
+                    <Button
+                      className="ml-auto w-full bg-[#1B1E26] text-white hover:bg-[#1B1E26]/50"
+                      onClick={() => {}}
+                    >
+                      <ArrowLeft size={18} />
+                      All Orders
+                    </Button>
+                  </Link>
+                  <Button
+                    className="ml-auto w-full bg-[#1B1E26] text-red-400 hover:bg-[#1B1E26]/50"
+                    onClick={() => {}}
+                  >
+                    Cancel order
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  disabled={isOrderSigningPending}
+                  className="mt-8"
+                  size="lg"
+                  onClick={handleOrderSigning}
+                >
+                  Sign & Submit
+                </Button>
+              )}
             </div>
           </CardContent>
         )}

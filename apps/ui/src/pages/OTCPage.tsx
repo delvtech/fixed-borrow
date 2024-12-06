@@ -27,6 +27,7 @@ const mockOrderIntents: OrderIntent[] = [
     options: {
       asBase: true,
       destination: "0x9876543210987654321098765432109876543210",
+      extraData: "0x",
     },
     orderType: OrderType.OpenLong,
     signature:
@@ -43,6 +44,7 @@ const mockOrderIntents: OrderIntent[] = [
     options: {
       asBase: false,
       destination: "0xa987654321098765432109876543210987654321",
+      extraData: "0x",
     },
     orderType: OrderType.OpenShort,
     signature:
@@ -59,6 +61,7 @@ const mockOrderIntents: OrderIntent[] = [
     options: {
       asBase: true,
       destination: "0xb098765432109876543210987654321098765432",
+      extraData: "0x",
     },
     orderType: OrderType.OpenLong,
     signature:
@@ -75,6 +78,7 @@ const mockOrderIntents: OrderIntent[] = [
     options: {
       asBase: false,
       destination: "0xc109876543210987654321098765432109876543",
+      extraData: "0x",
     },
     orderType: OrderType.OpenShort,
     signature:
@@ -123,7 +127,7 @@ function Orders() {
 
   // console.log(market)
   return (
-    <div className="relative m-auto flex max-w-4xl flex-col gap-8">
+    <div className="relative m-auto flex max-w-4xl flex-col gap-8 px-8 lg:px-0">
       <div className="flex items-center justify-between gap-4">
         <div className="max-w-lg space-y-2">
           <h1 className="font-chakra text-h2 font-medium text-primary">
@@ -131,9 +135,9 @@ function Orders() {
           </h1>
 
           <p className="text-secondary-foreground">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent
-            lobortis magna suscipit laoreet pulvinar. Donec vel varius leo.
-            Nulla finibus id velit quis auctor.
+            Hyperdrive OTC enables you to view and create over-the-counter
+            orders for Hyperdrive markets. Easily manage your pending order
+            intents, set custom expiry times, and execute long or short orders.
           </p>
         </div>
         <Link href="/otc/new">
@@ -144,12 +148,12 @@ function Orders() {
       </div>
       <div className="grid gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-chakra text-h4 text-ice">Pending Orders</h2>
+          <h2 className="font-chakra text-h4 text-white">Pending Orders</h2>
         </div>
         <div className="rounded-lg border">
-          <Table className="bg-surface w-full animate-fade">
+          <Table className="w-full animate-fade bg-[#0E1320]">
             <TableHeader className="rounded-tl-lg [&_tr]:border-b-0">
-              <TableRow className="hover:bg-card">
+              <TableRow className="bg-[#0E1320] hover:bg-[#0E1320]">
                 <TableHead className="font-normal text-secondary-foreground">
                   Market
                 </TableHead>
@@ -176,8 +180,11 @@ function Orders() {
                 const symbol = market.loanToken.symbol
 
                 return (
-                  <TableRow key={intent.signature}>
-                    <TableCell className="font-mono">
+                  <TableRow
+                    key={intent.signature}
+                    className="bg-[#0E1320] hover:bg-[#0E1320]"
+                  >
+                    <TableCell className="p-6 font-mono">
                       <MarketHeader
                         market={market}
                         className="text-h5"
