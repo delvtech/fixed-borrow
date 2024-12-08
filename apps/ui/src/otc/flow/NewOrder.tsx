@@ -2,12 +2,11 @@
 
 import { ArrowLeft, Check, HelpCircle } from "lucide-react"
 
-import { Button } from "components/base/button"
-import { Card, CardContent, CardHeader, CardTitle } from "components/base/card"
-// import { Label } from "components/base/label"
 import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
 import Spinner from "components/animations/Spinner"
 import { Badge } from "components/base/badge"
+import { Button } from "components/base/button"
+import { Card, CardContent, CardHeader, CardTitle } from "components/base/card"
 import {
   Select,
   SelectContent,
@@ -23,7 +22,7 @@ import { BigNumberInput } from "components/core/BigNumberInput"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { useApproval } from "hooks/base/useApproval"
 import { useSignOrder } from "hooks/otc/useSignOrder"
-import { PostSchema } from "otc-api"
+import { PostRequestSchema } from "otc-api"
 import { useState } from "react"
 import { Market } from "src/types"
 import { convertBigIntsToStrings } from "utils/bigint"
@@ -132,7 +131,7 @@ export function NewOrder() {
         },
       })
 
-      PostSchema.parse(body)
+      PostRequestSchema.parse(body)
 
       // const res = await fetch("/api/otc", {
       //   method: "POST",
