@@ -58,7 +58,7 @@ function App() {
           <RegionInfoProvider>
             <Container>
               <Navbar />
-              <div className="grow pb-24">
+              <div className="grow">
                 <Switch>
                   <Route path="/" component={HomePage} />
                   <Route path="/dev" component={DevPage} />

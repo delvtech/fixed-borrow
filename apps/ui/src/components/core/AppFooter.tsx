@@ -1,6 +1,6 @@
 export default function AppFooter() {
   return (
-    <footer className="w-full border-t px-8 py-12">
+    <footer className="mt-8 w-full border-t px-8 py-12">
       <div className="grid grid-cols-[repeat(auto-fit,190px)] gap-8 md:flex-row">
         <div className="space-y-3">
           <img className="h-9" src="/assets/logos/delv-fixed-borrow-logo.svg" />

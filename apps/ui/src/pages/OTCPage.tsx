@@ -127,17 +127,16 @@ function Orders() {
 
   // console.log(market)
   return (
-    <div className="relative m-auto flex max-w-4xl flex-col gap-8 px-8 lg:px-0">
+    <div className="relative m-auto flex max-w-6xl flex-col gap-8 px-8">
       <div className="flex items-center justify-between gap-4">
         <div className="max-w-lg space-y-2">
-          <h1 className="font-chakra text-h2 font-medium text-primary">
+          <h1 className="font-chakra text-h3 font-medium text-primary">
             Hyperdrive OTC
           </h1>
 
           <p className="text-secondary-foreground">
             Hyperdrive OTC enables you to view and create over-the-counter
-            orders for Hyperdrive markets. Easily manage your pending order
-            intents, set custom expiry times, and execute long or short orders.
+            orders for Hyperdrive markets.
           </p>
         </div>
         <Link href="/otc/new">
@@ -206,6 +205,7 @@ function Orders() {
                     <TableCell className="font-mono">
                       {fixed(intent.slippageGuard, decimals).format({
                         decimals: 2,
+                        percent: true,
                         trailingZeros: false,
                       })}
                     </TableCell>
