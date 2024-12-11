@@ -8,6 +8,7 @@ import {
   type PostRequest,
 } from "../handlers/POST/schema.js"
 import { PutResponseSchema, type PutRequest } from "../handlers/PUT/schema.js"
+import { bigintReplacer } from "./utils/bigIntReplacer.js"
 
 export class OtcClient {
   public constructor(public readonly otcApiUrl: string) {}
@@ -18,19 +19,19 @@ export class OtcClient {
   async getOrder(key: string) {
     const url = `${this.otcApiUrl}?key=${key}`
     const response = await fetch(url)
-    const json = await response.json()
-    return GetOneResponseSchema.parse(json)
+    const obj = await response.json()
+    return GetOneResponseSchema.parse(obj)
   }
 
   /**
-   * Get a single order by key
+   * Get a list of orders
    */
   async getOrders(params?: QueryParams) {
     const searchParams = new URLSearchParams(params)
     const url = `${this.otcApiUrl}?${searchParams.toString()}`
     const response = await fetch(url)
-    const json = await response.json()
-    return QueryResponseSchema.parse(json)
+    const obj = await response.json()
+    return QueryResponseSchema.parse(obj)
   }
 
   /**
@@ -39,10 +40,10 @@ export class OtcClient {
   async addOrder(params: PostRequest) {
     const response = await fetch(this.otcApiUrl, {
       method: "POST",
-      body: JSON.stringify(params),
+      body: JSON.stringify(params, bigintReplacer),
     })
-    const json = await response.json()
-    return PostResponseSchema.parse(json)
+    const obj = await response.json()
+    return PostResponseSchema.parse(obj)
   }
 
   /**
@@ -51,10 +52,10 @@ export class OtcClient {
   async updateOrder(params: PutRequest) {
     const response = await fetch(this.otcApiUrl, {
       method: "PUT",
-      body: JSON.stringify(params),
+      body: JSON.stringify(params, bigintReplacer),
     })
-    const json = await response.json()
-    return PutResponseSchema.parse(json)
+    const obj = await response.json()
+    return PutResponseSchema.parse(obj)
   }
 
   /**
@@ -65,7 +66,7 @@ export class OtcClient {
       method: "DELETE",
       body: JSON.stringify({ key }),
     })
-    const json = await response.json()
-    return PutResponseSchema.parse(json)
+    const obj = await response.json()
+    return PutResponseSchema.parse(obj)
   }
 }
