@@ -15,6 +15,7 @@
     "codegen": "graphql-codegen -c configs/codegen.ts && yarn format"
   },
   "dependencies": {
+    "otc-api": "*",
     "@delvtech/fixed-point-wasm": "^0.0.4",
     "@delvtech/hyperdrive-viem": "^2.4.3",
     "@morpho-org/blue-sdk": "^1.7.0",
