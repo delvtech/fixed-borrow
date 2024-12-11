@@ -6,7 +6,7 @@ import { DELETE } from "./handlers/DELETE/handler.js"
 import { GET } from "./handlers/GET/handler.js"
 import { POST } from "./handlers/POST/handler.js"
 import { PUT } from "./handlers/PUT/handler.js"
-import type { HandlerParams } from "./types.js"
+import type { HandlerParams } from "./handlers/types.js"
 import { errorResponse, successResponse } from "./lib/utils/response.js"
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(/,\s*/) || []

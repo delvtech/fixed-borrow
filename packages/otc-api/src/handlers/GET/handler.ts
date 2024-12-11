@@ -1,9 +1,9 @@
 import { ListObjectsV2Command } from "@aws-sdk/client-s3"
 import type { APIGatewayProxyStructuredResultV2 } from "aws-lambda"
 import { s3 } from "../../lib/s3.js"
-import type { HandlerParams } from "../../types.js"
 import { getOrder, parseOrderKey } from "../../lib/utils/orders.js"
 import { errorResponse, successResponse } from "../../lib/utils/response.js"
+import type { HandlerParams } from "../types.js"
 import {
   GetRequestSchema,
   type GetOneResponse,
