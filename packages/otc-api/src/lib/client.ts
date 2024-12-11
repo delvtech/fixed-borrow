@@ -9,6 +9,7 @@ import {
   type PostRequest,
 } from "../handlers/POST/schema.js"
 import { PutResponseSchema, type PutRequest } from "../handlers/PUT/schema.js"
+import { ErrorResponseSchema, type ErrorResponse } from "./schema.js"
 import { bigintReplacer } from "./utils/bigIntReplacer.js"
 
 export class OtcClient {
@@ -21,6 +22,9 @@ export class OtcClient {
     const url = `${this.otcApiUrl}?key=${key}`
     const response = await fetch(url)
     const obj = await response.json()
+    if (isError(obj)) {
+      return ErrorResponseSchema.parse(obj)
+    }
     return GetOneResponseSchema.parse(obj)
   }
 
@@ -32,6 +36,9 @@ export class OtcClient {
     const url = `${this.otcApiUrl}?${searchParams.toString()}`
     const response = await fetch(url)
     const obj = await response.json()
+    if (isError(obj)) {
+      return ErrorResponseSchema.parse(obj)
+    }
     return QueryResponseSchema.parse(obj)
   }
 
@@ -44,6 +51,9 @@ export class OtcClient {
       body: JSON.stringify(params, bigintReplacer),
     })
     const obj = await response.json()
+    if (isError(obj)) {
+      return ErrorResponseSchema.parse(obj)
+    }
     return PostResponseSchema.parse(obj)
   }
 
@@ -56,6 +66,9 @@ export class OtcClient {
       body: JSON.stringify(params, bigintReplacer),
     })
     const obj = await response.json()
+    if (isError(obj)) {
+      return ErrorResponseSchema.parse(obj)
+    }
     return PutResponseSchema.parse(obj)
   }
 
@@ -68,6 +81,13 @@ export class OtcClient {
       body: JSON.stringify({ key }),
     })
     const obj = await response.json()
+    if (isError(obj)) {
+      return ErrorResponseSchema.parse(obj)
+    }
     return DeleteResponseSchema.parse(obj)
   }
+}
+
+function isError(res: any): res is ErrorResponse {
+  return "error" in res && res.error
 }
