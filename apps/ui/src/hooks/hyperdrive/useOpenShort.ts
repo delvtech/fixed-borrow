@@ -26,6 +26,8 @@ export function useOpenShort() {
         publicClient: client,
         walletClient,
       })
+      const minVaultSharePrice = (await writeHyperdrive.getPoolInfo())
+        .vaultSharePrice
 
       // lets reduce to 4 decimals
       const reduced = fixed(vars.rateQuote).divUp(parseFixed(1e12)).bigint
@@ -39,7 +41,7 @@ export function useOpenShort() {
       return await writeHyperdrive.openShort({
         args: {
           destination: account,
-          minVaultSharePrice: 0n, // TODO fix this
+          minVaultSharePrice,
           maxDeposit: maxUint256,
           asBase: true,
           bondAmount: vars.bondAmount,
