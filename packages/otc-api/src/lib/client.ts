@@ -1,4 +1,5 @@
 import {
+  GetOneResponseSchema,
   QueryResponseSchema,
   type QueryParams,
 } from "../handlers/GET/schema.js"
@@ -7,7 +8,6 @@ import {
   type PostRequest,
 } from "../handlers/POST/schema.js"
 import { PutResponseSchema, type PutRequest } from "../handlers/PUT/schema.js"
-import { OrderSchema } from "./schema.js"
 
 export class OtcClient {
   public constructor(public readonly otcApiUrl: string) {}
@@ -19,7 +19,7 @@ export class OtcClient {
     const url = `${this.otcApiUrl}?key=${key}`
     const response = await fetch(url)
     const json = await response.json()
-    return OrderSchema.parse(json)
+    return GetOneResponseSchema.parse(json)
   }
 
   /**
