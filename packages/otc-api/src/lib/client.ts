@@ -1,3 +1,4 @@
+import { DeleteResponseSchema } from "../handlers/DELETE/schema.js"
 import {
   GetOneResponseSchema,
   QueryResponseSchema,
@@ -67,6 +68,6 @@ export class OtcClient {
       body: JSON.stringify({ key }),
     })
     const obj = await response.json()
-    return PutResponseSchema.parse(obj)
+    return DeleteResponseSchema.parse(obj)
   }
 }
