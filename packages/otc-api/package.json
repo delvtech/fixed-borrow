@@ -1,0 +1,30 @@
+{
+  "name": "otc-api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/lib/exports.js",
+  "types": "dist/lib/exports.d.ts",
+  "scripts": {
+    "build": "tsc && tsx scripts/buildLambda.ts",
+    "build:lib": "tsc",
+    "watch:lib": "tsc --watch",
+    "test": "tsx -r dotenv/config --test src/*.test.*",
+    "test:watch": "tsx -r dotenv/config --test --watch src/*.test.*"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.705.0",
+    "@aws-sdk/lib-storage": "^3.705.0",
+    "viem": "^2.21.54",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/aws-lambda": "^8.10.146",
+    "@types/node": "^22.10.1",
+    "dotenv": "^16.4.7",
+    "jszip": "^3.10.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
