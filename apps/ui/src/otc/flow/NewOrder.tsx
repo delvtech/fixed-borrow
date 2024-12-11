@@ -119,7 +119,7 @@ export function NewOrder() {
     })
 
     if ("error" in response) {
-      throw new Error(response.error)
+      console.error(response.error)
     }
   }
 

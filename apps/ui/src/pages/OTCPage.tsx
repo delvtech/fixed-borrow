@@ -25,13 +25,14 @@ function usePendingOrders() {
     queryFn: async () => {
       const otcClient = new OtcClient(OTC_API_URL)
 
-      const response = await otcClient.getOrders()
+      const response = await otcClient.getOrders({
+        status: "pending",
+      })
 
       if ("error" in response) {
         throw new Error(response.error)
       } else {
-        const orders = response.orders
-        return orders.filter((order) => order.key.includes("pending"))
+        return response.orders
       }
     },
   })
