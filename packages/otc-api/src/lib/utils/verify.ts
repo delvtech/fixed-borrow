@@ -1,5 +1,5 @@
 import { verifyTypedData } from "viem"
-import type { Order } from "./schemas.js"
+import type { Order } from "../schema.js"
 
 // Constants for EIP-712 domain
 const MATCHING_ENGINE_NAME = "Hyperdrive Matching Engine"
