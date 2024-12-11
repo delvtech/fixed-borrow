@@ -1,5 +1,5 @@
 import { ReactNode, useEffect } from "react"
-import Helmet from "react-helmet"
+import { Helmet } from "react-helmet-async"
 
 /**
  * Adds the Plausible analytics script to the `<head>` and the `plausible`
