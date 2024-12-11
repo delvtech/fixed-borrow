@@ -1,21 +1,14 @@
 import { useQuery } from "@tanstack/react-query"
-import type { QueryParams } from "otc-api"
+import { OtcClient } from "otc-api"
 
 const otcApiUrl = import.meta.env.VITE_OTC_API_URL
 
 function App() {
-  const params: QueryParams = {
-    trader: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-  }
-
   const { status, data, error } = useQuery({
     queryKey: ["test"],
     queryFn: () => {
-      const url = new URL(otcApiUrl)
-      url.search = new URLSearchParams(params).toString()
-      return fetch(url, {
-        method: "GET",
-      }).then((res) => res.json())
+      const client = new OtcClient(otcApiUrl)
+      return client.getOrders()
     },
   })
 
@@ -35,7 +28,11 @@ function App() {
           <textarea
             readOnly
             className="h-[500px] w-full rounded-lg bg-slate-800 p-6 font-mono text-white"
-            value={JSON.stringify(data, null, 2)}
+            value={JSON.stringify(
+              data,
+              (_, v) => (typeof v === "bigint" ? String(v) : v),
+              2
+            )}
           />
         </div>
 
@@ -44,7 +41,11 @@ function App() {
           <textarea
             readOnly
             className="h-[500px] w-full rounded-lg bg-slate-800 p-6 font-mono text-white"
-            value={JSON.stringify(error, null, 2)}
+            value={JSON.stringify(
+              error,
+              (_, v) => (typeof v === "bigint" ? String(v) : v),
+              2
+            )}
           />
         </div>
       </div>
