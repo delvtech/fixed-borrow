@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "dist/exports.js",
-  "types": "dist/exports.d.ts",
+  "main": "dist/lib/exports.js",
+  "types": "dist/lib/exports.d.ts",
   "scripts": {
     "build": "tsc && tsx scripts/buildLambda.ts",
     "test": "tsx -r dotenv/config --test src/*.test.*",

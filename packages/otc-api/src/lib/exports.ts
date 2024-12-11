@@ -1,3 +1,5 @@
+export { OtcClient } from "./client.js"
+
 export { createOrderKey, parseOrderKey } from "./utils/orders.js"
 
 export {
