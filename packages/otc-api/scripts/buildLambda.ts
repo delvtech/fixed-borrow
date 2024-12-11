@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-import JSZip from "jszip"
 import { spawnSync } from "node:child_process"
 import {
   copyFileSync,
   createWriteStream,
   readFileSync,
-  readdirSync, rmSync, statSync
+  readdirSync,
+  rmSync,
+  statSync,
 } from "node:fs"
 import { basename, join, resolve } from "node:path"
+import JSZip from "jszip"
 import { compilerOptions } from "../src/tsconfig.json"
 
 const outDir = resolve("src", compilerOptions.outDir)
@@ -21,15 +23,13 @@ if (buildResult.error) {
   process.exit(1)
 }
 
-
 // copy package.json to output directory
 copyFileSync("src/package.json", join(outDir, "package.json"))
-
 
 // install dependencies
 const installResult = spawnSync(
   "npm",
-  ["install", "--omit=dev","--package-lock=false"],
+  ["install", "--omit=dev", "--package-lock=false"],
   {
     stdio: "inherit",
     cwd: outDir,

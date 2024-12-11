@@ -3,10 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "dist/lib/schemas.js",
-  "types": "dist/lib/schemas.d.ts",
+  "main": "dist/exports.js",
+  "types": "dist/exports.d.ts",
   "scripts": {
-    "build": "tsc && tsx scripts/buildLambda.ts"
+    "build": "tsc && tsx scripts/buildLambda.ts",
+    "test": "tsx -r dotenv/config --test src/*.test.*",
+    "test:watch": "tsx -r dotenv/config --test --watch src/*.test.*"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.705.0",
