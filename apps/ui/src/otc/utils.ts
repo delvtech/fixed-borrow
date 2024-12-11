@@ -1,4 +1,5 @@
-import { Address, Hex, WalletClient } from "viem"
+import { Order, OrderIntent } from "otc-api"
+import { Address, WalletClient } from "viem"
 
 /**
  * Signs an order intent with the given wallet client and address, using the given matching engine address.
@@ -45,38 +46,14 @@ export async function signOrderIntent(
       ],
     },
     primaryType: "Order",
-    message: order,
+    message: {
+      ...order,
+      expiry: BigInt(order.expiry),
+    },
   })
 
   return {
     signature,
     ...order,
   }
-}
-
-interface Options {
-  asBase: boolean
-  destination: Address
-  extraData: Hex
-}
-
-export enum OrderType {
-  OpenLong,
-  OpenShort,
-}
-
-export interface Order {
-  trader: Address
-  hyperdrive: Address
-  amount: bigint
-  slippageGuard: bigint
-  minVaultSharePrice: bigint
-  options: Options
-  orderType: OrderType
-  expiry: bigint
-  salt: Hex
-}
-
-export interface OrderIntent extends Order {
-  signature: Hex
 }

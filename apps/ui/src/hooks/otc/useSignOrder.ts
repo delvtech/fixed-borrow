@@ -1,16 +1,15 @@
 import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { useMutation } from "@tanstack/react-query"
-import { OrderType, signOrderIntent } from "src/otc/utils"
+import { signOrderIntent } from "src/otc/utils"
 import { Address } from "viem"
 import { useAccount, usePublicClient, useWalletClient } from "wagmi"
 
-// Define the type for the order data
 type OrderData = {
   hyperdrive: Address
   amount: bigint
   slippageGuard: bigint
   expiry: bigint
-  orderType: OrderType
+  orderType: bigint
 }
 
 export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
@@ -38,8 +37,8 @@ export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
           amount: orderData.amount,
           slippageGuard: orderData.slippageGuard,
           minVaultSharePrice: vaultSharePrice,
-          expiry: orderData.expiry,
-          orderType: orderData.orderType,
+          expiry: orderData.expiry.toString(),
+          orderType: Number(orderData.orderType),
           options: {
             destination: account,
             asBase: true,

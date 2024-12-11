@@ -46,7 +46,6 @@
     "dnum": "^2.12.0",
     "lodash-es": "^4.17.21",
     "lucide-react": "^0.427.0",
-    "otc-api": "*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-helmet-async": "^2.0.5",

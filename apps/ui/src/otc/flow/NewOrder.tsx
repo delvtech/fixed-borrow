@@ -28,7 +28,6 @@ import { Market } from "src/types"
 import { OTC_API_URL } from "utils/constants"
 import { Address, maxUint256 } from "viem"
 import { Link } from "wouter"
-import { OrderType } from "../utils"
 
 // hardcoding the target market for now
 const market: Market = {
@@ -106,7 +105,7 @@ export function NewOrder() {
       amount: amount,
       slippageGuard: depositAmount,
       expiry: expiry * 86400n,
-      orderType: view === "long" ? OrderType.OpenLong : OrderType.OpenShort,
+      orderType: view === "long" ? 0n : 1n,
     })
 
     const otcClient = new OtcClient(OTC_API_URL)
