@@ -22,10 +22,9 @@ import { BigNumberInput } from "components/core/BigNumberInput"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { useApproval } from "hooks/base/useApproval"
 import { useSignOrder } from "hooks/otc/useSignOrder"
-import { PostRequestSchema } from "otc-api"
+import { OtcClient } from "otc-api"
 import { useState } from "react"
 import { Market } from "src/types"
-import { convertBigIntsToStrings } from "utils/bigint"
 import { OTC_API_URL } from "utils/constants"
 import { Address, maxUint256 } from "viem"
 import { Link } from "wouter"
@@ -109,18 +108,19 @@ export function NewOrder() {
       expiry: expiry * 86400n,
       orderType: view === "long" ? OrderType.OpenLong : OrderType.OpenShort,
     })
-    const body = convertBigIntsToStrings({
+
+    const otcClient = new OtcClient(OTC_API_URL)
+
+    const response = await otcClient.addOrder({
       order: {
         ...orderIntent,
+        expiry: orderIntent.expiry.toString(),
       },
     })
 
-    PostRequestSchema.parse(body)
-
-    await fetch(OTC_API_URL, {
-      method: "POST",
-      body: JSON.stringify(body),
-    })
+    if ("error" in response) {
+      throw new Error(response.error)
+    }
   }
 
   const handleOnExpiryChange = (value: string) => {
