@@ -12,120 +12,37 @@ import {
 import { MarketHeader } from "components/markets/MarketHeader"
 import { SupportedChainId } from "dfb-config"
 import { ArrowRight } from "lucide-react"
-import { OrderIntent, OrderType } from "src/otc/utils"
+import { OtcClient } from "otc-api"
+import { OTC_API_URL } from "utils/constants"
 import { getAppConfig } from "utils/getAppConfig"
 import { useAccount, useChainId } from "wagmi"
-import { Link, useParams } from "wouter"
+import { Link } from "wouter"
 
-const mockOrderIntents: OrderIntent[] = [
-  {
-    trader: "0x1234567890123456789012345678901234567890",
-    hyperdrive: "0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30",
-    amount: BigInt("1000000000000000000"), // 1 ETH in wei
-    slippageGuard: BigInt("50000000000000000"), // 0.05 ETH in wei
-    minVaultSharePrice: BigInt("1000000000000000000"), // 1 in 18 decimal precision
-    options: {
-      asBase: true,
-      destination: "0x9876543210987654321098765432109876543210",
-      extraData: "0x",
-    },
-    orderType: OrderType.OpenLong,
-    signature:
-      "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    expiry: BigInt(Math.floor(Date.now() / 1000) + 3600), // Current timestamp + 1 hour
-    salt: "0xfedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
-  },
-  {
-    trader: "0x2345678901234567890123456789012345678901",
-    hyperdrive: "0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30",
-    amount: BigInt("500000000000000000"), // 0.5 ETH in wei
-    slippageGuard: BigInt("25000000000000000"), // 0.025 ETH in wei
-    minVaultSharePrice: BigInt("990000000000000000"), // 0.99 in 18 decimal precision
-    options: {
-      asBase: false,
-      destination: "0xa987654321098765432109876543210987654321",
-      extraData: "0x",
-    },
-    orderType: OrderType.OpenShort,
-    signature:
-      "0x2345678901abcdef2345678901abcdef2345678901abcdef2345678901abcdef2345678901abcdef2345678901abcdef2345678901abcdef2345678901abcdef",
-    expiry: BigInt(Math.floor(Date.now() / 1000) + 7200), // Current timestamp + 2 hours
-    salt: "0xedcba98765432109fedcba98765432109fedcba98765432109fedcba9876543210",
-  },
-  {
-    trader: "0xaA5CBCBd7f85F03BdD7D64C7186c16C0A19217c9",
-    hyperdrive: "0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30",
-    amount: BigInt("2000000000000000000"), // 2 ETH in wei
-    slippageGuard: BigInt("100000000000000000"), // 0.1 ETH in wei
-    minVaultSharePrice: BigInt("1010000000000000000"), // 1.01 in 18 decimal precision
-    options: {
-      asBase: true,
-      destination: "0xb098765432109876543210987654321098765432",
-      extraData: "0x",
-    },
-    orderType: OrderType.OpenLong,
-    signature:
-      "0x3456789012abcdef3456789012abcdef3456789012abcdef3456789012abcdef3456789012abcdef3456789012abcdef3456789012abcdef3456789012abcdef",
-    expiry: BigInt(Math.floor(Date.now() / 1000) + 10800), // Current timestamp + 3 hours
-    salt: "0xdcba987654321098edcba987654321098edcba987654321098edcba98765432109",
-  },
-  {
-    trader: "0x4567890123456789012345678901234567890123",
-    hyperdrive: "0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30",
-    amount: BigInt("750000000000000000"), // 0.75 ETH in wei
-    slippageGuard: BigInt("37500000000000000"), // 0.0375 ETH in wei
-    minVaultSharePrice: BigInt("995000000000000000"), // 0.995 in 18 decimal precision
-    options: {
-      asBase: false,
-      destination: "0xc109876543210987654321098765432109876543",
-      extraData: "0x",
-    },
-    orderType: OrderType.OpenShort,
-    signature:
-      "0x4567890123abcdef4567890123abcdef4567890123abcdef4567890123abcdef4567890123abcdef4567890123abcdef4567890123abcdef4567890123abcdef",
-    expiry: BigInt(Math.floor(Date.now() / 1000) + 14400), // Current timestamp + 4 hours
-    salt: "0xcba9876543210987dcba9876543210987dcba9876543210987dcba987654321098",
-  },
-]
-
-async function getPendingOrderIntents(chainId: SupportedChainId) {
-  const data: Promise<OrderIntent[]> = new Promise(async (resolve) => {
-    resolve(mockOrderIntents)
-  })
-  return data
-}
-
-// create a react hook using react-query to fetch the pending order intents mock
-export function usePendingOrderIntents() {
+function usePendingOrders() {
   const chainId = useChainId()
   return useQuery({
-    queryKey: ["pendingOrderIntents", chainId],
-    queryFn: () => getPendingOrderIntents(chainId as SupportedChainId),
+    queryKey: ["pendingOrders", chainId],
+    queryFn: async () => {
+      const otcClient = new OtcClient(OTC_API_URL)
+
+      const response = await otcClient.getOrders()
+
+      if ("error" in response) {
+        throw new Error(response.error)
+      } else {
+        const orders = response.orders
+        return orders.filter((order) => order.key.includes("pending"))
+      }
+    },
   })
 }
 
 function Orders() {
   const { address: account } = useAccount()
-  const params = useParams()
   const chainId = useChainId()
   const appConfig = getAppConfig(chainId as SupportedChainId)
-  const hyperdrive = params.hyperdrive
+  const { data: pendingOrders } = usePendingOrders()
 
-  const { data: orderIntents } = usePendingOrderIntents()
-  // const market = useMemo(
-  //   () =>
-  //     appConfig.morphoMarkets.find(
-  //       (market) => market.hyperdrive === hyperdrive
-  //     ),
-  //   [appConfig]
-  // )
-  // console.log(hyperdrive)
-  // if (!market) return <div>Market not found</div>
-
-  // const decimals = market?.loanToken.decimals
-  // const symbol = market?.loanToken.symbol
-
-  // console.log(market)
   return (
     <div className="relative m-auto flex max-w-6xl flex-col gap-8 px-8">
       <div className="flex items-center justify-between gap-4">
@@ -169,18 +86,18 @@ function Orders() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orderIntents?.map((intent) => {
+              {pendingOrders?.map((intent) => {
                 const market = appConfig.morphoMarkets.find(
-                  (market) => market.hyperdrive === intent.hyperdrive
+                  (market) => market.hyperdrive === intent.order.hyperdrive
                 )
 
-                if (!market) return <div>Market not found</div>
+                if (!market) return null
                 const decimals = market.loanToken.decimals
                 const symbol = market.loanToken.symbol
 
                 return (
                   <TableRow
-                    key={intent.signature}
+                    key={intent.order.signature}
                     className="bg-[#0E1320] hover:bg-[#0E1320]"
                   >
                     <TableCell className="p-6 font-mono">
@@ -191,7 +108,7 @@ function Orders() {
                       />
                     </TableCell>
                     <TableCell className="font-mono">
-                      {fixed(intent.amount, decimals).format({
+                      {fixed(intent.order.amount, decimals).format({
                         decimals: 2,
                         trailingZeros: false,
                       })}{" "}
@@ -199,11 +116,11 @@ function Orders() {
                     </TableCell>
                     <TableCell className="font-mono">
                       {new Date(
-                        Number(intent.expiry) * 1000
+                        Number(intent.order.expiry) * 1000
                       ).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="font-mono">
-                      {fixed(intent.slippageGuard, decimals).format({
+                      {fixed(intent.order.slippageGuard, decimals).format({
                         decimals: 2,
                         percent: true,
                         trailingZeros: false,
@@ -211,7 +128,7 @@ function Orders() {
                     </TableCell>
 
                     <TableCell>
-                      {account === intent.trader ? (
+                      {account === intent.order.trader ? (
                         <Button
                           className="ml-auto bg-[#1B1E26] text-red-400 hover:bg-[#1B1E26]/50"
                           onClick={() => {}}

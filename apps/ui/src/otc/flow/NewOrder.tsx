@@ -26,11 +26,12 @@ import { PostRequestSchema } from "otc-api"
 import { useState } from "react"
 import { Market } from "src/types"
 import { convertBigIntsToStrings } from "utils/bigint"
+import { OTC_API_URL } from "utils/constants"
 import { Address, maxUint256 } from "viem"
-import { useAccount, useWalletClient } from "wagmi"
 import { Link } from "wouter"
 import { OrderType } from "../utils"
 
+// hardcoding the target market for now
 const market: Market = {
   hyperdrive: "0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30",
   loanToken: {
@@ -59,6 +60,7 @@ const market: Market = {
 const decimals = market.loanToken.decimals
 const hyperdriveMatchingAddress: Address =
   "0x6662B6e771FACD61E33cCAfDc23BE16B4eAd0666"
+
 function computeDepositAmount(
   amount: bigint,
   view: "long" | "short",
@@ -79,8 +81,7 @@ function computeDepositAmount(
 
 export function NewOrder() {
   const [amount, setAmount] = useState<bigint>(0n)
-  const [longSize, setLongSize] = useState<bigint>(0n)
-  const [expiry, setExpiry] = useState<bigint>(0n)
+  const [expiry, setExpiry] = useState<bigint>(1n) // days
   const [view, setView] = useState<"long" | "short">("long")
   const [desiredRate, setDesiredRate] = useState<bigint>(0n)
   const depositAmount = computeDepositAmount(amount, view, desiredRate)
@@ -95,16 +96,6 @@ export function NewOrder() {
     approvalAmount
   )
 
-  // effect for on view change to reset values
-  // useEffect(() => {
-  //   setAmount(0n)
-  //   // select amount input and set value to zero
-  //   const input = document.getElementById("amount") as HTMLInputElement
-  //   input && (input.value = "0")
-  // }, [view])
-  const { address: account } = useAccount()
-  const { data: walletClient } = useWalletClient()
-
   const {
     mutateAsync: signOrderMutation,
     isPending: isOrderSigningPending,
@@ -114,37 +105,22 @@ export function NewOrder() {
     const orderIntent = await signOrderMutation({
       hyperdrive: market.hyperdrive,
       amount: amount,
-      slippageGuard: 0n,
-      expiry: expiry,
+      slippageGuard: depositAmount,
+      expiry: expiry * 86400n,
       orderType: view === "long" ? OrderType.OpenLong : OrderType.OpenShort,
     })
+    const body = convertBigIntsToStrings({
+      order: {
+        ...orderIntent,
+      },
+    })
 
-    try {
-      // validate schema
-      const body = convertBigIntsToStrings({
-        order: {
-          ...orderIntent,
-          orderType:
-            orderIntent.orderType === OrderType.OpenLong
-              ? "OpenLong"
-              : "OpenShort",
-        },
-      })
+    PostRequestSchema.parse(body)
 
-      PostRequestSchema.parse(body)
-
-      // const res = await fetch("/api/otc", {
-      //   method: "POST",
-      //   body: JSON.stringify({
-      //     order: validatedOrder,
-      //   }),
-      // })
-      // const data = await res.json()
-
-      // console.log(data)
-    } catch (error) {
-      console.error(error)
-    }
+    await fetch(OTC_API_URL, {
+      method: "POST",
+      body: JSON.stringify(body),
+    })
   }
 
   const handleOnExpiryChange = (value: string) => {
@@ -155,7 +131,9 @@ export function NewOrder() {
       console.error(error)
     }
   }
+
   const inputsDisabled = isLoading
+
   return (
     <div className="mx-auto max-w-xl">
       <Link
@@ -203,7 +181,7 @@ export function NewOrder() {
               <Label htmlFor="amount" className="text-secondary-foreground">
                 {view === "long" ? "Long size" : "Short size"}
               </Label>
-              <div className="flex items-center justify-between rounded-sm bg-[#1A1F2E] bg-secondary font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
+              <div className="flex items-center justify-between rounded-sm bg-[#1A1F2E] font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
                 <BigNumberInput
                   disabled={inputsDisabled}
                   className="bg-[#1A1F2E]"
