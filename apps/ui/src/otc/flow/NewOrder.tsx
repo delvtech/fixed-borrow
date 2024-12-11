@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Check, HelpCircle } from "lucide-react"
 
-import { fixed, FixedPoint, parseFixed } from "@delvtech/fixed-point-wasm"
+import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
 import Spinner from "components/animations/Spinner"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
@@ -28,6 +28,7 @@ import { Market } from "src/types"
 import { OTC_API_URL } from "utils/constants"
 import { Address, maxUint256 } from "viem"
 import { Link } from "wouter"
+import { computeDepositAmount } from "../utils"
 
 // hardcoding the target market for now
 const market: Market = {
@@ -59,30 +60,16 @@ const decimals = market.loanToken.decimals
 const hyperdriveMatchingAddress: Address =
   "0x6662B6e771FACD61E33cCAfDc23BE16B4eAd0666"
 
-function computeDepositAmount(
-  amount: bigint,
-  view: "long" | "short",
-  desiredRate: bigint
-) {
-  if (view === "long") {
-    const bondPrice = FixedPoint.one().sub(desiredRate)
-    return fixed(amount).mul(bondPrice).bigint
-  } else {
-    // short
-    // desired rate should be [0, 1]
-    const x = FixedPoint.one().add(desiredRate)
-    const z = FixedPoint.one().div(x)
-    const shortPrice = FixedPoint.one().sub(z)
-    return fixed(amount).mul(shortPrice).bigint
-  }
-}
-
 export function NewOrder() {
   const [amount, setAmount] = useState<bigint>(0n)
   const [expiry, setExpiry] = useState<bigint>(1n) // days
   const [view, setView] = useState<"long" | "short">("long")
   const [desiredRate, setDesiredRate] = useState<bigint>(0n)
-  const depositAmount = computeDepositAmount(amount, view, desiredRate)
+  const depositAmount = computeDepositAmount(
+    amount,
+    view === "long" ? 0 : 1,
+    desiredRate
+  )
   const [step, setStep] = useState<"review" | "sign">("review")
 
   const [unlimitedApproval, setUnlimitedApproval] = useState(true)

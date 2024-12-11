@@ -1,5 +1,6 @@
+import { fixed, FixedPoint } from "@delvtech/fixed-point-wasm"
 import { Order, OrderIntent } from "otc-api"
-import { Address, WalletClient } from "viem"
+import { Address, bytesToHex, WalletClient } from "viem"
 
 /**
  * Signs an order intent with the given wallet client and address, using the given matching engine address.
@@ -56,4 +57,64 @@ export async function signOrderIntent(
     signature,
     ...order,
   }
+}
+
+/**
+ * Computes the deposit amount for a given order type and desired rate
+ *
+ * @param amount - order amount
+ * @param orderType - 0 for long, 1 for short
+ * @param desiredRate - desired fixed point rate
+ * @returns deposit amount
+ */
+export function computeDepositAmount(
+  amount: bigint,
+  orderType: number,
+  desiredRate: bigint
+) {
+  if (orderType === 0) {
+    // long
+    const bondPrice = FixedPoint.one().sub(desiredRate)
+    return fixed(amount).mul(bondPrice).bigint
+  } else {
+    // short
+    const x = FixedPoint.one().add(desiredRate)
+    const z = FixedPoint.one().div(x)
+    const shortPrice = FixedPoint.one().sub(z)
+    return fixed(amount).mul(shortPrice).bigint
+  }
+}
+/**
+ * Computes the target rate for a given order type and desired rate
+ *
+ * @param orderType - 0 for long, 1 for short
+ * @param amount - order amount
+ * @param slippageGuard - desired slippage guard
+ * @returns the target fixed point rate
+ */
+export function computeTargetRate(
+  orderType: number,
+  amount: bigint,
+  slippageGuard: bigint
+) {
+  if (orderType === 0) {
+    // long
+    return fixed(amount).sub(fixed(slippageGuard)).div(amount)
+  } else {
+    // short TODO FIX
+    return fixed(slippageGuard).div(fixed(amount))
+  }
+}
+
+/**
+ * Generates a random salt value to be used in OTC orders.
+ *
+ * The salt is a cryptographically secure random value, represented as a
+ * 32-byte hex string.
+ *
+ * @returns A random salt value.
+ */
+export function getRandomSalt() {
+  const randomBytes = crypto.getRandomValues(new Uint8Array(32))
+  return bytesToHex(randomBytes)
 }

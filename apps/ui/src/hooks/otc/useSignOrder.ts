@@ -1,6 +1,6 @@
 import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { useMutation } from "@tanstack/react-query"
-import { signOrderIntent } from "src/otc/utils"
+import { getRandomSalt, signOrderIntent } from "src/otc/utils"
 import { Address } from "viem"
 import { useAccount, usePublicClient, useWalletClient } from "wagmi"
 
@@ -27,6 +27,9 @@ export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
         publicClient,
       })
       const { vaultSharePrice } = await readHyperdrive.getPoolInfo()
+      const currentDate = BigInt(Math.ceil(Date.now() / 1000))
+      const expiry = orderData.expiry + currentDate
+      const salt = getRandomSalt()
       const signature = await signOrderIntent(
         hyperdriveMatchingAddress,
         walletClient,
@@ -37,20 +40,21 @@ export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
           amount: orderData.amount,
           slippageGuard: orderData.slippageGuard,
           minVaultSharePrice: vaultSharePrice,
-          expiry: orderData.expiry.toString(),
+          expiry: expiry.toString(),
           orderType: Number(orderData.orderType),
           options: {
             destination: account,
             asBase: true,
             extraData: "0x",
           },
-          salt: "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`,
+          salt,
         }
       )
       return signature
     },
     onError: (error) => {
       console.error("Error signing order:", error)
+      throw new Error("Error signing order")
     },
     onSuccess: (data) => {
       console.log("Order signed successfully:", data)
