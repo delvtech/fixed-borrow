@@ -9,7 +9,11 @@ export function Navbar() {
   return (
     <div className="grid grid-cols-3 items-center px-8 py-4">
       <div className="flex items-center gap-8">
-        <Button variant="ghost" className="h-14 shrink-0 rounded-sm" asChild>
+        <Button
+          variant="ghost"
+          className="h-14 shrink-0 rounded-sm p-0 hover:bg-transparent"
+          asChild
+        >
           <Link href="/" aria-label="Go to Hyperdrive Home page">
             {isAtLeastSm ? (
               <img
