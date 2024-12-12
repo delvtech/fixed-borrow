@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { OrderSchema } from "../../lib/schema.js"
+import { AnyOrderSchema } from "../../lib/schema.js"
 import { ensureHexPrefix } from "../../lib/utils/ensureHexPrefix.js"
 
 // Get one //
@@ -11,7 +11,7 @@ export type GetOneRequest = z.infer<typeof GetOneRequestSchema>
 
 export const GetOneResponseSchema = z.object({
   key: z.string(),
-  order: OrderSchema,
+  order: AnyOrderSchema,
 })
 export type GetOneResponse = z.infer<typeof GetOneResponseSchema>
 
@@ -29,7 +29,7 @@ export type QueryParams = z.infer<typeof QueryParamsSchema>
 
 export const QueryResponseSchema = z
   .object({
-    orders: z.array(z.object({ key: z.string(), order: OrderSchema })),
+    orders: z.array(z.object({ key: z.string(), order: AnyOrderSchema })),
   })
   .and(
     z.discriminatedUnion("hasMore", [

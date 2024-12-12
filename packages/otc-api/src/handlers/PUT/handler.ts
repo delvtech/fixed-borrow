@@ -23,12 +23,8 @@ export async function PUT({
     })
   }
 
-  const order = data.order
-  const updatedKey = createOrderKey({
-    order,
-    status: order.signature ? "pending" : "awaiting_signature",
-  })
-  const existingOrder = await getOrder(updatedKey, bucketName)
+  const { key, ...order } = data
+  const existingOrder = await getOrder(key, bucketName)
 
   if (!existingOrder) {
     return errorResponse({
@@ -44,6 +40,11 @@ export async function PUT({
   // } catch (error: any) {
   //   return errorResponse(error)
   // }
+
+  const updatedKey = createOrderKey({
+    order,
+    status: order.signature ? "pending" : "awaiting_signature",
+  })
 
   // Safe updated order
   await s3.send(

@@ -3,11 +3,13 @@ export { OtcClient } from "./client.js"
 export { createOrderKey, parseOrderKey } from "./utils/orders.js"
 
 export {
+  AnyOrderSchema,
   CanceledOrderSchema,
   ErrorResponseSchema,
   MatchedOrderSchema,
   OrderIntentSchema,
   OrderSchema,
+  type AnyOrder,
   type CanceledOrder,
   type ErrorResponse,
   type MatchedOrder,

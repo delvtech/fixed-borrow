@@ -1,9 +1,7 @@
 import { z } from "zod"
 import { OrderIntentSchema, OrderSchema } from "../../lib/schema.js"
 
-export const PostRequestSchema = z.object({
-  order: OrderIntentSchema.or(OrderSchema),
-})
+export const PostRequestSchema = OrderIntentSchema.or(OrderSchema)
 export type PostRequest = z.infer<typeof PostRequestSchema>
 
 export const PostResponseSchema = z.object({

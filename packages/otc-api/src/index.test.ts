@@ -40,6 +40,11 @@ const mockOrder: OrderIntent = {
 
 const mockOrderString = JSON.stringify(mockOrder, bigintReplacer)
 
+const mockOrderKey = createOrderKey({
+  order: mockOrder,
+  status: "pending",
+})
+
 describe("OTC API Handler", () => {
   beforeEach(() => {
     // Reset all mocks before each test
@@ -175,12 +180,7 @@ describe("OTC API Handler", () => {
           http: { method: "POST" },
         },
         headers: mockHeaders,
-        body: JSON.stringify(
-          {
-            order: mockOrder,
-          },
-          bigintReplacer
-        ),
+        body: JSON.stringify(mockOrder, bigintReplacer),
       } as any)
 
       assert.equal(response.statusCode, 201)
@@ -202,12 +202,7 @@ describe("OTC API Handler", () => {
           http: { method: "POST" },
         },
         headers: mockHeaders,
-        body: JSON.stringify(
-          {
-            order: mockOrder,
-          },
-          bigintReplacer
-        ),
+        body: JSON.stringify(mockOrder, bigintReplacer),
       } as any)
 
       assert.equal(response.statusCode, 409)
@@ -229,9 +224,7 @@ describe("OTC API Handler", () => {
         },
         headers: mockHeaders,
         body: JSON.stringify(
-          {
-            order: mockOrder,
-          },
+          { ...mockOrder, key: mockOrderKey },
           bigintReplacer
         ),
       } as any)
@@ -252,9 +245,7 @@ describe("OTC API Handler", () => {
         },
         headers: mockHeaders,
         body: JSON.stringify(
-          {
-            order: mockOrder,
-          },
+          { ...mockOrder, key: mockOrderKey },
           bigintReplacer
         ),
       } as any)
@@ -289,9 +280,9 @@ describe("OTC API Handler", () => {
       const body = JSON.parse(response.body || "")
       const parsed = DeleteResponseSchema.parse(body)
       assert.ok(parsed.message)
-      assert.deepEqual(parsed.deleted.order, mockOrder)
-      assert.ok(parsed.updated.order.cancelled)
-      assert.ok(parsed.updated.order.cancelledAt)
+      assert.ok(parsed.order)
+      assert.ok(parsed.deletedKey)
+      assert.ok(parsed.newKey)
     })
 
     it("returns 404 for non-existent order", async () => {

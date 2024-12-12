@@ -72,14 +72,9 @@ export async function DELETE({
     headers: responseHeaders,
     body: {
       message: "Order cancelled",
-      deleted: {
-        key: data.key,
-        order,
-      },
-      updated: {
-        key: updatedKey,
-        order: updatedOrder,
-      },
+      deletedKey: data.key,
+      newKey: updatedKey,
+      order: updatedOrder,
     },
   })
 }

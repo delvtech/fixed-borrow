@@ -1,6 +1,8 @@
 import { z } from "zod"
 import { ensureHexPrefix } from "./utils/ensureHexPrefix.js"
 
+// Order //
+
 export const OrderSchema = z.object({
   /** Signature may be pending */
   signature: z.string().transform(ensureHexPrefix).optional(),
@@ -35,6 +37,12 @@ export const CanceledOrderSchema = OrderIntentSchema.extend({
   cancelledAt: z.number(),
 })
 export type CanceledOrder = z.infer<typeof CanceledOrderSchema>
+
+export const AnyOrderSchema =
+  OrderSchema.or(MatchedOrderSchema).or(CanceledOrderSchema)
+export type AnyOrder = z.infer<typeof AnyOrderSchema>
+
+// Response //
 
 export const ErrorResponseSchema = z.object({
   error: z.string(),

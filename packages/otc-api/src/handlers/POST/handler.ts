@@ -23,10 +23,9 @@ export async function POST({
     })
   }
 
-  const order = data.order
   const key = createOrderKey({
-    order,
-    status: order.signature ? "pending" : "awaiting_signature",
+    order: data,
+    status: data.signature ? "pending" : "awaiting_signature",
   })
   const existingOrder = await getOrder(key, bucketName)
 
@@ -50,7 +49,7 @@ export async function POST({
     new PutObjectCommand({
       Bucket: bucketName,
       Key: key,
-      Body: JSON.stringify(order, bigintReplacer),
+      Body: JSON.stringify(data, bigintReplacer),
     })
   )
 
@@ -60,7 +59,7 @@ export async function POST({
     body: {
       message: "Order created",
       key,
-      order,
+      order: data,
     },
   })
 }
