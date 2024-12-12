@@ -13,7 +13,7 @@ import {
 import { MarketHeader } from "components/markets/MarketHeader"
 import { SupportedChainId } from "dfb-config"
 import { ArrowRight } from "lucide-react"
-import { OtcClient } from "otc-api"
+import { createOrderKey, OtcClient } from "otc-api"
 import {
   computeTargetRate,
   HYPERDRIVE_MATCHING_ENGINE_ABI,
@@ -51,7 +51,7 @@ function Orders() {
   const { data: pendingOrders, isLoading: isPendingOrdersLoading } =
     usePendingOrders()
 
-  const { writeContract } = useWriteContract()
+  const { writeContractAsync } = useWriteContract()
 
   return (
     <div className="relative m-auto flex max-w-6xl flex-col gap-8 px-8">
@@ -157,8 +157,8 @@ function Orders() {
                         {account === intent.order.trader ? (
                           <Button
                             className="ml-auto bg-[#1B1E26] text-red-400 hover:bg-[#1B1E26]/50"
-                            onClick={() =>
-                              writeContract({
+                            onClick={async () => {
+                              await writeContractAsync({
                                 functionName: "cancelOrders",
                                 abi: HYPERDRIVE_MATCHING_ENGINE_ABI,
                                 address: HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
@@ -180,7 +180,16 @@ function Orders() {
                                   ],
                                 ],
                               })
-                            }
+
+                              const otcClient = new OtcClient(OTC_API_URL)
+
+                              await otcClient.cancelOrder(
+                                createOrderKey({
+                                  status: "pending",
+                                  order: intent.order,
+                                })
+                              )
+                            }}
                           >
                             Cancel
                           </Button>
