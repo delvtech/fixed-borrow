@@ -36,8 +36,11 @@ export const CanceledOrderSchema = OrderIntentSchema.extend({
 })
 export type CanceledOrder = z.infer<typeof CanceledOrderSchema>
 
-export const AnyOrderSchema =
-  OrderSchema.or(MatchedOrderSchema).or(CanceledOrderSchema)
+export const AnyOrderSchema = z.union([
+  OrderSchema,
+  MatchedOrderSchema,
+  CanceledOrderSchema,
+])
 export type AnyOrder = z.infer<typeof AnyOrderSchema>
 
 // Response //
