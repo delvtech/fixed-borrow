@@ -186,7 +186,7 @@ describe("OTC API Handler", () => {
       assert.equal(response.statusCode, 201)
       const body = JSON.parse(response.body || "")
       const parsed = PostResponseSchema.parse(body)
-      assert.ok(parsed.key)
+      assert(parsed.key)
       assert.deepEqual(parsed.order, mockOrder)
     })
 
@@ -279,10 +279,14 @@ describe("OTC API Handler", () => {
       assert.equal(response.statusCode, 200)
       const body = JSON.parse(response.body || "")
       const parsed = DeleteResponseSchema.parse(body)
-      assert.ok(parsed.message)
-      assert.ok(parsed.order)
-      assert.ok(parsed.deletedKey)
-      assert.ok(parsed.newKey)
+      assert(parsed.message)
+      assert(parsed.deletedKey)
+      assert(parsed.newKey)
+      assert(parsed.order.cancelledAt)
+      assert.deepStrictEqual(parsed.order, {
+        ...mockOrder,
+        cancelledAt: parsed.order.cancelledAt,
+      })
     })
 
     it("returns 404 for non-existent order", async () => {

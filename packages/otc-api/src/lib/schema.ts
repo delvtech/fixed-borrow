@@ -32,7 +32,6 @@ export const MatchedOrderSchema = OrderIntentSchema.extend({
 export type MatchedOrder = z.infer<typeof MatchedOrderSchema>
 
 export const CanceledOrderSchema = OrderIntentSchema.extend({
-  cancelled: z.boolean(),
   cancelledAt: z.number(),
 })
 export type CanceledOrder = z.infer<typeof CanceledOrderSchema>
