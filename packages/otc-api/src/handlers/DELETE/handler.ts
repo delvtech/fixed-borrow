@@ -51,7 +51,6 @@ export async function DELETE({
   // Mark order as cancelled
   const updatedOrder: CanceledOrder = {
     ...(order as OrderIntent),
-    cancelled: true,
     cancelledAt: Date.now(),
   }
   const updatedKey = createOrderKey({

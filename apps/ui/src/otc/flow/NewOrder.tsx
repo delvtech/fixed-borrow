@@ -98,11 +98,9 @@ export function NewOrder() {
 
     const otcClient = new OtcClient(OTC_API_URL)
 
-    const response = await otcClient.addOrder({
-      order: {
-        ...orderIntent,
-        expiry: orderIntent.expiry.toString(),
-      },
+    const response = await otcClient.createOrder({
+      ...orderIntent,
+      expiry: orderIntent.expiry.toString(),
     })
 
     if ("error" in response) {
