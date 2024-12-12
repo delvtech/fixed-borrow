@@ -10,7 +10,8 @@
     "build:lib": "tsc",
     "watch:lib": "tsc --watch",
     "test": "tsx -r dotenv/config --test src/*.test.*",
-    "test:watch": "tsx -r dotenv/config --test --watch src/*.test.*"
+    "test:watch": "tsx -r dotenv/config --test --watch src/*.test.*",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.705.0",

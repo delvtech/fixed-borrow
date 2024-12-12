@@ -16,7 +16,8 @@
     "build": "turbo run build",
     "format": "turbo run format",
     "format:check": "turbo run format:check",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck"
   },
   "resolutions": {
     "typescript": "^5.5.4"
