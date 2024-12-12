@@ -14,10 +14,14 @@ import { MarketHeader } from "components/markets/MarketHeader"
 import { SupportedChainId } from "dfb-config"
 import { ArrowRight } from "lucide-react"
 import { OtcClient } from "otc-api"
-import { computeTargetRate } from "src/otc/utils"
+import {
+  computeTargetRate,
+  HYPERDRIVE_MATCHING_ENGINE_ABI,
+  HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
+} from "src/otc/utils"
 import { OTC_API_URL } from "utils/constants"
 import { getAppConfig } from "utils/getAppConfig"
-import { useAccount, useChainId } from "wagmi"
+import { useAccount, useChainId, useWriteContract } from "wagmi"
 import { Link } from "wouter"
 
 function usePendingOrders() {
@@ -46,6 +50,8 @@ function Orders() {
   const appConfig = getAppConfig(chainId as SupportedChainId)
   const { data: pendingOrders, isLoading: isPendingOrdersLoading } =
     usePendingOrders()
+
+  const { writeContract } = useWriteContract()
 
   return (
     <div className="relative m-auto flex max-w-6xl flex-col gap-8 px-8">
@@ -151,7 +157,30 @@ function Orders() {
                         {account === intent.order.trader ? (
                           <Button
                             className="ml-auto bg-[#1B1E26] text-red-400 hover:bg-[#1B1E26]/50"
-                            onClick={() => {}}
+                            onClick={() =>
+                              writeContract({
+                                functionName: "cancelOrders",
+                                abi: HYPERDRIVE_MATCHING_ENGINE_ABI,
+                                address: HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
+                                args: [
+                                  [
+                                    {
+                                      trader: intent.order.trader,
+                                      hyperdrive: intent.order.hyperdrive,
+                                      orderType: intent.order.orderType,
+                                      amount: intent.order.amount,
+                                      expiry: BigInt(intent.order.expiry),
+                                      salt: intent.order.salt,
+                                      signature: intent.order.signature!,
+                                      options: intent.order.options,
+                                      minVaultSharePrice:
+                                        intent.order.minVaultSharePrice,
+                                      slippageGuard: intent.order.slippageGuard,
+                                    },
+                                  ],
+                                ],
+                              })
+                            }
                           >
                             Cancel
                           </Button>

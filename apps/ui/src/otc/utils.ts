@@ -2,6 +2,9 @@ import { fixed, FixedPoint } from "@delvtech/fixed-point-wasm"
 import { Order, OrderIntent } from "otc-api"
 import { Address, bytesToHex, WalletClient } from "viem"
 
+export const HYPERDRIVE_MATCHING_ENGINE_ADDRESS: Address =
+  "0x6662B6e771FACD61E33cCAfDc23BE16B4eAd0666"
+
 /**
  * Signs an order intent with the given wallet client and address, using the given matching engine address.
  *
@@ -117,4 +120,91 @@ export function computeTargetRate(
 export function getRandomSalt() {
   const randomBytes = crypto.getRandomValues(new Uint8Array(32))
   return bytesToHex(randomBytes)
+}
+
+export const HYPERDRIVE_MATCHING_ENGINE_ABI = [
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: "address", name: "trader", type: "address" },
+          { internalType: "address", name: "hyperdrive", type: "address" },
+          { internalType: "uint256", name: "amount", type: "uint256" },
+          { internalType: "uint256", name: "slippageGuard", type: "uint256" },
+          {
+            internalType: "uint256",
+            name: "minVaultSharePrice",
+            type: "uint256",
+          },
+          {
+            components: [
+              { internalType: "bool", name: "asBase", type: "bool" },
+              { internalType: "address", name: "destination", type: "address" },
+              { internalType: "bytes", name: "extraData", type: "bytes" },
+            ],
+            internalType: "struct IHyperdrive.Options",
+            name: "options",
+            type: "tuple",
+          },
+          { internalType: "uint8", name: "orderType", type: "uint8" },
+          { internalType: "bytes", name: "signature", type: "bytes" },
+          { internalType: "uint256", name: "expiry", type: "uint256" },
+          { internalType: "bytes32", name: "salt", type: "bytes32" },
+        ],
+        internalType: "struct OrderIntent[]",
+        name: "_orders",
+        type: "tuple[]",
+      },
+    ],
+    name: "cancelOrders",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bytes32[]",
+        name: "orderHashes",
+        type: "bytes32[]",
+      },
+    ],
+    name: "OrdersCancelled",
+    type: "event",
+  },
+] as const
+
+/**
+ * Transforms an `OrderIntent` into the format required by the HyperdriveMatchingEngine `cancelOrders` function.
+ *
+ * @param intent The order intent to transform.
+ * @returns The transformed order intent.
+ */
+export function transformIntentForCancelOrder(intent: OrderIntent) {
+  return {
+    ...intent,
+    expiry: BigInt(intent.expiry),
+    signature: intent.signature as `0x${string}`,
+    // Ensure all required properties are present and of the correct type
+    trader: intent.trader,
+    hyperdrive: intent.hyperdrive,
+    amount: BigInt(intent.amount),
+    slippageGuard: BigInt(intent.slippageGuard),
+    minVaultSharePrice: BigInt(intent.minVaultSharePrice),
+    options: {
+      asBase: Boolean(intent.options.asBase),
+      destination: intent.options.destination,
+      extraData: intent.options.extraData,
+    },
+    Type: Number(intent.orderType),
+    salt: intent.salt,
+  }
 }

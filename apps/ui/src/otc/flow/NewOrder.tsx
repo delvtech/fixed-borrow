@@ -26,9 +26,12 @@ import { OtcClient } from "otc-api"
 import { useState } from "react"
 import { Market } from "src/types"
 import { OTC_API_URL } from "utils/constants"
-import { Address, maxUint256 } from "viem"
+import { maxUint256 } from "viem"
 import { Link } from "wouter"
-import { computeDepositAmount } from "../utils"
+import {
+  computeDepositAmount,
+  HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
+} from "../utils"
 
 // hardcoding the target market for now
 const market: Market = {
@@ -57,8 +60,6 @@ const market: Market = {
   },
 }
 const decimals = market.loanToken.decimals
-const hyperdriveMatchingAddress: Address =
-  "0x6662B6e771FACD61E33cCAfDc23BE16B4eAd0666"
 
 export function NewOrder() {
   const [amount, setAmount] = useState<bigint>(0n)
@@ -77,7 +78,7 @@ export function NewOrder() {
   const approvalAmount = unlimitedApproval ? maxUint256 : depositAmount
   const { approve, needsApproval, isLoading } = useApproval(
     market.collateralToken.address,
-    hyperdriveMatchingAddress,
+    HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
     approvalAmount
   )
 
@@ -85,7 +86,7 @@ export function NewOrder() {
     mutateAsync: signOrderMutation,
     isPending: isOrderSigningPending,
     isSuccess: isOrderIntentSuccess,
-  } = useSignOrder(hyperdriveMatchingAddress)
+  } = useSignOrder(HYPERDRIVE_MATCHING_ENGINE_ADDRESS)
   const handleOrderSigning = async () => {
     const orderIntent = await signOrderMutation({
       hyperdrive: market.hyperdrive,
