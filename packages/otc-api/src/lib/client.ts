@@ -9,7 +9,11 @@ import {
   type PostRequest,
 } from "../handlers/POST/schema.js"
 import { PutResponseSchema, type PutRequest } from "../handlers/PUT/schema.js"
-import { ErrorResponseSchema, type ErrorResponse } from "./schema.js"
+import {
+  ErrorResponseSchema,
+  type ErrorResponse,
+  type OrderIntent,
+} from "./schema.js"
 import { bigintReplacer } from "./utils/bigIntReplacer.js"
 
 export class OtcClient {
@@ -85,6 +89,46 @@ export class OtcClient {
       return ErrorResponseSchema.parse(obj)
     }
     return DeleteResponseSchema.parse(obj)
+  }
+
+  /**
+   * Match existing orders
+   */
+  async matchOrders(key1: string, key2: string) {
+    // Ensure the keys are not the same
+    if (key1 === key2) {
+      return ErrorResponseSchema.parse({
+        error: "Cannot match order with itself",
+      })
+    }
+
+    // Fetch full order details
+    const orders = await Promise.all([this.getOrder(key1), this.getOrder(key2)])
+
+    // Ensure both orders are signed
+    for (const order of orders) {
+      if (isError(order)) {
+        return ErrorResponseSchema.parse(order)
+      }
+      if (!order.order.signature) {
+        return ErrorResponseSchema.parse({
+          error: `Order ${order.key} is not signed`,
+        })
+      }
+    }
+
+    // Update orders as matched
+    const matchedAt = Date.now()
+    return await Promise.all(
+      (orders as { key: string; order: OrderIntent }[]).map((order) =>
+        this.updateOrder({
+          ...order.order,
+          key: order.key,
+          matchKey: key2,
+          matchedAt,
+        })
+      )
+    )
   }
 }
 
