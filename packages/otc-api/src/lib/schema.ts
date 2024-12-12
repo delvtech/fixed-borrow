@@ -26,7 +26,6 @@ export const OrderIntentSchema = OrderSchema.required()
 export type OrderIntent = z.infer<typeof OrderIntentSchema>
 
 export const MatchedOrderSchema = OrderIntentSchema.extend({
-  matched: z.boolean(),
   matchedAt: z.number(),
   matchKey: z.string(),
 })
