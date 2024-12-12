@@ -45,7 +45,7 @@ export class OtcClient {
   /**
    * Upload a new order
    */
-  async addOrder(params: PostRequest) {
+  async createOrder(params: PostRequest) {
     const response = await fetch(this.otcApiUrl, {
       method: "POST",
       body: JSON.stringify(params, bigintReplacer),
