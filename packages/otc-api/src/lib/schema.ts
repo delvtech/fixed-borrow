@@ -1,48 +1,119 @@
 import { z } from "zod"
-import { ensureHexPrefix } from "./utils/ensureHexPrefix.js"
+
+export const HexSchema = z
+  .string()
+  .refine((s): s is `0x${string}` => s.startsWith("0x"), {
+    message: "must start with 0x",
+  })
 
 // Order //
 
-export const OrderSchema = z.object({
-  /** Signature may be pending */
-  signature: z.string().transform(ensureHexPrefix).optional(),
-  trader: z.string().transform(ensureHexPrefix),
-  hyperdrive: z.string().transform(ensureHexPrefix),
+export const BaseOrderSchema = z.object({
+  trader: HexSchema,
+  hyperdrive: HexSchema,
   amount: z.coerce.bigint(),
   slippageGuard: z.coerce.bigint(),
   minVaultSharePrice: z.coerce.bigint(),
   options: z.object({
     asBase: z.boolean(),
-    destination: z.string().transform(ensureHexPrefix),
-    extraData: z.string().transform(ensureHexPrefix),
+    destination: HexSchema,
+    extraData: HexSchema,
   }),
-  orderType: z.number().min(0).max(1),
+  orderType: z.union([z.literal(0), z.literal(1)]),
   expiry: z.string(),
-  salt: z.string().transform(ensureHexPrefix),
+  salt: HexSchema,
+})
+
+export const OrderSchema = BaseOrderSchema.extend({
+  signature: HexSchema.optional(),
 })
 export type Order = z.infer<typeof OrderSchema>
 
-export const OrderIntentSchema = OrderSchema.required()
+export const OrderIntentSchema = BaseOrderSchema.extend({
+  signature: HexSchema,
+})
 export type OrderIntent = z.infer<typeof OrderIntentSchema>
 
-export const MatchedOrderSchema = OrderIntentSchema.extend({
-  matchedAt: z.number(),
-  matchKey: z.string(),
-})
-export type MatchedOrder = z.infer<typeof MatchedOrderSchema>
+// Order Status //
 
-export const CanceledOrderSchema = OrderIntentSchema.extend({
-  cancelledAt: z.number(),
-})
-export type CanceledOrder = z.infer<typeof CanceledOrderSchema>
-
-export const AnyOrderSchema = z.union([
-  OrderSchema,
-  MatchedOrderSchema,
-  CanceledOrderSchema,
+export const OrderStatusSchema = z.enum([
+  "awaiting_signature",
+  "canceled",
+  "pending",
+  "matched",
 ])
-export type AnyOrder = z.infer<typeof AnyOrderSchema>
+export type OrderStatus = z.infer<typeof OrderStatusSchema>
 
+// S3 Order Object Key //
+
+export type OrderKey<T extends OrderStatus = OrderStatus> = `${T}/${string}`
+
+export function orderKeySchema<T extends OrderStatus[]>(
+  ...possibleStatuses: T
+) {
+  return z
+    .string()
+    .refine((k): k is OrderKey<T[number]> =>
+      possibleStatuses.some((status) => k.startsWith(`${status}/`))
+    )
+}
+
+export const AnyOrderKeySchema = orderKeySchema(...OrderStatusSchema.options)
+
+// S3 Order Object Data //
+
+const DataSchemaByStatus = {
+  awaiting_signature: BaseOrderSchema.extend({
+    signature: z.undefined().optional(),
+  }),
+  canceled: OrderSchema.extend({
+    canceledAt: z.number(),
+  }),
+  pending: OrderIntentSchema,
+  matched: OrderIntentSchema.extend({
+    /**
+     * The key of the matching order
+     */
+    matchKey: orderKeySchema("matched"),
+    matchedAt: z.number(),
+  }),
+} as const
+
+export type OrderData<TStatus extends OrderStatus = OrderStatus> = z.infer<
+  (typeof DataSchemaByStatus)[TStatus]
+>
+
+/**
+ * Get the data schema for a specific order status
+ */
+export function orderDataSchema<T extends OrderStatus>(status: T) {
+  return DataSchemaByStatus[status]
+}
+
+// S3 Order Object //
+
+/**
+ * Get the order object schema for a specific order status.
+ */
+export function orderObjectSchema<T extends OrderStatus>(status: T) {
+  return z.object({
+    key: orderKeySchema(status),
+    status: z.literal(status),
+    data: orderDataSchema(status),
+  })
+}
+
+export const OrderObjectSchema = z.discriminatedUnion("status", [
+  orderObjectSchema("awaiting_signature"),
+  orderObjectSchema("canceled"),
+  orderObjectSchema("pending"),
+  orderObjectSchema("matched"),
+])
+
+export type OrderObject<T extends OrderStatus = OrderStatus> = Extract<
+  z.infer<typeof OrderObjectSchema>,
+  { status: T }
+>
 // Response //
 
 export const ErrorResponseSchema = z.object({

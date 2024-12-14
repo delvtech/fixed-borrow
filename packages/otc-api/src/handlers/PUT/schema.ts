@@ -1,16 +1,24 @@
 import { z } from "zod"
-import { AnyOrderSchema } from "../../lib/schema.js"
+import { AnyOrderKeySchema } from "../../lib/schema.js"
+import {
+  NewMatchedOrderSchema,
+  NewUnmatchedOrderSchema,
+  PostResponseSchema,
+  type PostResponse,
+} from "../POST/schema.js"
 
-export const PutRequestSchema = AnyOrderSchema.and(
+export const OrderUpdateSchema = z.discriminatedUnion("matchKey", [
+  NewUnmatchedOrderSchema.partial(),
+  NewMatchedOrderSchema.partial(),
+])
+export type OrderUpdate = z.infer<typeof OrderUpdateSchema>
+
+export const PutRequestSchema = OrderUpdateSchema.and(
   z.object({
-    key: z.string(),
+    key: AnyOrderKeySchema,
   })
 )
 export type PutRequest = z.infer<typeof PutRequestSchema>
 
-export const PutResponseSchema = z.object({
-  message: z.string(),
-  key: z.string(),
-  order: AnyOrderSchema,
-})
-export type PutResponse = z.infer<typeof PutResponseSchema>
+export const PutResponseSchema = PostResponseSchema
+export type PutResponse = PostResponse

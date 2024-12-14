@@ -1,8 +1,10 @@
 import { DeleteResponseSchema } from "../handlers/DELETE/schema.js"
 import {
+  GetManyResponseSchema,
   GetOneResponseSchema,
-  QueryResponseSchema,
-  type QueryParams,
+  type GetManyRequest,
+  type GetManyResponse,
+  type GetOneResponse,
 } from "../handlers/GET/schema.js"
 import {
   PostResponseSchema,
@@ -12,7 +14,8 @@ import { PutResponseSchema, type PutRequest } from "../handlers/PUT/schema.js"
 import {
   ErrorResponseSchema,
   type ErrorResponse,
-  type OrderIntent,
+  type OrderKey,
+  type OrderStatus,
 } from "./schema.js"
 import { bigintReplacer } from "./utils/bigIntReplacer.js"
 
@@ -22,28 +25,34 @@ export class OtcClient {
   /**
    * Get a single order by key
    */
-  async getOrder(key: string) {
+  async getOrder<T extends OrderStatus = OrderStatus>(key: OrderKey<T>) {
     const url = `${this.otcApiUrl}?key=${key}`
     const response = await fetch(url)
-    const obj = await response.json()
-    if (isError(obj)) {
-      return ErrorResponseSchema.parse(obj)
+    const data = await response.json()
+    if (isError(data)) {
+      return ErrorResponseSchema.parse(data)
     }
-    return GetOneResponseSchema.parse(obj)
+    return GetOneResponseSchema.parse(data) as GetOneResponse<T>
   }
 
   /**
    * Get a list of orders
    */
-  async getOrders(params?: QueryParams) {
-    const searchParams = new URLSearchParams(params)
+  async getOrders<T extends OrderStatus = OrderStatus>(
+    params: GetManyRequest & { status?: T } = {}
+  ) {
+    const paramEntries: [string, string][] = []
+    for (const [k, v] of Object.entries(params)) {
+      if (v) paramEntries.push([k, String(v)])
+    }
+    const searchParams = new URLSearchParams(paramEntries)
     const url = `${this.otcApiUrl}?${searchParams.toString()}`
     const response = await fetch(url)
-    const obj = await response.json()
-    if (isError(obj)) {
-      return ErrorResponseSchema.parse(obj)
+    const data = await response.json()
+    if (isError(data)) {
+      return ErrorResponseSchema.parse(data)
     }
-    return QueryResponseSchema.parse(obj)
+    return GetManyResponseSchema.parse(data) as GetManyResponse<T>
   }
 
   /**
@@ -54,11 +63,11 @@ export class OtcClient {
       method: "POST",
       body: JSON.stringify(params, bigintReplacer),
     })
-    const obj = await response.json()
-    if (isError(obj)) {
-      return ErrorResponseSchema.parse(obj)
+    const data = await response.json()
+    if (isError(data)) {
+      return ErrorResponseSchema.parse(data)
     }
-    return PostResponseSchema.parse(obj)
+    return PostResponseSchema.parse(data)
   }
 
   /**
@@ -79,7 +88,7 @@ export class OtcClient {
   /**
    * Cancel an existing order
    */
-  async cancelOrder(key: string) {
+  async cancelOrder(key: OrderKey) {
     const response = await fetch(this.otcApiUrl, {
       method: "DELETE",
       body: JSON.stringify({ key }),
@@ -94,41 +103,11 @@ export class OtcClient {
   /**
    * Match existing orders
    */
-  async matchOrders(key1: string, key2: string) {
-    // Ensure the keys are not the same
-    if (key1 === key2) {
-      return ErrorResponseSchema.parse({
-        error: "Cannot match order with itself",
-      })
-    }
-
-    // Fetch full order details
-    const orders = await Promise.all([this.getOrder(key1), this.getOrder(key2)])
-
-    // Ensure both orders are signed
-    for (const order of orders) {
-      if (isError(order)) {
-        return ErrorResponseSchema.parse(order)
-      }
-      if (!order.order.signature) {
-        return ErrorResponseSchema.parse({
-          error: `Order ${order.key} is not signed`,
-        })
-      }
-    }
-
-    // Update orders as matched
-    const matchedAt = Date.now()
-    return await Promise.all(
-      (orders as { key: string; order: OrderIntent }[]).map((order) =>
-        this.updateOrder({
-          ...order.order,
-          key: order.key,
-          matchKey: key2,
-          matchedAt,
-        })
-      )
-    )
+  async matchOrders(key1: OrderKey<"pending">, key2: OrderKey<"pending">) {
+    return this.updateOrder({
+      key: key1,
+      matchKey: key2,
+    })
   }
 }
 

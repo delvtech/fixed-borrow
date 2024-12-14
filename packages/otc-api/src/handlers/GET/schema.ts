@@ -1,35 +1,46 @@
 import { z } from "zod"
-import { AnyOrderSchema } from "../../lib/schema.js"
-import { ensureHexPrefix } from "../../lib/utils/ensureHexPrefix.js"
+import {
+  AnyOrderKeySchema,
+  OrderObjectSchema,
+  OrderSchema,
+  OrderStatusSchema,
+  type OrderObject,
+  type OrderStatus,
+} from "../../lib/schema.js"
 
 // Get one //
 
 export const GetOneRequestSchema = z.object({
-  key: z.string(),
+  key: AnyOrderKeySchema,
 })
 export type GetOneRequest = z.infer<typeof GetOneRequestSchema>
 
-export const GetOneResponseSchema = z.object({
-  key: z.string(),
-  order: AnyOrderSchema,
+export const GetOneResponseSchema = OrderObjectSchema
+export type GetOneResponse<T extends OrderStatus = OrderStatus> = OrderObject<T>
+
+// Get many //
+
+export const GetManyRequestSchema = OrderSchema.pick({
+  hyperdrive: true,
+  orderType: true,
+  trader: true,
 })
-export type GetOneResponse = z.infer<typeof GetOneResponseSchema>
+  .extend({
+    key: z.undefined().optional(),
+    status: OrderStatusSchema,
+    continuationToken: z.string().optional(),
+  })
+  .partial()
+type _GetManyRequest = z.infer<typeof GetManyRequestSchema>
 
-// Query //
+export type GetManyRequest<T extends OrderStatus = OrderStatus> =
+  OrderStatus extends T
+    ? _GetManyRequest
+    : { status: T } & Omit<_GetManyRequest, "status">
 
-export const QueryParamsSchema = z.object({
-  trader: z.string().transform(ensureHexPrefix).optional(),
-  hyperdrive: z.string().transform(ensureHexPrefix).optional(),
-  status: z
-    .enum(["pending", "matched", "cancelled", "awaiting_signature"])
-    .optional(),
-  continuationToken: z.string().optional(),
-})
-export type QueryParams = z.infer<typeof QueryParamsSchema>
-
-export const QueryResponseSchema = z
+export const GetManyResponseSchema = z
   .object({
-    orders: z.array(z.object({ key: z.string(), order: AnyOrderSchema })),
+    orders: z.array(OrderObjectSchema),
   })
   .and(
     z.discriminatedUnion("hasMore", [
@@ -43,12 +54,17 @@ export const QueryResponseSchema = z
       }),
     ])
   )
-export type QueryResponse = z.infer<typeof QueryResponseSchema>
+type _GetManyResponse = z.infer<typeof GetManyResponseSchema>
 
-// Merged //
+export type GetManyResponse<T extends OrderStatus = OrderStatus> =
+  OrderStatus extends T
+    ? _GetManyResponse
+    : { orders: OrderObject<T>[] } & Omit<_GetManyResponse, "orders">
 
-export const GetRequestSchema = GetOneRequestSchema.or(QueryParamsSchema)
+// Union //
+
+export const GetRequestSchema = GetOneRequestSchema.or(GetManyRequestSchema)
 export type GetRequest = z.infer<typeof GetRequestSchema>
 
-export const GetResponseSchema = GetOneResponseSchema.or(QueryResponseSchema)
+export const GetResponseSchema = GetOneResponseSchema.or(GetManyResponseSchema)
 export type GetResponse = z.infer<typeof GetResponseSchema>

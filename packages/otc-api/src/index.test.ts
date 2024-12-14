@@ -4,14 +4,13 @@ import { beforeEach, describe, it, mock } from "node:test"
 import { DeleteResponseSchema } from "./handlers/DELETE/schema.js"
 import {
   GetOneResponseSchema,
-  QueryResponseSchema,
+  GetManyResponseSchema,
 } from "./handlers/GET/schema.js"
 import { PostResponseSchema } from "./handlers/POST/schema.js"
 import { handler } from "./index.js"
 import { s3 } from "./lib/s3.js"
-import type { OrderIntent } from "./lib/schema.js"
 import { bigintReplacer } from "./lib/utils/bigIntReplacer.js"
-import { createOrderKey } from "./lib/utils/orders.js"
+import { createOrderKey } from "./lib/utils/orderKey.js"
 
 // Mock S3 client
 mock.method(s3, "send", async () => ({}))
@@ -163,7 +162,7 @@ describe("OTC API Handler", () => {
       } as any)
 
       assert.equal(response.statusCode, 200)
-      const parsedResponse = QueryResponseSchema.parse(
+      const parsedResponse = GetManyResponseSchema.parse(
         JSON.parse(response.body || "")
       )
       assert.equal(parsedResponse.orders.length, 2)
