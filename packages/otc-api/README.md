@@ -96,12 +96,7 @@ Create an order key for an object in S3.
 ```ts
 import { createOrderKey } from "otc-api"
 
-const orderKey = createOrderKey({
-  status: "pending",
-  order: {
-    // ...
-  },
-})
+const orderKey = createOrderKey("pending", order)
 ```
 
 #### `parseOrderKey`
