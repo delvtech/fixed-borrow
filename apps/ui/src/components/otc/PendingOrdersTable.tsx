@@ -16,8 +16,8 @@ import { useAccount } from "wagmi"
 import { Link } from "wouter"
 
 interface PendingOrdersTableProps {
-  pendingOrders: OrderObject[]
-  onCancelOrder: (order: OrderObject) => void
+  pendingOrders: OrderObject<"pending">[]
+  onCancelOrder: (order: OrderObject<"pending">) => void
 }
 
 export function PendingOrdersTable({

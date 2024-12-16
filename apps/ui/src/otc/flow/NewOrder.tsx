@@ -23,12 +23,12 @@ import { useSignOrder } from "hooks/otc/useSignOrder"
 import { OtcClient } from "otc-api"
 import { useState } from "react"
 import { Market } from "src/types"
-import { OTC_API_URL } from "utils/constants"
 import { maxUint256 } from "viem"
 import { Link } from "wouter"
 import {
   computeDepositAmount,
   HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
+  OTC_API_URL,
 } from "../utils"
 
 // hardcoding the target market for now

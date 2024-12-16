@@ -1,53 +1,49 @@
 import { Button } from "components/base/button"
 import { Skeleton } from "components/base/skeleton"
 import { PendingOrdersTable } from "components/otc/PendingOrdersTable"
+import { useCancelOrder } from "hooks/otc/useCancelOrder"
 import { usePendingOrders } from "hooks/otc/usePendingOrders"
 import { ArrowRight } from "lucide-react"
-import { OrderKey, OrderObject, OtcClient } from "otc-api"
-import {
-  HYPERDRIVE_MATCHING_ENGINE_ABI,
-  HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
-} from "src/otc/utils"
-import { OTC_API_URL } from "utils/constants"
-import { useWriteContract } from "wagmi"
+import { OrderObject } from "otc-api"
 import { Link } from "wouter"
 
 function Orders() {
-  const { writeContractAsync } = useWriteContract()
-
   const {
     data: pendingOrders,
     isLoading: isPendingOrdersLoading,
     refetch: refetchPendingOrders,
   } = usePendingOrders()
 
-  const handleCancelOrder = async (order: OrderObject) => {
-    await writeContractAsync({
-      functionName: "cancelOrders",
-      abi: HYPERDRIVE_MATCHING_ENGINE_ABI,
-      address: HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
-      args: [
-        [
-          {
-            trader: order.data.trader,
-            hyperdrive: order.data.hyperdrive,
-            orderType: order.data.orderType,
-            amount: order.data.amount,
-            expiry: BigInt(order.data.expiry),
-            salt: order.data.salt,
-            signature: order.data.signature!,
-            options: order.data.options,
-            minVaultSharePrice: order.data.minVaultSharePrice,
-            slippageGuard: order.data.slippageGuard,
-          },
-        ],
-      ],
+  const { mutate: cancelOrder, status: cancelOrderStatus } = useCancelOrder()
+
+  const handleCancelOrder = async (order: OrderObject<"pending">) => {
+    // await writeContractAsync({
+    //   functionName: "cancelOrders",
+    //   abi: HYPERDRIVE_MATCHING_ENGINE_ABI,
+    //   address: HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
+    //   args: [
+    //     [
+    //       {
+    //         trader: order.data.trader,
+    //         hyperdrive: order.data.hyperdrive,
+    //         orderType: order.data.orderType,
+    //         amount: order.data.amount,
+    //         expiry: BigInt(order.data.expiry),
+    //         salt: order.data.salt,
+    //         signature: order.data.signature!,
+    //         options: order.data.options,
+    //         minVaultSharePrice: order.data.minVaultSharePrice,
+    //         slippageGuard: order.data.slippageGuard,
+    //       },
+    //     ],
+    //   ],
+    // })
+
+    cancelOrder(order.key, {
+      onSuccess: () => {
+        refetchPendingOrders()
+      },
     })
-
-    const otcClient = new OtcClient(OTC_API_URL)
-    await otcClient.cancelOrder(order.key as OrderKey<"pending">)
-
-    await refetchPendingOrders()
   }
 
   const loading = isPendingOrdersLoading || !pendingOrders
