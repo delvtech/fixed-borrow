@@ -5,9 +5,7 @@ import {
   copyFileSync,
   createWriteStream,
   readFileSync,
-  readdirSync,
-  rmSync,
-  statSync,
+  readdirSync, rmSync, statSync
 } from "node:fs"
 import { basename, join, resolve } from "node:path"
 import { compilerOptions } from "../src/tsconfig.json"
@@ -23,14 +21,20 @@ if (buildResult.error) {
   process.exit(1)
 }
 
+
 // copy package.json to output directory
 copyFileSync("src/package.json", join(outDir, "package.json"))
 
+
 // install dependencies
-const installResult = spawnSync("npm", ["install", "--production"], {
-  stdio: "inherit",
-  cwd: outDir,
-})
+const installResult = spawnSync(
+  "npm",
+  ["install", "--omit=dev","--package-lock=false"],
+  {
+    stdio: "inherit",
+    cwd: outDir,
+  }
+)
 if (installResult.error) {
   console.error(installResult.error)
   process.exit(1)

@@ -23,10 +23,8 @@ import { BigNumberInput } from "components/core/BigNumberInput"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { useApproval } from "hooks/base/useApproval"
 import { useSignOrder } from "hooks/otc/useSignOrder"
-import { PostSchema } from "otc-api"
 import { useState } from "react"
 import { Market } from "src/types"
-import { convertBigIntsToStrings } from "utils/bigint"
 import { Address, maxUint256 } from "viem"
 import { useAccount, useWalletClient } from "wagmi"
 import { Link } from "wouter"
@@ -122,17 +120,15 @@ export function NewOrder() {
 
     try {
       // validate schema
-      const body = convertBigIntsToStrings({
-        order: {
-          ...orderIntent,
-          orderType:
-            orderIntent.orderType === OrderType.OpenLong
-              ? "OpenLong"
-              : "OpenShort",
-        },
-      })
-
-      PostSchema.parse(body)
+      // const body = convertBigIntsToStrings({
+      //   order: {
+      //     ...orderIntent,
+      //     orderType:
+      //       orderIntent.orderType === OrderType.OpenLong
+      //         ? "OpenLong"
+      //         : "OpenShort",
+      //   },
+      // })
 
       // const res = await fetch("/api/otc", {
       //   method: "POST",
