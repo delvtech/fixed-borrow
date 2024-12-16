@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, HelpCircle } from "lucide-react"
+import { ArrowLeft, HelpCircle } from "lucide-react"
 
 import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
 import Spinner from "components/animations/Spinner"
@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from "components/base/select"
 import { Separator } from "components/base/separator"
-import { Tabs, TabsList, TabsTrigger } from "components/base/tabs"
 import { Label } from "components/base/ui/label"
 import { RadioGroup, RadioGroupItem } from "components/base/ui/radio-group"
 import { BigNumberInput } from "components/core/BigNumberInput"
@@ -59,7 +58,7 @@ const market: Market = {
 }
 const decimals = market.loanToken.decimals
 
-export function NewOrder() {
+export function FillOrder() {
   const [amount, setAmount] = useState<bigint>(0n)
   const [expiry, setExpiry] = useState<bigint>(1n) // days
   const [view, setView] = useState<"long" | "short">("long")
@@ -96,9 +95,11 @@ export function NewOrder() {
 
     const otcClient = new OtcClient(OTC_API_URL)
 
-    const response = await otcClient.createOrder({
-      ...orderIntent,
-      expiry: orderIntent.expiry,
+    const response = await otcClient.addOrder({
+      order: {
+        ...orderIntent,
+        expiry: orderIntent.expiry.toString(),
+      },
     })
 
     if ("error" in response) {
@@ -118,7 +119,7 @@ export function NewOrder() {
   const inputsDisabled = isLoading
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-5xl">
       <Link
         href="/otc"
         className="mb-6 inline-flex items-center text-[#B0B4BD] hover:text-white"
@@ -127,39 +128,73 @@ export function NewOrder() {
         All orders
       </Link>
 
-      <Card className="border-0 bg-[#0E1320]">
-        <CardHeader>
-          {step === "review" && (
-            <CardTitle className="text-xl font-medium text-white">
-              New order
-            </CardTitle>
-          )}
-        </CardHeader>
+      <div className="grid grid-cols-2 grid-rows-[128px_1fr] gap-8">
+        <div className="col-span-2 flex items-center justify-center">
+          <MarketHeader market={market} />
+        </div>
 
-        {step === "review" ? (
+        <Card className="bg-transparent">
+          <CardHeader>
+            <CardTitle className="text-white">Order to Fill</CardTitle>
+          </CardHeader>
+
           <CardContent className="space-y-6">
-            <Tabs
-              className="w-full"
-              value={view}
-              onValueChange={(value) => setView(value as "long" | "short")}
-            >
-              <TabsList className="w-full border-none bg-[#1C1E25] p-1">
-                <TabsTrigger
-                  value="long"
-                  className="w-full data-[state=active]:bg-[#2D313E] data-[state=active]:text-white"
-                >
-                  Long
-                </TabsTrigger>
-                <TabsTrigger
-                  value="short"
-                  className="w-full data-[state=active]:bg-[#2D313E] data-[state=active]:text-white"
-                >
-                  Short
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex items-center justify-between">
+              <p className="text-secondary-foreground">Long amount</p>
+              <div className="flex items-center gap-1">
+                <img src={market.loanToken.iconUrl} className="size-4" />
+                <span className="font-mono">50,000</span>
+                <span className="text-sm text-secondary-foreground">
+                  {market.loanToken.symbol}
+                </span>
+              </div>
+            </div>
 
-            <MarketHeader market={market} className="text-[20px]" />
+            <Separator />
+
+            <div className="flex items-center justify-between">
+              <p className="text-secondary-foreground">Liquidity</p>
+              <div className="flex items-center gap-1">
+                <img src={market.loanToken.iconUrl} className="size-4" />
+                <span className="font-mono">50,000</span>
+                <span className="text-sm text-secondary-foreground">
+                  {market.loanToken.symbol}
+                </span>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center justify-between">
+              <p className="text-secondary-foreground">Order expiry</p>
+              <div className="flex flex-col items-end gap-1">
+                <span className="font-mono">1 week</span>
+                <span className="font-mono text-sm text-secondary-foreground">
+                  {new Date().toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center justify-between">
+              <p className="text-secondary-foreground">Fixed APR</p>
+              <div className="flex items-center gap-1">
+                <span className="font-mono">7%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-0 bg-[#0E1320]">
+          <CardHeader>
+            {step === "review" && (
+              <CardTitle className="text-xl font-medium text-white">
+                New Fill Order
+              </CardTitle>
+            )}
+          </CardHeader>
+
+          <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="amount" className="text-secondary-foreground">
                 {view === "long" ? "Long size" : "Short size"}
@@ -317,124 +352,8 @@ export function NewOrder() {
               </Button>
             )}
           </CardContent>
-        ) : (
-          <CardContent className="space-y-6">
-            <div className="m-auto w-fit text-center">
-              <MarketHeader className="text-h5 font-medium" market={market} />
-            </div>
-            <Separator />
-
-            <div className="grid gap-8">
-              <div className="flex items-center justify-between">
-                <p className="text-secondary-foreground">
-                  {view === "long" ? "Long" : "Short"} Size
-                </p>
-                <div className="flex items-center gap-2">
-                  <img src={market.loanToken.iconUrl} className="size-4" />
-
-                  <p className="font-mono text-lg">
-                    {fixed(depositAmount).format({
-                      decimals: 4,
-                      trailingZeros: false,
-                    })}
-                  </p>
-
-                  {/* <p className="text-secondary-foreground">
-                    {market.loanToken.symbol}
-                  </p> */}
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center justify-between">
-                <p className="text-secondary-foreground">Order Expiry</p>
-
-                <div className="space-y-2 text-right font-mono">
-                  <p className="text-lg">1 week </p>
-                  <p className="text-secondary-foreground">
-                    12/02/2024 1:44 PM{" "}
-                  </p>
-                </div>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <p className="text-secondary-foreground">
-                  {view === "long" ? "Min" : "Max"} rate
-                </p>
-                <div>
-                  {fixed(desiredRate).format({
-                    decimals: 2,
-                    percent: true,
-                    trailingZeros: false,
-                  })}
-                </div>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <p className="text-secondary-foreground">Your Deposit</p>
-                <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center gap-2">
-                    <img src={market.loanToken.iconUrl} className="size-4" />
-                    <span className="font-mono text-h5">
-                      {fixed(depositAmount).format({
-                        decimals: 4,
-                        trailingZeros: false,
-                      })}{" "}
-                      {market.loanToken.symbol}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-secondary-foreground">
-                      What am I paying for?
-                    </span>
-                    <HelpCircle className="h-4 w-4 text-secondary-foreground" />
-                  </div>
-                </div>
-              </div>
-
-              {isOrderIntentSuccess ? (
-                <div className="grid grid-cols-2 grid-rows-2 gap-2">
-                  <Button
-                    disabled={isOrderSigningPending}
-                    className="pointer-events-none col-span-2 mt-8 border-2 hover:bg-transparent"
-                    variant="ghost"
-                    size="lg"
-                    onClick={handleOrderSigning}
-                  >
-                    <Check className="text-aquamarine" size={18} /> Order
-                    Submitted
-                  </Button>
-                  <Link asChild to="/otc">
-                    <Button
-                      className="ml-auto w-full bg-[#1B1E26] text-white hover:bg-[#1B1E26]/50"
-                      onClick={() => {}}
-                    >
-                      <ArrowLeft size={18} />
-                      All Orders
-                    </Button>
-                  </Link>
-                  <Button
-                    className="ml-auto w-full bg-[#1B1E26] text-red-400 hover:bg-[#1B1E26]/50"
-                    onClick={() => {}}
-                  >
-                    Cancel order
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  disabled={isOrderSigningPending}
-                  className="mt-8"
-                  size="lg"
-                  onClick={handleOrderSigning}
-                >
-                  Sign & Submit
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        )}
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }
