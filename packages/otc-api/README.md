@@ -124,7 +124,7 @@ Alter the properties of an order key and return a new key.
 import { updateOrderKey } from "otc-api"
 
 const newOrderKey = updateOrderKey(orderKey, { status: "matched" })
-``` =
+```
 
 ## Deployment
 
