@@ -10,6 +10,8 @@ import {
 } from "components/base/table"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { useAppConfig } from "hooks/base/useAppConfig"
+import { useCancelOrder } from "hooks/otc/useCancelOrder"
+import { usePendingOrders } from "hooks/otc/usePendingOrders"
 import { OrderObject } from "otc-api"
 import { computeTargetRate } from "src/otc/utils"
 import { useAccount } from "wagmi"
@@ -17,15 +19,45 @@ import { Link } from "wouter"
 
 interface PendingOrdersTableProps {
   pendingOrders: OrderObject<"pending">[]
-  onCancelOrder: (order: OrderObject<"pending">) => void
 }
 
-export function PendingOrdersTable({
-  pendingOrders,
-  onCancelOrder,
-}: PendingOrdersTableProps) {
+export function PendingOrdersTable({ pendingOrders }: PendingOrdersTableProps) {
   const { address: account } = useAccount()
   const appConfig = useAppConfig()
+
+  const { refetch: refetchPendingOrders } = usePendingOrders()
+
+  const { mutate: cancelOrder, status: cancelOrderStatus } = useCancelOrder()
+
+  const handleCancelOrder = async (order: OrderObject<"pending">) => {
+    // await writeContractAsync({
+    //   functionName: "cancelOrders",
+    //   abi: HYPERDRIVE_MATCHING_ENGINE_ABI,
+    //   address: HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
+    //   args: [
+    //     [
+    //       {
+    //         trader: order.data.trader,
+    //         hyperdrive: order.data.hyperdrive,
+    //         orderType: order.data.orderType,
+    //         amount: order.data.amount,
+    //         expiry: BigInt(order.data.expiry),
+    //         salt: order.data.salt,
+    //         signature: order.data.signature!,
+    //         options: order.data.options,
+    //         minVaultSharePrice: order.data.minVaultSharePrice,
+    //         slippageGuard: order.data.slippageGuard,
+    //       },
+    //     ],
+    //   ],
+    // })
+
+    cancelOrder(order.key, {
+      onSuccess: () => {
+        refetchPendingOrders()
+      },
+    })
+  }
 
   return (
     <div className="rounded-lg border">
@@ -104,7 +136,7 @@ export function PendingOrdersTable({
                   {account === order.data.trader ? (
                     <Button
                       className="ml-auto bg-[#1B1E26] text-red-400 hover:bg-[#1B1E26]/50"
-                      onClick={() => onCancelOrder(order)}
+                      onClick={() => handleCancelOrder(order)}
                     >
                       Cancel
                     </Button>
