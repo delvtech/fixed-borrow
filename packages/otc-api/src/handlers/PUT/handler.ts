@@ -130,13 +130,15 @@ export async function PUT({
     )
   }
 
-  // Delete existing order
-  await s3.send(
-    new DeleteObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-    })
-  )
+  // Delete existing order if the key changed
+  if (newObject.key !== key) {
+    await s3.send(
+      new DeleteObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+      })
+    )
+  }
 
   return successResponse<PutResponse>({
     headers: responseHeaders,

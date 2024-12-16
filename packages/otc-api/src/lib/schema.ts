@@ -70,7 +70,7 @@ export type OrderKey<T extends OrderStatus = OrderStatus> = z.infer<
   ReturnType<typeof OrderKey<T>>
 >
 
-export const AnyOrderKey = OrderKey(...OrderStatus.options)
+export const AnyOrderKey = OrderKey()
 
 // S3 Order Object Data //
 // The actual data saved in S3 for an order
@@ -192,7 +192,7 @@ export type OrderObject<T extends OrderStatus = OrderStatus> = z.infer<
   ReturnType<typeof OrderObject<T>>
 >
 
-export const AnyOrderObject = OrderObject(...OrderStatus.options)
+export const AnyOrderObject = OrderObject()
 
 // Response //
 

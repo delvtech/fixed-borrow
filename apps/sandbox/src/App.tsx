@@ -17,24 +17,7 @@ function App() {
     queryKey: ["test"],
     enabled: false,
     queryFn: () => {
-      // return client.getOrders()
-      return client.createOrder({
-        trader: "0x16C0a9C9967d8e860bf84596769ef513dd6f2094",
-        hyperdrive: "0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30",
-        amount: 338970000000000000000n,
-        slippageGuard: 311852400000000000000n,
-        minVaultSharePrice: 1087869905097n,
-        options: {
-          asBase: true,
-          destination: "0x16C0a9C9967d8e860bf84596769ef513dd6f2094",
-          extraData: "0x",
-        },
-        orderType: 0,
-        expiry: 1734448583,
-        salt: "0x04e883067af7030208288eca18595b1897fc9bab88fd140f17557a8882e8b414",
-        // signature:
-        //   "0x014aa777745cca100a39b79897fca8ad6fa5c88efd23686c649a05cf1a91fea82c3334ea2b7a561704fd9fcde121f7d69e8444b895e515eec3276fee4a9a20a31c",
-      })
+      return client.getOrders()
     },
   })
 

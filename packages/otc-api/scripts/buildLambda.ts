@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import JSZip from "jszip"
 import { spawnSync } from "node:child_process"
 import {
   copyFileSync,
@@ -9,7 +10,6 @@ import {
   statSync,
 } from "node:fs"
 import { basename, join, resolve } from "node:path"
-import JSZip from "jszip"
 import { compilerOptions } from "../src/tsconfig.json"
 
 const outDir = resolve("src", compilerOptions.outDir)
