@@ -1,13 +1,15 @@
 import { ListObjectsV2Command } from "@aws-sdk/client-s3"
 import type { APIGatewayProxyStructuredResultV2 } from "aws-lambda"
 import { s3 } from "../../lib/s3.js"
-import { getOrder, parseOrderKey } from "../../lib/utils/orders.js"
+import type { OrderKey, OrderObject } from "../../lib/schema.js"
+import { parseOrderKey } from "../../lib/utils/orderKey.js"
+import { getOrder } from "../../lib/utils/orders.js"
 import { errorResponse, successResponse } from "../../lib/utils/response.js"
 import type { HandlerParams } from "../types.js"
 import {
-  GetRequestSchema,
+  GetRequest,
+  type GetManyResponse,
   type GetOneResponse,
-  type QueryResponse,
 } from "./schema.js"
 
 export async function GET({
@@ -15,27 +17,31 @@ export async function GET({
   responseHeaders,
   bucketName,
 }: HandlerParams): Promise<APIGatewayProxyStructuredResultV2> {
-  const { data, error, success } = GetRequestSchema.safeParse(
+  // Parse and validate request
+  const { data, error, success } = GetRequest().safeParse(
     event.queryStringParameters || {}
   )
 
   if (!success) {
     return errorResponse({
-      message: `Invalid request: ${error.format()}`,
+      message: `Invalid request: ${JSON.stringify(error.format())}`,
       headers: responseHeaders,
     })
   }
 
-  // If a key is provided, get the specific order
-  if ("key" in data) {
-    const order = await getOrder(data.key, bucketName)
+  // Get order by key if provided
+  const { key } = data
+
+  if (key) {
+    const order = await getOrder(key, bucketName)
     return order
       ? successResponse<GetOneResponse>({
           headers: responseHeaders,
           body: {
-            key: data.key,
-            order,
-          },
+            key,
+            status: parseOrderKey(key).status,
+            data: order,
+          } as OrderObject,
         })
       : errorResponse({
           headers: responseHeaders,
@@ -45,20 +51,25 @@ export async function GET({
   }
 
   // Otherwise, list objects
+  const { continuationToken, hyperdrive, orderType, status, trader } = data
 
   // Each filter can only be applied to the prefix if the previous filter was
   // applied to avoid keys like "undefined/undefined:0x123"
   let prefix = ""
 
-  if (data.status) {
+  if (status) {
     // Orders are stored in subfolders named after their status
-    prefix += `${data.status}/`
+    prefix += `${status}/`
 
-    if (data.trader) {
-      prefix += `${data.trader}:`
+    if (trader) {
+      prefix += `${trader}:`
 
-      if (data.hyperdrive) {
-        prefix += `${data.hyperdrive}:`
+      if (hyperdrive) {
+        prefix += `${hyperdrive}:`
+
+        if (orderType) {
+          prefix += `${orderType}:`
+        }
       }
     }
   }
@@ -67,34 +78,39 @@ export async function GET({
     new ListObjectsV2Command({
       Bucket: bucketName,
       Prefix: prefix || undefined,
-      ContinuationToken: data.continuationToken,
+      ContinuationToken: continuationToken,
     })
   )
 
-  // Apply filters not able to be applied to the prefix
-  list.Contents = list.Contents?.filter((obj) => {
-    const { trader, hyperdrive } = parseOrderKey(obj.Key || "")
-    if (!data.status && data.trader) return trader === data.trader
-    if (!data.trader && data.hyperdrive) return hyperdrive === data.hyperdrive
-    return true
-  })
+  // Fetch orders objects and apply filters that may have been omitted from the
+  // prefix
+  const orders: OrderObject[] = []
+  const orderPromises: Promise<void>[] = []
 
-  // Fetch full orders
-  const orders: QueryResponse["orders"] = []
-  await Promise.all(
-    list.Contents?.map(async ({ Key }) => {
-      if (!Key) return
-      const order = await getOrder(Key, bucketName)
-      if (order) {
-        orders.push({
-          key: Key,
-          order,
-        })
-      }
-    }) || []
-  )
+  for (const { Key } of list.Contents || []) {
+    const key = (Key || "") as OrderKey
+    const { trader, hyperdrive, orderType } = parseOrderKey(key)
 
-  return successResponse<QueryResponse>({
+    if (data.trader && trader !== data.trader) continue
+    if (data.hyperdrive && hyperdrive !== data.hyperdrive) continue
+    if (data.orderType && orderType !== data.orderType) continue
+
+    orderPromises.push(
+      getOrder(key, bucketName).then((order) => {
+        if (order) {
+          orders.push({
+            key,
+            status: parseOrderKey(key).status,
+            data: order,
+          } as OrderObject)
+        }
+      })
+    )
+  }
+
+  await Promise.all(orderPromises)
+
+  return successResponse<GetManyResponse>({
     headers: responseHeaders,
     body: {
       orders,

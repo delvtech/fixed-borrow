@@ -3,9 +3,12 @@ import type {
   LambdaFunctionURLEvent,
 } from "aws-lambda"
 import { DELETE } from "./handlers/DELETE/handler.js"
+import type { DeleteRequest } from "./handlers/DELETE/schema.js"
 import { GET } from "./handlers/GET/handler.js"
 import { POST } from "./handlers/POST/handler.js"
+import type { PostRequest } from "./handlers/POST/schema.js"
 import { PUT } from "./handlers/PUT/handler.js"
+import type { PutRequest } from "./handlers/PUT/schema.js"
 import type { HandlerParams } from "./handlers/types.js"
 import { errorResponse, successResponse } from "./lib/utils/response.js"
 
@@ -50,13 +53,13 @@ export const handler = async (
         return GET(params)
 
       case "POST":
-        return POST(params)
+        return POST(params as HandlerParams<PostRequest>)
 
       case "PUT":
-        return PUT(params)
+        return PUT(params as HandlerParams<PutRequest>)
 
       case "DELETE":
-        return DELETE(params)
+        return DELETE(params as HandlerParams<DeleteRequest>)
 
       default:
         return errorResponse({

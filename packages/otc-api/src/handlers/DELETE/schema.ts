@@ -1,20 +1,19 @@
 import { z } from "zod"
-import { CanceledOrderSchema, OrderSchema } from "../../lib/schema.js"
+import {
+  AnyOrderKey,
+  ErrorResponse,
+  OrderObject,
+  SuccessResponse,
+} from "../../lib/schema.js"
 
-export const DeleteRequestSchema = z.object({
-  key: z.string(),
+export const DeleteRequest = z.object({
+  key: AnyOrderKey,
 })
-export type DeleteRequest = z.infer<typeof DeleteRequestSchema>
+export type DeleteRequest = z.infer<typeof DeleteRequest>
 
-export const DeleteResponseSchema = z.object({
-  message: z.string(),
-  deleted: z.object({
-    key: z.string(),
-    order: OrderSchema,
-  }),
-  updated: z.object({
-    key: z.string(),
-    order: CanceledOrderSchema,
-  }),
-})
-export type DeleteResponse = z.infer<typeof DeleteResponseSchema>
+export const DeleteResponse = ErrorResponse.or(
+  SuccessResponse.extend({
+    message: z.string(),
+  }).merge(OrderObject("canceled"))
+)
+export type DeleteResponse = z.infer<typeof DeleteResponse>

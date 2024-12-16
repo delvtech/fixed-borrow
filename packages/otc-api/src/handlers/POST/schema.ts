@@ -1,14 +1,7 @@
-import { z } from "zod"
-import { OrderIntentSchema, OrderSchema } from "../../lib/schema.js"
+import { NewOrder, PutResponse } from "../PUT/schema.js"
 
-export const PostRequestSchema = z.object({
-  order: OrderIntentSchema.or(OrderSchema),
-})
-export type PostRequest = z.infer<typeof PostRequestSchema>
+export const PostRequest = NewOrder
+export type PostRequest = NewOrder
 
-export const PostResponseSchema = z.object({
-  message: z.string(),
-  key: z.string(),
-  order: OrderSchema,
-})
-export type PostResponse = z.infer<typeof PostResponseSchema>
+export const PostResponse = PutResponse
+export type PostResponse = PutResponse

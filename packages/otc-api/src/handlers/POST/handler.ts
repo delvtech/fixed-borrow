@@ -1,33 +1,36 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3"
 import type { APIGatewayProxyStructuredResultV2 } from "aws-lambda"
-import { s3 } from "../../lib/s3.js"
-import { bigintReplacer } from "../../lib/utils/bigIntReplacer.js"
-import { createOrderKey, getOrder } from "../../lib/utils/orders.js"
+import { createOrderKey } from "../../lib/utils/orderKey.js"
+import { getOrder } from "../../lib/utils/orders.js"
 import { errorResponse, successResponse } from "../../lib/utils/response.js"
+import { PUT } from "../PUT/handler.js"
+import { getNewOrderStatus } from "../PUT/utils.js"
 import type { HandlerParams } from "../types.js"
-import { PostRequestSchema, type PostResponse } from "./schema.js"
+import { PostRequest, type PostResponse } from "./schema.js"
+
+// TODO: Move the bulk of this to PUT to avoid 409s on update requests.
 
 export async function POST({
   event,
   responseHeaders,
   bucketName,
-}: HandlerParams): Promise<APIGatewayProxyStructuredResultV2> {
-  const { data, error, success } = PostRequestSchema.safeParse(
-    JSON.parse(event.body || "")
+}: HandlerParams<PostRequest>): Promise<APIGatewayProxyStructuredResultV2> {
+  // Parse and validate request
+  const { success, error, data } = PostRequest.safeParse(
+    typeof event.body === "string" ? JSON.parse(event.body) : event.body
   )
 
   if (!success) {
     return errorResponse({
       headers: responseHeaders,
-      message: `Invalid request: ${error.format()}`,
+      message: `Invalid request: ${JSON.stringify(error.format())}`,
     })
   }
 
-  const order = data.order
-  const key = createOrderKey({
-    order,
-    status: order.signature ? "pending" : "awaiting_signature",
-  })
+  const { matchKey, signature, ...baseOrderData } = data
+
+  // Ensure order doesn't already exist
+  const status = getNewOrderStatus(data)
+  const key = createOrderKey(status, baseOrderData)
   const existingOrder = await getOrder(key, bucketName)
 
   if (existingOrder) {
@@ -38,29 +41,30 @@ export async function POST({
     })
   }
 
-  // Verify order
-  // try {
-  //   await verifyOrder(order)
-  // } catch (error: any) {
-  //   return errorResponse(error)
-  // }
+  // Save new order
+  const putResponse = await PUT({
+    responseHeaders,
+    bucketName,
+    event: {
+      ...event,
+      body: {
+        ...data,
+        key,
+        upsert: true,
+      },
+    },
+  })
 
-  // Save order
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-      Body: JSON.stringify(order, bigintReplacer),
-    })
-  )
+  if (putResponse.statusCode !== 200) {
+    return putResponse
+  }
 
   return successResponse<PostResponse>({
     headers: responseHeaders,
     status: 201,
     body: {
+      ...JSON.parse(putResponse.body || ""),
       message: "Order created",
-      key,
-      order,
     },
   })
 }

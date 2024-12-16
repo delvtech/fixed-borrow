@@ -2,12 +2,21 @@ import { useQuery } from "@tanstack/react-query"
 import { OtcClient } from "otc-api"
 
 const otcApiUrl = import.meta.env.VITE_OTC_API_URL
+const client = new OtcClient(otcApiUrl)
 
 function App() {
-  const { status, data, error, refetch } = useQuery({
+  const {
+    data,
+    dataUpdatedAt,
+    error,
+    fetchStatus,
+    isFetched,
+    status,
+    refetch,
+  } = useQuery({
     queryKey: ["test"],
+    enabled: false,
     queryFn: () => {
-      const client = new OtcClient(otcApiUrl)
       return client.getOrders()
     },
   })
@@ -29,7 +38,14 @@ function App() {
                 : "text-slate-300"
           }
         >
-          {status}
+          {status} ({fetchStatus})
+        </code>
+      </p>
+
+      <p>
+        <strong>Last fetch: </strong>
+        <code className="text-slate-300">
+          {dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleString() : "-"}
         </code>
       </p>
 
@@ -37,7 +53,7 @@ function App() {
         className="h-10 rounded-lg border bg-teal-400 px-4 font-bold text-slate-800"
         onClick={() => refetch()}
       >
-        Refetch
+        {isFetched ? "Refetch" : "Fetch"}
       </button>
 
       <div>

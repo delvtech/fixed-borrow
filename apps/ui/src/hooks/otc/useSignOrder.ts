@@ -40,7 +40,7 @@ export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
           amount: orderData.amount,
           slippageGuard: orderData.slippageGuard,
           minVaultSharePrice: vaultSharePrice,
-          expiry: expiry.toString(),
+          expiry: Number(expiry),
           orderType: Number(orderData.orderType),
           options: {
             destination: account,

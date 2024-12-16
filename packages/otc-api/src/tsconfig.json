@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "../tsconfig.json",
   "include": ["package.json", "."],
-  "exclude": ["lib/exports.ts", "src/lib/client.ts"],
+  "exclude": ["lib/exports.ts", "lib/client.ts", "*.test.ts"],
   "compilerOptions": {
     "outDir": "../function",
     "declaration": false,

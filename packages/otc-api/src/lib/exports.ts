@@ -1,52 +1,40 @@
 export { OtcClient } from "./client.js"
 
-export { createOrderKey, parseOrderKey } from "./utils/orders.js"
+export {
+  createOrderKey,
+  parseOrderKey,
+  updateOrderKey,
+  type ParsedOrderKey,
+} from "./utils/orderKey.js"
+
+// Schemas //
 
 export {
-  CanceledOrderSchema,
-  ErrorResponseSchema,
-  MatchedOrderSchema,
-  OrderIntentSchema,
-  OrderSchema,
-  type CanceledOrder,
-  type ErrorResponse,
-  type MatchedOrder,
-  type Order,
-  type OrderIntent,
+  Order,
+  OrderData,
+  OrderIntent,
+  OrderKey,
+  OrderObject,
+  OrderStatus,
+  OtcApiResponse,
 } from "./schema.js"
 
+export { DeleteRequest, DeleteResponse } from "../handlers/DELETE/schema.js"
 export {
-  DeleteRequestSchema,
-  DeleteResponseSchema,
-  type DeleteRequest,
-  type DeleteResponse,
-} from "../handlers/DELETE/schema.js"
-
-export {
-  GetOneRequestSchema,
-  GetOneResponseSchema,
-  GetRequestSchema,
-  GetResponseSchema,
-  QueryParamsSchema,
-  QueryResponseSchema,
-  type GetOneRequest,
-  type GetOneResponse,
-  type GetRequest,
-  type GetResponse,
-  type QueryParams,
-  type QueryResponse,
+  GetManyRequest,
+  GetManyResponse,
+  GetOneRequest,
+  GetOneResponse,
+  GetRequest,
+  GetResponse,
 } from "../handlers/GET/schema.js"
-
+export { PostRequest, PostResponse } from "../handlers/POST/schema.js"
 export {
-  PostRequestSchema,
-  PostResponseSchema,
-  type PostRequest,
-  type PostResponse,
-} from "../handlers/POST/schema.js"
-
-export {
-  PutRequestSchema,
-  PutResponseSchema,
-  type PutRequest,
-  type PutResponse,
+  NewMatchedOrder,
+  NewOrder,
+  NewUnmatchedOrder,
+  OrderUpdate,
+  OrderUpsert,
+  PutRequest,
+  PutResponse,
 } from "../handlers/PUT/schema.js"

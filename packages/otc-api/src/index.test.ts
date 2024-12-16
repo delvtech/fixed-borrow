@@ -1,315 +1,304 @@
-import { ListObjectsV2Command } from "@aws-sdk/client-s3"
-import assert from "node:assert"
-import { beforeEach, describe, it, mock } from "node:test"
-import { DeleteResponseSchema } from "./handlers/DELETE/schema.js"
 import {
-  GetOneResponseSchema,
-  QueryResponseSchema,
+  DeleteObjectCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3"
+import type { LambdaFunctionURLEvent } from "aws-lambda"
+import assert from "node:assert"
+import { describe, it, mock } from "node:test"
+import { DeleteResponse, type DeleteRequest } from "./handlers/DELETE/schema.js"
+import {
+  GetManyResponse,
+  GetOneResponse,
+  type GetRequest,
 } from "./handlers/GET/schema.js"
-import { PostResponseSchema } from "./handlers/POST/schema.js"
+import { PostResponse, type PostRequest } from "./handlers/POST/schema.js"
+import {
+  PutResponse,
+  type NewMatchedOrder,
+  type NewUnmatchedOrder,
+  type PutRequest,
+} from "./handlers/PUT/schema.js"
 import { handler } from "./index.js"
 import { s3 } from "./lib/s3.js"
-import type { OrderIntent } from "./lib/schema.js"
+import type { OrderData, OrderIntent } from "./lib/schema.js"
 import { bigintReplacer } from "./lib/utils/bigIntReplacer.js"
-import { createOrderKey } from "./lib/utils/orders.js"
-
-// Mock S3 client
-mock.method(s3, "send", async () => ({}))
-
-const mockHeaders = {
-  origin: "http://localhost:3000",
-}
+import { createOrderKey, updateOrderKey } from "./lib/utils/orderKey.js"
 
 const mockOrder: OrderIntent = {
-  trader: "0x1234567890123456789012345678901234567890",
-  hyperdrive: "0x1234567890123456789012345678901234567890",
-  amount: BigInt("1000000000000000000"),
-  slippageGuard: BigInt("1000000000000000000"),
-  minVaultSharePrice: BigInt("1000000000000000000"),
+  trader: "0xAlice",
+  hyperdrive: "0x",
+  amount: 1n,
+  slippageGuard: 1n,
+  minVaultSharePrice: 1n,
   options: {
     asBase: true,
-    destination: "0x1234567890123456789012345678901234567890",
+    destination: "0x",
     extraData: "0x",
   },
-  orderType: 0, // assuming 0 is a valid order type
-  expiry: "1234567890",
-  salt: "0x123",
-  signature:
-    "0x1234567890123456789012345678901234567890123456789012345678901234",
+  orderType: 0,
+  expiry: 1,
+  salt: "0x",
+  signature: "0x",
 }
+const mockOrderStatus = "pending"
+const mockOrderKey = createOrderKey(mockOrderStatus, mockOrder)
+const mockOrderJson = JSON.stringify(mockOrder, bigintReplacer)
 
-const mockOrderString = JSON.stringify(mockOrder, bigintReplacer)
+const mockOrder2: OrderIntent = {
+  ...mockOrder,
+  trader: "0xBob",
+  orderType: 1,
+}
+const mockOrderStatus2 = "pending"
+const mockOrderKey2 = createOrderKey(mockOrderStatus2, mockOrder2)
+const mockOrderJson2 = JSON.stringify(mockOrder2, bigintReplacer)
 
 describe("OTC API Handler", () => {
-  beforeEach(() => {
-    // Reset all mocks before each test
-    mock.reset()
+  // Mock the s3 client
+  mock.method(s3, "send", async (req: unknown) => {
+    if (req instanceof DeleteObjectCommand) return
+    if (req instanceof ListObjectsV2Command) {
+      return {
+        Contents: [
+          {
+            Key: mockOrderKey,
+          },
+          {
+            Key: mockOrderKey,
+          },
+          {
+            Key: mockOrderKey2,
+          },
+        ],
+        IsTruncated: false,
+      }
+    }
+    if (req instanceof GetObjectCommand) {
+      return {
+        Body: {
+          transformToString: async () => {
+            return {
+              [mockOrderKey]: mockOrderJson,
+              [mockOrderKey2]: mockOrderJson2,
+            }[req.input.Key || ""]
+          },
+        },
+      }
+    }
+    if (req instanceof PutObjectCommand) return
   })
 
   describe("OPTIONS - CORS", () => {
     it("handles CORS preflight requests", async () => {
-      const response = await handler({
-        requestContext: {
-          http: { method: "OPTIONS" },
-        },
-        headers: mockHeaders,
-      } as any)
-
-      assert.equal(response.statusCode, 200)
-      assert.equal(
+      const event = createMockEvent("OPTIONS")
+      const response = await handler(event)
+      assert.strictEqual(response.statusCode, 200)
+      assert.strictEqual(
         response.headers?.["Access-Control-Allow-Origin"],
-        "http://localhost:3000"
+        event.headers.origin
       )
     })
   })
 
   describe("GET - Query Orders", () => {
-    it("gets a specific order by key", async () => {
-      mock.method(s3, "send", async () => ({
-        Body: {
-          transformToString: async () => mockOrderString,
-        },
-      }))
-
-      const response = await handler({
-        requestContext: {
-          http: { method: "GET" },
-        },
-        headers: mockHeaders,
-        queryStringParameters: {
-          key: createOrderKey({
-            order: mockOrder,
-            status: "pending",
-          }),
-        },
-      } as any)
-
-      assert.equal(response.statusCode, 200)
+    it("lists orders", async () => {
+      const event = createMockEvent("GET")
+      const response = await handler(event)
+      assert.strictEqual(response.statusCode, 200)
       const body = JSON.parse(response.body || "")
-      const parsed = GetOneResponseSchema.parse(body)
-      assert.deepEqual(parsed.order, mockOrder)
+      const parsed = GetManyResponse().parse(body)
+      assert(parsed.success)
+      assert.strictEqual(parsed.orders.length, 3)
+      assert.strictEqual(parsed.hasMore, false)
+    })
+
+    it("lists filtered orders", async () => {
+      const event = createMockEvent("GET", {
+        queryStringParameters: {
+          trader: mockOrder.trader,
+        },
+      })
+      const response = await handler(event)
+      assert.strictEqual(response.statusCode, 200)
+      const body = JSON.parse(response.body || "")
+      const parsed = GetManyResponse().parse(body)
+      assert(parsed.success)
+      // Only 2 orders with the given trader
+      assert.strictEqual(parsed.orders.length, 2)
+    })
+
+    it("gets one order by key", async () => {
+      const event = createMockEvent("GET", {
+        queryStringParameters: {
+          key: mockOrderKey,
+        },
+      })
+      const response = await handler(event)
+      assert.strictEqual(response.statusCode, 200)
+      const body = JSON.parse(response.body || "")
+      const parsed = GetOneResponse().parse(body)
+      assert(parsed.success)
+      assert.deepEqual(parsed.data, mockOrder)
     })
 
     it("returns 404 for non-existent order", async () => {
-      mock.method(s3, "send", async () => ({
-        Body: null,
-      }))
-
-      const response = await handler({
-        requestContext: {
-          http: { method: "GET" },
-        },
-        headers: mockHeaders,
+      const event = createMockEvent("GET", {
         queryStringParameters: {
-          key: "nonexistent",
+          key: "pending/",
         },
-      } as any)
-
-      assert.equal(response.statusCode, 404)
-    })
-
-    it("lists orders with filters", async () => {
-      mock.method(s3, "send", async (req: any) => {
-        if (req instanceof ListObjectsV2Command) {
-          return {
-            Contents: [
-              {
-                Key: createOrderKey({
-                  order: mockOrder,
-                  status: "pending",
-                }),
-              },
-              {
-                Key: createOrderKey({
-                  order: mockOrder,
-                  status: "pending",
-                }),
-              },
-              {
-                Key: createOrderKey({
-                  order: {
-                    ...mockOrder,
-                    hyperdrive: "0xNotMe",
-                  },
-                  status: "pending",
-                }),
-              },
-            ],
-            IsTruncated: false,
-          }
-        }
-
-        return {
-          Body: {
-            transformToString: async () => mockOrderString,
-          },
-        }
       })
-
-      const response = await handler({
-        requestContext: {
-          http: { method: "GET" },
-        },
-        headers: mockHeaders,
-        queryStringParameters: {
-          status: "pending",
-          hyperdrive: mockOrder.hyperdrive,
-        },
-      } as any)
-
-      assert.equal(response.statusCode, 200)
-      const parsedResponse = QueryResponseSchema.parse(
-        JSON.parse(response.body || "")
-      )
-      assert.equal(parsedResponse.orders.length, 2)
-      assert.equal(parsedResponse.hasMore, false)
+      const response = await handler(event)
+      assert.strictEqual(response.statusCode, 404)
     })
   })
 
   describe("POST - Create Order", () => {
-    mock.method(s3, "send", async () => {})
-
-    it("creates a new order", async () => {
-      const response = await handler({
-        requestContext: {
-          http: { method: "POST" },
-        },
-        headers: mockHeaders,
-        body: JSON.stringify(
-          {
-            order: mockOrder,
-          },
-          bigintReplacer
-        ),
-      } as any)
-
-      assert.equal(response.statusCode, 201)
-      const body = JSON.parse(response.body || "")
-      const parsed = PostResponseSchema.parse(body)
-      assert.ok(parsed.key)
-      assert.deepEqual(parsed.order, mockOrder)
+    it("returns 409 if order already exists", async () => {
+      const event = createMockEvent("POST", { body: mockOrder })
+      const response = await handler(event)
+      assert.strictEqual(response.statusCode, 409)
     })
 
-    it("returns 409 if order already exists", async () => {
-      mock.method(s3, "send", async () => ({
-        Body: {
-          transformToString: async () => mockOrderString,
-        },
-      }))
+    it("saves new signed orders as 'pending'", async () => {
+      const newOrder: NewUnmatchedOrder = {
+        ...mockOrder,
+        trader: "0xNewOrder",
+      }
+      const event = createMockEvent("POST", { body: newOrder })
+      const response = await handler(event)
+      assert.strictEqual(response.statusCode, 201)
+      const body = JSON.parse(response.body || "")
+      const parsed = PostResponse.parse(body)
+      assert(parsed.success)
+      assert.strictEqual(parsed.key, createOrderKey("pending", newOrder))
+      assert.deepEqual(parsed.data, newOrder)
+    })
 
-      const response = await handler({
-        requestContext: {
-          http: { method: "POST" },
-        },
-        headers: mockHeaders,
-        body: JSON.stringify(
-          {
-            order: mockOrder,
-          },
-          bigintReplacer
-        ),
-      } as any)
+    it("saves unsigned orders as 'awaiting_signature'", async () => {
+      const unsignedOrder: OrderData<"awaiting_signature"> = {
+        ...mockOrder,
+        signature: undefined,
+      }
+      const response = createMockEvent("POST", { body: unsignedOrder })
+      const res = await handler(response)
+      const body = JSON.parse(res.body || "")
+      const parsed = PostResponse.parse(body)
+      assert(parsed.success)
+      assert.strictEqual(
+        parsed.key,
+        createOrderKey("awaiting_signature", unsignedOrder)
+      )
+    })
 
-      assert.equal(response.statusCode, 409)
+    it("saves signed orders as 'matched' when a `matchKey` is provided", async () => {
+      const signedOrder: NewMatchedOrder = {
+        ...mockOrder,
+        matchKey: createOrderKey("pending", mockOrder),
+      }
+      const req = createMockEvent("POST", { body: signedOrder })
+      const res = await handler(req)
+      const body = JSON.parse(res.body || "")
+      const parsed = PostResponse.parse(body)
+      assert(parsed.success)
+      assert.strictEqual(parsed.key, createOrderKey("matched", signedOrder))
+    })
+
+    it("returns 400 if a `matchKey` is provided for an unsigned order", async () => {
+      const invalidOrder: OrderData<"awaiting_signature"> &
+        Pick<NewMatchedOrder, "matchKey"> = {
+        ...mockOrder,
+        signature: undefined,
+        matchKey: createOrderKey("pending", mockOrder),
+      }
+      const event = createMockEvent("POST", {
+        body: invalidOrder as OrderData<"awaiting_signature">,
+      })
+      const response = await handler(event)
+      assert.strictEqual(response.statusCode, 400)
     })
   })
 
   describe("PUT - Update Order", () => {
-    it("updates an existing order", async () => {
-      // Mock existing order
-      mock.method(s3, "send", async () => ({
-        Body: {
-          transformToString: async () => mockOrderString,
+    it("returns 404 for non-existent order", async () => {
+      const event = createMockEvent("PUT", {
+        body: {
+          key: "pending/",
         },
-      }))
-
-      const response = await handler({
-        requestContext: {
-          http: { method: "PUT" },
-        },
-        headers: mockHeaders,
-        body: JSON.stringify(
-          {
-            order: mockOrder,
-          },
-          bigintReplacer
-        ),
-      } as any)
-
-      assert.equal(response.statusCode, 200)
-      const body = JSON.parse(response.body || "")
-      assert.deepEqual(body.order, mockOrder)
+      })
+      const response = await handler(event)
+      assert.strictEqual(response.statusCode, 404)
     })
 
-    it("returns 404 for non-existent order", async () => {
-      mock.method(s3, "send", async () => ({
-        Body: null,
-      }))
-
-      const response = await handler({
-        requestContext: {
-          http: { method: "PUT" },
+    it("updates an existing order", async () => {
+      const event = createMockEvent("PUT", {
+        body: {
+          key: mockOrderKey,
+          amount: mockOrder.amount + 1n,
         },
-        headers: mockHeaders,
-        body: JSON.stringify(
-          {
-            order: mockOrder,
-          },
-          bigintReplacer
-        ),
-      } as any)
-
-      assert.equal(response.statusCode, 404)
+      })
+      const response = await handler(event)
+      assert.strictEqual(response.statusCode, 200)
+      const body = JSON.parse(response.body || "")
+      const parsed = PutResponse.parse(body)
+      assert(parsed.success)
+      assert.strictEqual(parsed.data.amount, mockOrder.amount + 1n)
     })
   })
 
   describe("DELETE - Cancel Order", () => {
-    it("cancels an existing order", async () => {
-      // Mock existing order
-      mock.method(s3, "send", async () => ({
-        Body: {
-          transformToString: async () => mockOrderString,
-        },
-      }))
-
-      const response = await handler({
-        requestContext: {
-          http: { method: "DELETE" },
-        },
-        headers: mockHeaders,
-        body: JSON.stringify({
-          key: createOrderKey({
-            order: mockOrder,
-            status: "pending",
-          }),
-        }),
-      } as any)
-
-      assert.equal(response.statusCode, 200)
-      const body = JSON.parse(response.body || "")
-      const parsed = DeleteResponseSchema.parse(body)
-      assert.ok(parsed.message)
-      assert.deepEqual(parsed.deleted.order, mockOrder)
-      assert.ok(parsed.updated.order.cancelled)
-      assert.ok(parsed.updated.order.cancelledAt)
+    it("returns 404 for non-existent order", async (t) => {
+      const event = createMockEvent("DELETE", { body: { key: "pending/" } })
+      const response = await handler(event)
+      assert.strictEqual(response.statusCode, 404)
     })
 
-    it("returns 404 for non-existent order", async () => {
-      mock.method(s3, "send", async () => ({
-        Body: null,
-      }))
-
-      const response = await handler({
-        requestContext: {
-          http: { method: "DELETE" },
+    it("cancels an existing order", async () => {
+      const event = createMockEvent("DELETE", {
+        body: {
+          key: mockOrderKey,
         },
-        headers: mockHeaders,
-        body: JSON.stringify({
-          key: "nonexistent",
-        }),
-      } as any)
-
-      assert.equal(response.statusCode, 404)
+      })
+      const response = await handler(event)
+      assert.strictEqual(response.statusCode, 200)
+      const body = JSON.parse(response.body || "")
+      const parsed = DeleteResponse.parse(body)
+      assert(parsed.success)
+      assert.strictEqual(parsed.status, "canceled")
+      assert.strictEqual(
+        parsed.key,
+        updateOrderKey(mockOrderKey, { status: "canceled" })
+      )
+      assert(typeof parsed.data.canceledAt === "number")
     })
   })
 })
+
+interface MethodBodyMap {
+  DELETE: DeleteRequest
+  GET: never
+  OPTIONS: never
+  POST: PostRequest
+  PUT: PutRequest
+}
+type Method = keyof MethodBodyMap
+interface MockEventOverrides<T extends Method = Method> {
+  queryStringParameters?: GetRequest
+  body?: MethodBodyMap[T]
+}
+
+/**
+ * Create a mock Lambda event object.
+ */
+function createMockEvent<T extends Method>(
+  method: T,
+  { body, queryStringParameters = {} }: MockEventOverrides<T> = {}
+) {
+  return {
+    queryStringParameters,
+    body: JSON.stringify(body, bigintReplacer),
+    headers: { origin: "http://localhost:3000" },
+    requestContext: { http: { method } },
+  } as unknown as LambdaFunctionURLEvent
+}

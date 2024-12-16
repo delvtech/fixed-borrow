@@ -17,9 +17,9 @@ const otcApiUrl = import.meta.env.VITE_OTC_API_URL
 const client = new OtcClient(otcApiUrl)
 ```
 
-#### Get all orders
+#### `getOrders`
 
-Use `getOrders` to get a paginated list of orders matching optional filters.
+Get a paginated list of orders matching optional filters.
 
 ```ts
 const allOrders = await client.getOrders()
@@ -34,19 +34,14 @@ Available filters:
 type QueryParams = {
   trader?: `0x${string}`
   hyperdrive?: `0x${string}`
-  status?:
-    | "pending"
-    | "matched"
-    | "cancelled"
-    | "awaiting_signature"
-    | undefined
+  status?: "pending" | "matched" | "cancelled" | "awaiting_signature"
   continuationToken?: string
 }
 ```
 
-#### Get a specific order
+#### `getOrder`
 
-Use `getOrder` to get a specific order by key.
+Get a specific order by key.
 
 ```ts
 const order = await client.getOrder(orderKey)
@@ -63,25 +58,33 @@ const response = await client.createOrder({
 })
 ```
 
-#### Update an existing order
+#### `updateOrder`
 
-Use `updateOrder` to update an existing order.
+Uppdate an existing order. Optionally create the order if it doesn't already exist by setting the `upsert` to `true`.
 
 ```ts
 const response = await client.updateOrder({
-  ...existingOrder,
+  key: unsignedOrderKey,
   signature:
     "0x1234567890123456789012345678901234567890123456789012345678901234",
   // ...
 })
 ```
 
-#### Cancel an existing order
+#### `cancelOrder`
 
-Use `cancelOrder` to cancel an existing order.
+Cancel an existing order.
 
 ```ts
 const response = await client.cancelOrder(orderKey)
+```
+
+#### `matchOrders`
+
+Updated 2 pending orders as matched.
+
+```ts
+const response = await client.matchOrders(orderKey1, orderKey2)
 ```
 
 ### Utils
@@ -93,12 +96,7 @@ Create an order key for an object in S3.
 ```ts
 import { createOrderKey } from "otc-api"
 
-const orderKey = createOrderKey({
-  status: "pending",
-  order: {
-    // ...
-  },
-})
+const orderKey = createOrderKey("pending", order)
 ```
 
 #### `parseOrderKey`
@@ -118,12 +116,22 @@ const parsedOrderKey = parseOrderKey(orderKey)
 // }
 ```
 
+#### `updateOrderKey`
+
+Alter the properties of an order key and return a new key.
+
+````ts
+import { updateOrderKey } from "otc-api"
+
+const newOrderKey = updateOrderKey(orderKey, { status: "matched" })
+```
+
 ## Deployment
 
 Build and zip the function:
 
 ```sh
 yw otc-api build
-```
+````
 
 This will generate a `function.zip` file in the root of the package. Upload this to the AWS Lambda to deploy the function.
