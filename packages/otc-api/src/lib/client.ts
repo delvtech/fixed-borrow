@@ -35,7 +35,7 @@ export class OtcClient {
     T extends OrderStatus,
     TInferred = GetManyRequest<T> & { status: T },
   >(
-    params: Narrow<TInferred> & GetManyRequest<T>
+    params: Narrow<TInferred> & GetManyRequest<T> = {} as any
   ): Promise<
     TInferred extends { status: T }
       ? GetManyResponse<TInferred["status"]>

@@ -100,7 +100,7 @@ export function NewOrder() {
 
     const response = await otcClient.createOrder({
       ...orderIntent,
-      expiry: orderIntent.expiry.toString(),
+      expiry: orderIntent.expiry,
     })
 
     if ("error" in response) {

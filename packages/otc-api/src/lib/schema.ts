@@ -20,8 +20,8 @@ export const BaseOrder = z.object({
     destination: Hex,
     extraData: Hex,
   }),
-  orderType: z.union([z.literal(0), z.literal(1)]),
-  expiry: z.number(),
+  orderType: z.union([z.literal(0), z.literal(1)]).pipe(z.coerce.number()),
+  expiry: z.coerce.number(),
   salt: Hex,
 })
 
