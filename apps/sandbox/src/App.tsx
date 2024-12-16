@@ -17,15 +17,7 @@ function App() {
     queryKey: ["test"],
     enabled: false,
     queryFn: () => {
-      const key1 =
-        "pending/0x16C0a9C9967d8e860bf84596769ef513dd6f2094:0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30:0:0xef74f02eb1f5cd69f3a223b5a994bbad0cf5c347e973005b61b4317972c4df25.json"
-      const key2 =
-        "pending/0x16C0a9C9967d8e860bf84596769ef513dd6f2094:0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30:1:0xa51245cbd6fb0529a936c76cae9cb3ba687959f4a6adab46fcab3ab85ef98876.json"
-      const orders = Promise.all([client.getOrder(key1), client.getOrder(key2)])
-      return client.updateOrder({
-        key: key1,
-        signature: "0x0",
-      })
+      return client.getOrders()
     },
   })
 

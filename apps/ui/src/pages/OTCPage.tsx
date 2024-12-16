@@ -104,7 +104,7 @@ function Orders() {
               <TableBody>
                 {pendingOrders?.map((intent) => {
                   const market = appConfig.morphoMarkets.find(
-                    (market) => market.hyperdrive === intent.order.hyperdrive
+                    (market) => market.hyperdrive === intent.data.hyperdrive
                   )
 
                   if (!market) return null

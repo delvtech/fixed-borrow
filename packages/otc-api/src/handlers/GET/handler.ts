@@ -7,7 +7,7 @@ import { getOrder } from "../../lib/utils/orders.js"
 import { errorResponse, successResponse } from "../../lib/utils/response.js"
 import type { HandlerParams } from "../types.js"
 import {
-  GetRequestSchema,
+  GetRequest,
   type GetManyResponse,
   type GetOneResponse,
 } from "./schema.js"
@@ -18,7 +18,7 @@ export async function GET({
   bucketName,
 }: HandlerParams): Promise<APIGatewayProxyStructuredResultV2> {
   // Parse and validate request
-  const { data, error, success } = GetRequestSchema.safeParse(
+  const { data, error, success } = GetRequest().safeParse(
     event.queryStringParameters || {}
   )
 
@@ -91,9 +91,9 @@ export async function GET({
     const key = (Key || "") as OrderKey
     const { trader, hyperdrive, orderType } = parseOrderKey(key)
 
-    if (trader !== data.trader) continue
-    if (hyperdrive !== data.hyperdrive) continue
-    if (orderType !== data.orderType) continue
+    if (data.trader && trader !== data.trader) continue
+    if (data.hyperdrive && hyperdrive !== data.hyperdrive) continue
+    if (data.orderType && orderType !== data.orderType) continue
 
     orderPromises.push(
       getOrder(key, bucketName).then((order) => {

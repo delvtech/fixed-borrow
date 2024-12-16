@@ -1,48 +1,53 @@
 import { z } from "zod"
 import {
-  AnyOrderKeySchema,
-  OrderObjectSchema,
-  OrderSchema,
-  OrderStatusSchema,
-  type OrderObject,
-  type OrderStatus,
+  Order,
+  OrderKey,
+  OrderObject,
+  OrderStatus,
+  SuccessResponse,
 } from "../../lib/schema.js"
 
 // Get one //
 
-export const GetOneRequestSchema = z.object({
-  key: AnyOrderKeySchema,
-})
-export type GetOneRequest = z.infer<typeof GetOneRequestSchema>
+export function GetOneRequest<T extends OrderStatus>(...statuses: T[]) {
+  return z.object({
+    key: OrderKey(...statuses),
+  })
+}
+export type GetOneRequest<T extends OrderStatus = OrderStatus> = z.infer<
+  ReturnType<typeof GetOneRequest<T>>
+>
 
-export const GetOneResponseSchema = OrderObjectSchema
-export type GetOneResponse<T extends OrderStatus = OrderStatus> = OrderObject<T>
+export function GetOneResponse<T extends OrderStatus>(...statuses: T[]) {
+  return SuccessResponse.and(OrderObject(...statuses))
+}
+export type GetOneResponse<T extends OrderStatus = OrderStatus> = z.infer<
+  ReturnType<typeof GetOneResponse<T>>
+>
 
 // Get many //
 
-export const GetManyRequestSchema = OrderSchema.pick({
-  hyperdrive: true,
-  orderType: true,
-  trader: true,
-})
-  .extend({
-    key: z.undefined().optional(),
-    status: OrderStatusSchema,
-    continuationToken: z.string().optional(),
+export function GetManyRequest<T extends OrderStatus>(...statuses: T[]) {
+  return Order.pick({
+    hyperdrive: true,
+    orderType: true,
+    trader: true,
   })
-  .partial()
-type _GetManyRequest = z.infer<typeof GetManyRequestSchema>
+    .extend({
+      key: z.undefined().optional(),
+      status: z.string().refine((s): s is T => statuses.includes(s as T)),
+      continuationToken: z.string().optional(),
+    })
+    .partial()
+}
+export type GetManyRequest<T extends OrderStatus = OrderStatus> = z.infer<
+  ReturnType<typeof GetManyRequest<T>>
+>
 
-export type GetManyRequest<T extends OrderStatus = OrderStatus> =
-  OrderStatus extends T
-    ? _GetManyRequest
-    : { status: T } & Omit<_GetManyRequest, "status">
-
-export const GetManyResponseSchema = z
-  .object({
-    orders: z.array(OrderObjectSchema),
-  })
-  .and(
+export function GetManyResponse<T extends OrderStatus>(...statuses: T[]) {
+  return SuccessResponse.extend({
+    orders: OrderObject(...statuses).array(),
+  }).and(
     z.discriminatedUnion("hasMore", [
       z.object({
         hasMore: z.literal(false),
@@ -54,17 +59,23 @@ export const GetManyResponseSchema = z
       }),
     ])
   )
-type _GetManyResponse = z.infer<typeof GetManyResponseSchema>
-
-export type GetManyResponse<T extends OrderStatus = OrderStatus> =
-  OrderStatus extends T
-    ? _GetManyResponse
-    : { orders: OrderObject<T>[] } & Omit<_GetManyResponse, "orders">
+}
+export type GetManyResponse<T extends OrderStatus = OrderStatus> = z.infer<
+  ReturnType<typeof GetManyResponse<T>>
+>
 
 // Union //
 
-export const GetRequestSchema = GetOneRequestSchema.or(GetManyRequestSchema)
-export type GetRequest = z.infer<typeof GetRequestSchema>
+export function GetRequest<T extends OrderStatus>(...statuses: T[]) {
+  return GetOneRequest(...statuses).or(GetManyRequest(...statuses))
+}
+export type GetRequest<T extends OrderStatus = OrderStatus> = z.infer<
+  ReturnType<typeof GetRequest<T>>
+>
 
-export const GetResponseSchema = GetOneResponseSchema.or(GetManyResponseSchema)
-export type GetResponse = z.infer<typeof GetResponseSchema>
+export function GetResponse<T extends OrderStatus>(...statuses: T[]) {
+  return GetOneResponse(...statuses).or(GetManyResponse(...statuses))
+}
+export type GetResponse<T extends OrderStatus = OrderStatus> = z.infer<
+  ReturnType<typeof GetResponse<T>>
+>

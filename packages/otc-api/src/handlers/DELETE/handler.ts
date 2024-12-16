@@ -7,15 +7,15 @@ import { createOrderKey } from "../../lib/utils/orderKey.js"
 import { getOrder } from "../../lib/utils/orders.js"
 import { errorResponse, successResponse } from "../../lib/utils/response.js"
 import type { HandlerParams } from "../types.js"
-import { DeleteRequestSchema, type DeleteResponse } from "./schema.js"
+import { DeleteRequest, type DeleteResponse } from "./schema.js"
 
 export async function DELETE({
   event,
   responseHeaders,
   bucketName,
-}: HandlerParams): Promise<APIGatewayProxyStructuredResultV2> {
+}: HandlerParams<DeleteRequest>): Promise<APIGatewayProxyStructuredResultV2> {
   // Parse and validate request
-  const { success, error, data } = DeleteRequestSchema.safeParse(
+  const { success, error, data } = DeleteRequest.safeParse(
     typeof event.body === "string" ? JSON.parse(event.body) : event.body
   )
 

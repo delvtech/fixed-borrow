@@ -1,7 +1,7 @@
 import { GetObjectCommand, NoSuchKey } from "@aws-sdk/client-s3"
 import { s3 } from "../s3.js"
 import {
-  OrderSchema,
+  Order,
   type OrderData,
   type OrderKey,
   type OrderStatus,
@@ -15,24 +15,18 @@ export async function getOrder<T extends OrderStatus = OrderStatus>(
   bucketName: string
 ): Promise<OrderData<T> | undefined> {
   try {
-    const response = await s3.send(
+    const { Body } = await s3.send(
       new GetObjectCommand({
         Bucket: bucketName,
         Key: key,
       })
     )
-
-    const orderData = await response.Body?.transformToString()
-    if (!orderData) {
-      return undefined
-    }
-
+    const orderData = await Body?.transformToString()
+    if (!orderData) return
     const obj = JSON.parse(orderData)
-    return OrderSchema.parse(obj) as OrderData<T>
+    return Order.parse(obj) as OrderData<T>
   } catch (error) {
-    if (error instanceof NoSuchKey) {
-      return undefined
-    }
+    if (error instanceof NoSuchKey) return
     throw error
   }
 }

@@ -1,23 +1,14 @@
-import { DeleteResponseSchema } from "../handlers/DELETE/schema.js"
+import { DeleteResponse } from "../handlers/DELETE/schema.js"
 import {
-  GetManyResponseSchema,
-  GetOneResponseSchema,
+  GetManyResponse,
+  GetOneResponse,
   type GetManyRequest,
-  type GetManyResponse,
-  type GetOneResponse,
 } from "../handlers/GET/schema.js"
-import {
-  PostResponseSchema,
-  type PostRequest,
-} from "../handlers/POST/schema.js"
-import { PutResponseSchema, type PutRequest } from "../handlers/PUT/schema.js"
-import {
-  ErrorResponseSchema,
-  type ErrorResponse,
-  type OrderKey,
-  type OrderStatus,
-} from "./schema.js"
+import { PostResponse, type PostRequest } from "../handlers/POST/schema.js"
+import { PutResponse, type PutRequest } from "../handlers/PUT/schema.js"
+import { ErrorResponse, type OrderKey, type OrderStatus } from "./schema.js"
 import { bigintReplacer } from "./utils/bigIntReplacer.js"
+import { parseOrderKey } from "./utils/orderKey.js"
 
 export class OtcClient {
   public constructor(public readonly otcApiUrl: string) {}
@@ -30,16 +21,17 @@ export class OtcClient {
     const response = await fetch(url)
     const data = await response.json()
     if (isError(data)) {
-      return ErrorResponseSchema.parse(data)
+      return ErrorResponse.parse(data)
     }
-    return GetOneResponseSchema.parse(data) as GetOneResponse<T>
+    const { status } = parseOrderKey(key)
+    return GetOneResponse(status).parse(data) as GetOneResponse<T>
   }
 
   /**
    * Get a list of orders
    */
   async getOrders<T extends OrderStatus = OrderStatus>(
-    params: GetManyRequest & { status?: T } = {}
+    params: GetManyRequest<T> = {} as GetManyRequest<T>
   ) {
     const paramEntries: [string, string][] = []
     for (const [k, v] of Object.entries(params)) {
@@ -50,9 +42,12 @@ export class OtcClient {
     const response = await fetch(url)
     const data = await response.json()
     if (isError(data)) {
-      return ErrorResponseSchema.parse(data)
+      return ErrorResponse.parse(data)
     }
-    return GetManyResponseSchema.parse(data) as GetManyResponse<T>
+    const schema = params.status
+      ? GetManyResponse(params.status)
+      : GetManyResponse()
+    return schema.parse(data) as GetManyResponse<T>
   }
 
   /**
@@ -65,9 +60,9 @@ export class OtcClient {
     })
     const data = await response.json()
     if (isError(data)) {
-      return ErrorResponseSchema.parse(data)
+      return ErrorResponse.parse(data)
     }
-    return PostResponseSchema.parse(data)
+    return PostResponse.parse(data)
   }
 
   /**
@@ -80,24 +75,24 @@ export class OtcClient {
     })
     const obj = await response.json()
     if (isError(obj)) {
-      return ErrorResponseSchema.parse(obj)
+      return ErrorResponse.parse(obj)
     }
-    return PutResponseSchema.parse(obj)
+    return PutResponse.parse(obj)
   }
 
   /**
    * Cancel an existing order
    */
-  async cancelOrder(key: OrderKey) {
+  async cancelOrder(key: OrderKey<"awaiting_signature" | "pending">) {
     const response = await fetch(this.otcApiUrl, {
       method: "DELETE",
       body: JSON.stringify({ key }),
     })
     const obj = await response.json()
     if (isError(obj)) {
-      return ErrorResponseSchema.parse(obj)
+      return ErrorResponse.parse(obj)
     }
-    return DeleteResponseSchema.parse(obj)
+    return DeleteResponse.parse(obj)
   }
 
   /**
@@ -114,3 +109,9 @@ export class OtcClient {
 function isError(res: any): res is ErrorResponse {
   return "error" in res && res.error
 }
+
+const otcClient = new OtcClient('OTC_API_URL')
+
+const response = await otcClient.getOrders({
+  status: "pending",
+})

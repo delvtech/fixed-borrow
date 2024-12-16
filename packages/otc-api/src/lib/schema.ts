@@ -1,122 +1,204 @@
 import { z } from "zod"
 
-export const HexSchema = z
+export const Hex = z
   .string()
   .refine((s): s is `0x${string}` => s.startsWith("0x"), {
     message: "must start with 0x",
   })
 
 // Order //
+// The schema for an order in the matching contract
 
-export const BaseOrderSchema = z.object({
-  trader: HexSchema,
-  hyperdrive: HexSchema,
+export const BaseOrder = z.object({
+  trader: Hex,
+  hyperdrive: Hex,
   amount: z.coerce.bigint(),
   slippageGuard: z.coerce.bigint(),
   minVaultSharePrice: z.coerce.bigint(),
   options: z.object({
     asBase: z.boolean(),
-    destination: HexSchema,
-    extraData: HexSchema,
+    destination: Hex,
+    extraData: Hex,
   }),
   orderType: z.union([z.literal(0), z.literal(1)]),
-  expiry: z.string(),
-  salt: HexSchema,
+  expiry: z.number(),
+  salt: Hex,
 })
 
-export const OrderSchema = BaseOrderSchema.extend({
-  signature: HexSchema.optional(),
+export const Order = BaseOrder.extend({
+  signature: Hex.optional(),
 })
-export type Order = z.infer<typeof OrderSchema>
+export type Order = z.infer<typeof Order>
 
-export const OrderIntentSchema = BaseOrderSchema.extend({
-  signature: HexSchema,
+export const OrderIntent = BaseOrder.extend({
+  signature: Hex,
 })
-export type OrderIntent = z.infer<typeof OrderIntentSchema>
+export type OrderIntent = z.infer<typeof OrderIntent>
 
 // Order Status //
+// The status of a saved order in S3
 
-export const OrderStatusSchema = z.enum([
+export const OrderStatus = z.enum([
   "awaiting_signature",
   "canceled",
   "pending",
   "matched",
 ])
-export type OrderStatus = z.infer<typeof OrderStatusSchema>
+export type OrderStatus = z.infer<typeof OrderStatus>
 
 // S3 Order Object Key //
+// The key (path) of an order object in S3
 
-export type OrderKey<T extends OrderStatus = OrderStatus> = `${T}/${string}`
+/**
+ * Get an order key schema based on the order status
+ */
+export function OrderKey<T extends OrderStatus>(...statuses: T[]) {
+  if (!statuses.length) statuses = OrderStatus.options as any
+  return z.string().refine(
+    // Orders are stored in sub-directories named after their status
+    (k): k is `${T}/${string}` =>
+      statuses.some((status) => k.startsWith(`${status}/`)),
 
-export function orderKeySchema<T extends OrderStatus[]>(
-  ...possibleStatuses: T
-) {
-  return z
-    .string()
-    .refine((k): k is OrderKey<T[number]> =>
-      possibleStatuses.some((status) => k.startsWith(`${status}/`))
-    )
+    (k) => ({
+      message: `Invalid key: ${k}, expected key to start with ${statuses.length > 1 ? 'one of "' : '"'}${statuses.join(
+        '/", "'
+      )}/"`,
+    })
+  )
 }
+export type OrderKey<T extends OrderStatus = OrderStatus> = z.infer<
+  ReturnType<typeof OrderKey<T>>
+>
 
-export const AnyOrderKeySchema = orderKeySchema(...OrderStatusSchema.options)
+export const AnyOrderKey = OrderKey(...OrderStatus.options)
 
 // S3 Order Object Data //
+// The actual data saved in S3 for an order
 
-const DataSchemaByStatus = {
-  awaiting_signature: BaseOrderSchema.extend({
+const OrderDataByStatus = {
+  awaiting_signature: BaseOrder.extend({
     signature: z.undefined().optional(),
   }),
-  canceled: OrderSchema.extend({
+  canceled: Order.extend({
     canceledAt: z.number(),
   }),
-  pending: OrderIntentSchema,
-  matched: OrderIntentSchema.extend({
+  pending: OrderIntent,
+  matched: OrderIntent.extend({
     /**
      * The key of the matching order
      */
-    matchKey: orderKeySchema("matched"),
+    matchKey: OrderKey("matched"),
     matchedAt: z.number(),
   }),
-} as const
-
-export type OrderData<TStatus extends OrderStatus = OrderStatus> = z.infer<
-  (typeof DataSchemaByStatus)[TStatus]
->
+} as const satisfies Record<OrderStatus, z.ZodObject<z.ZodRawShape>>
 
 /**
- * Get the data schema for a specific order status
+ * Get an order data schema based on order status
  */
-export function orderDataSchema<T extends OrderStatus>(status: T) {
-  return DataSchemaByStatus[status]
+export function OrderData<T extends OrderStatus>(...statuses: T[]) {
+  switch (statuses.length) {
+    case 1:
+      return OrderDataByStatus[statuses[0]]
+    case 0:
+      statuses = OrderStatus.options as any
+    default:
+      return z
+        .object({})
+        .passthrough()
+        .superRefine(
+          (obj, ctx): obj is z.infer<(typeof OrderDataByStatus)[T]> => {
+            const issues: z.ZodIssue[] = []
+            let success = false
+            for (const status of statuses) {
+              const result = OrderDataByStatus[status].safeParse(obj)
+              if (result.success) {
+                success = true
+                break
+              }
+              issues.push(...result.error.issues)
+            }
+            if (!success) issues.forEach(ctx.addIssue)
+            return success
+          }
+        )
+  }
 }
+export type OrderData<T extends OrderStatus = OrderStatus> = z.infer<
+  ReturnType<typeof OrderData<T>>
+>
+
+export const AnyOrderData = OrderData(...OrderStatus.options)
 
 // S3 Order Object //
 
 /**
- * Get the order object schema for a specific order status.
+ * Ensures order objects are saved correctly in S3 by enforcing the correct
+ * combination of key and data based on order status.
  */
-export function orderObjectSchema<T extends OrderStatus>(status: T) {
-  return z.object({
-    key: orderKeySchema(status),
-    status: z.literal(status),
-    data: orderDataSchema(status),
-  })
+export function OrderObject<T extends OrderStatus = OrderStatus>(
+  ...statuses: T[]
+): {
+  [K in T]: z.ZodObject<{
+    status: z.ZodLiteral<K>
+    key: ReturnType<typeof OrderKey<K>>
+    data: ReturnType<typeof OrderData<K>>
+  }>
+}[T] {
+  switch (statuses.length) {
+    case 1:
+      const [status] = statuses
+      return z.object({
+        status: z.literal(status),
+        key: OrderKey(status),
+        data: OrderData(status),
+      }) as any
+    case 0:
+      statuses = OrderStatus.options as any
+    default:
+      return z
+        .object({})
+        .passthrough()
+        .superRefine(({ status, key, data }, ctx) => {
+          if (!statuses.includes(status as T)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.invalid_literal,
+              expected: statuses,
+              received: status,
+              message: `Invalid status: ${status}, expected ${statuses.length > 1 ? 'one of "' : '"'}${statuses.join(
+                '", "'
+              )}"`,
+              path: ["status"],
+              fatal: true,
+            })
+            return z.NEVER
+          }
+
+          const keyResult = OrderKey(status as T).safeParse(key)
+          const dataResult = OrderData(status as T).safeParse(data)
+
+          if (!keyResult.success) {
+            keyResult.error.issues.forEach(ctx.addIssue)
+          }
+          if (!dataResult.success) {
+            dataResult.error.issues.forEach(ctx.addIssue)
+          }
+        }) as any
+  }
 }
-
-export const OrderObjectSchema = z.discriminatedUnion("status", [
-  orderObjectSchema("awaiting_signature"),
-  orderObjectSchema("canceled"),
-  orderObjectSchema("pending"),
-  orderObjectSchema("matched"),
-])
-
-export type OrderObject<T extends OrderStatus = OrderStatus> = Extract<
-  z.infer<typeof OrderObjectSchema>,
-  { status: T }
+export type OrderObject<T extends OrderStatus = OrderStatus> = z.infer<
+  ReturnType<typeof OrderObject<T>>
 >
+
+export const AnyOrderObject = OrderObject(...OrderStatus.options)
+
 // Response //
 
-export const ErrorResponseSchema = z.object({
+export const ErrorResponse = z.object({
   error: z.string(),
 })
-export type ErrorResponse = z.infer<typeof ErrorResponseSchema>
+export type ErrorResponse = z.infer<typeof ErrorResponse>
+
+export const SuccessResponse = z.object({
+  error: z.undefined().optional(),
+})
+export type SuccessResponse = z.infer<typeof SuccessResponse>

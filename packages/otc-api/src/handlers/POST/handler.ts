@@ -1,21 +1,21 @@
-import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import type { APIGatewayProxyStructuredResultV2 } from "aws-lambda"
-import { s3 } from "../../lib/s3.js"
-import type { OrderData, OrderObject } from "../../lib/schema.js"
-import { bigintReplacer } from "../../lib/utils/bigIntReplacer.js"
-import { createOrderKey, updateOrderKey } from "../../lib/utils/orderKey.js"
+import { createOrderKey } from "../../lib/utils/orderKey.js"
 import { getOrder } from "../../lib/utils/orders.js"
 import { errorResponse, successResponse } from "../../lib/utils/response.js"
+import { PUT } from "../PUT/handler.js"
+import { getNewOrderStatus } from "../PUT/utils.js"
 import type { HandlerParams } from "../types.js"
-import { PostRequestSchema, type PostResponse } from "./schema.js"
+import { PostRequest, type PostResponse } from "./schema.js"
+
+// TODO: Move the bulk of this to PUT to avoid 409s on update requests.
 
 export async function POST({
   event,
   responseHeaders,
   bucketName,
-}: HandlerParams): Promise<APIGatewayProxyStructuredResultV2> {
+}: HandlerParams<PostRequest>): Promise<APIGatewayProxyStructuredResultV2> {
   // Parse and validate request
-  const { success, error, data } = PostRequestSchema.safeParse(
+  const { success, error, data } = PostRequest.safeParse(
     typeof event.body === "string" ? JSON.parse(event.body) : event.body
   )
 
@@ -27,108 +27,43 @@ export async function POST({
   }
 
   const { matchKey, signature, ...baseOrderData } = data
-  const now = Date.now()
-
-  // Reject match keys for unsigned orders
-  if (matchKey && !signature) {
-    return errorResponse({
-      headers: responseHeaders,
-      message:
-        "Match key provided for unsigned order. Only signed orders can be matched.",
-    })
-  }
-
-  // Create order object
-  let newObject: OrderObject
-
-  if (matchKey) {
-    newObject = {
-      status: "matched",
-      key: createOrderKey("matched", baseOrderData),
-      data: {
-        ...baseOrderData,
-        signature,
-        matchKey: updateOrderKey(matchKey, { status: "matched" }),
-        matchedAt: now,
-      },
-    }
-  } else if (signature) {
-    newObject = {
-      status: "pending",
-      key: createOrderKey("pending", baseOrderData),
-      data: {
-        ...baseOrderData,
-        signature,
-      },
-    }
-  } else {
-    newObject = {
-      status: "awaiting_signature",
-      key: createOrderKey("awaiting_signature", baseOrderData),
-      data: baseOrderData,
-    }
-  }
 
   // Ensure order doesn't already exist
-  const existingOrder = await getOrder(newObject.key, bucketName)
+  const status = getNewOrderStatus(data)
+  const key = createOrderKey(status, baseOrderData)
+  const existingOrder = await getOrder(key, bucketName)
 
   if (existingOrder) {
     return errorResponse({
       headers: responseHeaders,
       status: 409,
-      message: `Order already exists with key: ${newObject.key}`,
-    })
-  }
-
-  // Ensure match order exists
-  const matchOrder = matchKey && (await getOrder(matchKey, bucketName))
-
-  if (matchKey && !matchOrder) {
-    return errorResponse({
-      headers: responseHeaders,
-      status: 404,
-      message: `Match order not found with key: ${matchKey}`,
+      message: `Order already exists with key: ${key}`,
     })
   }
 
   // Save new order
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: bucketName,
-      Key: newObject.key,
-      Body: JSON.stringify(newObject.data, bigintReplacer),
-    })
-  )
+  const putResponse = await PUT({
+    responseHeaders,
+    bucketName,
+    event: {
+      ...event,
+      body: {
+        ...data,
+        key,
+        upsert: true,
+      },
+    },
+  })
 
-  // Update match order if provided
-  if (matchOrder) {
-    await s3.send(
-      new DeleteObjectCommand({
-        Bucket: bucketName,
-        Key: matchKey,
-      })
-    )
-
-    const updatedMatchOrder: OrderData<"matched"> = {
-      ...matchOrder,
-      matchKey: createOrderKey("matched", matchOrder),
-      matchedAt: now,
-    }
-
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: bucketName,
-        Key: data.matchKey,
-        Body: JSON.stringify(updatedMatchOrder, bigintReplacer),
-      })
-    )
+  if (putResponse.statusCode !== 200) {
+    return putResponse
   }
 
   return successResponse<PostResponse>({
     headers: responseHeaders,
     status: 201,
     body: {
-      ...newObject,
+      ...JSON.parse(putResponse.body || ""),
       message: "Order created",
     },
   })

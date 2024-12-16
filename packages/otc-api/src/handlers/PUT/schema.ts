@@ -1,24 +1,40 @@
 import { z } from "zod"
-import { AnyOrderKeySchema } from "../../lib/schema.js"
 import {
-  NewMatchedOrderSchema,
-  NewUnmatchedOrderSchema,
-  PostResponseSchema,
-  type PostResponse,
-} from "../POST/schema.js"
+  AnyOrderKey,
+  AnyOrderObject,
+  Order,
+  OrderIntent,
+  OrderKey,
+  SuccessResponse,
+} from "../../lib/schema.js"
 
-export const OrderUpdateSchema = z.discriminatedUnion("matchKey", [
-  NewUnmatchedOrderSchema.partial(),
-  NewMatchedOrderSchema.partial(),
-])
-export type OrderUpdate = z.infer<typeof OrderUpdateSchema>
+export const NewUnmatchedOrder = Order.extend({
+  matchKey: z.undefined().optional(),
+})
+export type NewUnmatchedOrder = z.infer<typeof NewUnmatchedOrder>
 
-export const PutRequestSchema = OrderUpdateSchema.and(
-  z.object({
-    key: AnyOrderKeySchema,
-  })
+export const NewMatchedOrder = OrderIntent.extend({
+  matchKey: OrderKey("pending"),
+})
+export type NewMatchedOrder = z.infer<typeof NewMatchedOrder>
+
+export const NewOrder = NewUnmatchedOrder.or(NewMatchedOrder)
+export type NewOrder = z.infer<typeof NewOrder>
+
+export const OrderUpsert = z.object({ upsert: z.literal(true) }).and(NewOrder)
+export type OrderUpsert = z.infer<typeof OrderUpsert>
+
+export const OrderUpdate = z
+  .object({ upsert: z.literal(false).optional() })
+  .and(z.union([NewUnmatchedOrder.partial(), NewMatchedOrder.partial()]))
+export type OrderUpdate = z.infer<typeof OrderUpdate>
+
+export const PutRequest = z
+  .object({ key: AnyOrderKey })
+  .and(OrderUpdate.or(OrderUpsert))
+export type PutRequest = z.infer<typeof PutRequest>
+
+export const PutResponse = SuccessResponse.extend({ message: z.string() }).and(
+  AnyOrderObject
 )
-export type PutRequest = z.infer<typeof PutRequestSchema>
-
-export const PutResponseSchema = PostResponseSchema
-export type PutResponse = PostResponse
+export type PutResponse = z.infer<typeof PutResponse>

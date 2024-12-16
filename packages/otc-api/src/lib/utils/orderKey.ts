@@ -1,4 +1,4 @@
-import { type Order, type OrderKey, type OrderStatus } from "../schema.js"
+import type { Order, OrderKey, OrderStatus } from "../schema.js"
 
 interface OrderKeyProps
   extends Pick<Order, "trader" | "hyperdrive" | "orderType" | "salt"> {}
@@ -8,9 +8,9 @@ interface OrderKeyProps
  */
 export function createOrderKey<T extends OrderStatus = OrderStatus>(
   status: T,
-  props: OrderKeyProps
+  { hyperdrive, orderType, salt, trader }: OrderKeyProps
 ) {
-  return `${status}/${props.trader}:${props.hyperdrive}:${props.orderType}:${props.salt}.json` as const
+  return `${status}/${trader}:${hyperdrive}:${orderType}:${salt}.json` as const
 }
 
 export interface ParsedOrderKey<T extends OrderStatus = OrderStatus>
@@ -25,7 +25,8 @@ export function parseOrderKey<T extends OrderStatus = OrderStatus>(
   key: OrderKey<T>
 ): ParsedOrderKey<T> {
   const [status, order] = key.split("/")
-  const [trader, hyperdrive, orderType, salt] = order.split(":")
+  const [trader, hyperdrive, orderType, tail] = order.split(":")
+  const [salt] = tail.split(".")
   return {
     status: status as T,
     trader: trader as `0x${string}`,
@@ -50,5 +51,5 @@ export function updateOrderKey<
   return createOrderKey(newStatus || oldStatus, {
     ...oldProps,
     ...newProps,
-  }) as any
+  }) as OrderKey<OrderStatus extends U ? T : U>
 }
