@@ -1,5 +1,6 @@
 import { z } from "zod"
 import {
+  ErrorResponse,
   Order,
   OrderKey,
   OrderObject,
@@ -19,7 +20,7 @@ export type GetOneRequest<T extends OrderStatus = OrderStatus> = z.infer<
 >
 
 export function GetOneResponse<T extends OrderStatus>(...statuses: T[]) {
-  return SuccessResponse.and(OrderObject(...statuses))
+  return ErrorResponse.or(SuccessResponse.and(OrderObject(...statuses)))
 }
 export type GetOneResponse<T extends OrderStatus = OrderStatus> = z.infer<
   ReturnType<typeof GetOneResponse<T>>
@@ -35,7 +36,13 @@ export function GetManyRequest<T extends OrderStatus>(...statuses: T[]) {
   })
     .extend({
       key: z.undefined().optional(),
-      status: z.string().refine((s): s is T => statuses.includes(s as T)),
+      status: z
+        .string()
+        .refine((s): s is T =>
+          statuses.length
+            ? statuses.includes(s as T)
+            : OrderStatus.safeParse(s).success
+        ),
       continuationToken: z.string().optional(),
     })
     .partial()
@@ -45,19 +52,21 @@ export type GetManyRequest<T extends OrderStatus = OrderStatus> = z.infer<
 >
 
 export function GetManyResponse<T extends OrderStatus>(...statuses: T[]) {
-  return SuccessResponse.extend({
-    orders: OrderObject(...statuses).array(),
-  }).and(
-    z.discriminatedUnion("hasMore", [
-      z.object({
-        hasMore: z.literal(false),
-        nextContinuationToken: z.undefined().optional(),
-      }),
-      z.object({
-        hasMore: z.literal(true),
-        nextContinuationToken: z.string(),
-      }),
-    ])
+  return ErrorResponse.or(
+    SuccessResponse.extend({
+      orders: OrderObject(...statuses).array(),
+    }).and(
+      z.discriminatedUnion("hasMore", [
+        z.object({
+          hasMore: z.literal(false),
+          nextContinuationToken: z.undefined().optional(),
+        }),
+        z.object({
+          hasMore: z.literal(true),
+          nextContinuationToken: z.string(),
+        }),
+      ])
+    )
   )
 }
 export type GetManyResponse<T extends OrderStatus = OrderStatus> = z.infer<

@@ -112,6 +112,7 @@ export function OrderData<T extends OrderStatus>(...statuses: T[]) {
             for (const status of statuses) {
               const result = OrderDataByStatus[status].safeParse(obj)
               if (result.success) {
+                obj = result.data
                 success = true
                 break
               }
@@ -126,8 +127,6 @@ export function OrderData<T extends OrderStatus>(...statuses: T[]) {
 export type OrderData<T extends OrderStatus = OrderStatus> = z.infer<
   ReturnType<typeof OrderData<T>>
 >
-
-export const AnyOrderData = OrderData(...OrderStatus.options)
 
 // S3 Order Object //
 
@@ -158,7 +157,8 @@ export function OrderObject<T extends OrderStatus = OrderStatus>(
       return z
         .object({})
         .passthrough()
-        .superRefine(({ status, key, data }, ctx) => {
+        .superRefine((orderObject, ctx) => {
+          const { status, key, data } = orderObject
           if (!statuses.includes(status as T)) {
             ctx.addIssue({
               code: z.ZodIssueCode.invalid_literal,
@@ -182,6 +182,9 @@ export function OrderObject<T extends OrderStatus = OrderStatus>(
           if (!dataResult.success) {
             dataResult.error.issues.forEach(ctx.addIssue)
           }
+          if (keyResult.success && dataResult.success) {
+            orderObject.data = dataResult.data
+          }
         }) as any
   }
 }
@@ -194,11 +197,16 @@ export const AnyOrderObject = OrderObject(...OrderStatus.options)
 // Response //
 
 export const ErrorResponse = z.object({
+  success: z.literal(false),
   error: z.string(),
 })
 export type ErrorResponse = z.infer<typeof ErrorResponse>
 
 export const SuccessResponse = z.object({
+  success: z.literal(true),
   error: z.undefined().optional(),
 })
 export type SuccessResponse = z.infer<typeof SuccessResponse>
+
+export const OtcApiResponse = ErrorResponse.or(SuccessResponse)
+export type OtcApiResponse = z.infer<typeof OtcApiResponse>

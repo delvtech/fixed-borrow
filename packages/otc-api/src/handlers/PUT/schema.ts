@@ -2,6 +2,7 @@ import { z } from "zod"
 import {
   AnyOrderKey,
   AnyOrderObject,
+  ErrorResponse,
   Order,
   OrderIntent,
   OrderKey,
@@ -34,7 +35,9 @@ export const PutRequest = z
   .and(OrderUpdate.or(OrderUpsert))
 export type PutRequest = z.infer<typeof PutRequest>
 
-export const PutResponse = SuccessResponse.extend({ message: z.string() }).and(
-  AnyOrderObject
+export const PutResponse = ErrorResponse.or(
+  SuccessResponse.extend({
+    message: z.string(),
+  }).and(AnyOrderObject)
 )
 export type PutResponse = z.infer<typeof PutResponse>

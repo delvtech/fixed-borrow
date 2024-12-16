@@ -13,7 +13,7 @@ import {
 import { MarketHeader } from "components/markets/MarketHeader"
 import { SupportedChainId } from "dfb-config"
 import { ArrowRight } from "lucide-react"
-import { createOrderKey, OtcClient } from "otc-api"
+import { OtcClient } from "otc-api"
 import {
   computeTargetRate,
   HYPERDRIVE_MATCHING_ENGINE_ABI,
@@ -30,12 +30,11 @@ function usePendingOrders() {
     queryKey: ["pendingOrders", chainId],
     queryFn: async () => {
       const otcClient = new OtcClient(OTC_API_URL)
-
       const response = await otcClient.getOrders({
         status: "pending",
       })
 
-      if ("error" in response) {
+      if (!response.success) {
         throw new Error(response.error)
       } else {
         return response.orders
@@ -102,23 +101,23 @@ function Orders() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pendingOrders?.map((intent) => {
+                {pendingOrders?.map((order) => {
                   const market = appConfig.morphoMarkets.find(
-                    (market) => market.hyperdrive === intent.data.hyperdrive
+                    (market) => market.hyperdrive === order.data.hyperdrive
                   )
 
                   if (!market) return null
                   const decimals = market.loanToken.decimals
                   const symbol = market.loanToken.symbol
                   const targetRate = computeTargetRate(
-                    intent.order.orderType,
-                    intent.order.amount,
-                    intent.order.slippageGuard
+                    order.data.orderType,
+                    order.data.amount,
+                    order.data.slippageGuard
                   )
 
                   return (
                     <TableRow
-                      key={intent.order.signature}
+                      key={order.data.signature}
                       className="bg-[#0E1320] hover:bg-[#0E1320]"
                     >
                       <TableCell className="p-6 font-mono">
@@ -130,11 +129,11 @@ function Orders() {
                       </TableCell>
                       <TableCell>
                         <span>
-                          {intent.order.orderType === 0 ? "Long" : "Short"}
+                          {order.data.orderType === 0 ? "Long" : "Short"}
                         </span>
                       </TableCell>
                       <TableCell className="font-mono">
-                        {fixed(intent.order.amount, decimals).format({
+                        {fixed(order.data.amount, decimals).format({
                           decimals: 2,
                           trailingZeros: false,
                         })}{" "}
@@ -142,7 +141,7 @@ function Orders() {
                       </TableCell>
                       <TableCell className="font-mono">
                         {new Date(
-                          Number(intent.order.expiry) * 1000
+                          Number(order.data.expiry) * 1000
                         ).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="font-mono">
@@ -154,7 +153,7 @@ function Orders() {
                       </TableCell>
 
                       <TableCell>
-                        {account === intent.order.trader ? (
+                        {account === order.data.trader ? (
                           <Button
                             className="ml-auto bg-[#1B1E26] text-red-400 hover:bg-[#1B1E26]/50"
                             onClick={async () => {
@@ -165,30 +164,24 @@ function Orders() {
                                 args: [
                                   [
                                     {
-                                      trader: intent.order.trader,
-                                      hyperdrive: intent.order.hyperdrive,
-                                      orderType: intent.order.orderType,
-                                      amount: intent.order.amount,
-                                      expiry: BigInt(intent.order.expiry),
-                                      salt: intent.order.salt,
-                                      signature: intent.order.signature!,
-                                      options: intent.order.options,
+                                      trader: order.data.trader,
+                                      hyperdrive: order.data.hyperdrive,
+                                      orderType: order.data.orderType,
+                                      amount: order.data.amount,
+                                      expiry: BigInt(order.data.expiry),
+                                      salt: order.data.salt,
+                                      signature: order.data.signature!,
+                                      options: order.data.options,
                                       minVaultSharePrice:
-                                        intent.order.minVaultSharePrice,
-                                      slippageGuard: intent.order.slippageGuard,
+                                        order.data.minVaultSharePrice,
+                                      slippageGuard: order.data.slippageGuard,
                                     },
                                   ],
                                 ],
                               })
 
                               const otcClient = new OtcClient(OTC_API_URL)
-
-                              await otcClient.cancelOrder(
-                                createOrderKey({
-                                  status: "pending",
-                                  order: intent.order,
-                                })
-                              )
+                              await otcClient.cancelOrder(order.key)
                             }}
                           >
                             Cancel

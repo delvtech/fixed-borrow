@@ -9,6 +9,7 @@ import { PutResponse, type PutRequest } from "../handlers/PUT/schema.js"
 import { ErrorResponse, type OrderKey, type OrderStatus } from "./schema.js"
 import { bigintReplacer } from "./utils/bigIntReplacer.js"
 import { parseOrderKey } from "./utils/orderKey.js"
+import type { Narrow } from "./utils/types.js"
 
 export class OtcClient {
   public constructor(public readonly otcApiUrl: string) {}
@@ -30,9 +31,16 @@ export class OtcClient {
   /**
    * Get a list of orders
    */
-  async getOrders<T extends OrderStatus = OrderStatus>(
-    params: GetManyRequest<T> = {} as GetManyRequest<T>
-  ) {
+  async getOrders<
+    T extends OrderStatus,
+    TInferred = GetManyRequest<T> & { status: T },
+  >(
+    params: Narrow<TInferred> & GetManyRequest<T>
+  ): Promise<
+    TInferred extends { status: T }
+      ? GetManyResponse<TInferred["status"]>
+      : GetManyResponse
+  > {
     const paramEntries: [string, string][] = []
     for (const [k, v] of Object.entries(params)) {
       if (v) paramEntries.push([k, String(v)])
@@ -42,12 +50,12 @@ export class OtcClient {
     const response = await fetch(url)
     const data = await response.json()
     if (isError(data)) {
-      return ErrorResponse.parse(data)
+      return ErrorResponse.parse(data) as GetManyResponse<T> as any
     }
     const schema = params.status
       ? GetManyResponse(params.status)
       : GetManyResponse()
-    return schema.parse(data) as GetManyResponse<T>
+    return schema.parse(data) as GetManyResponse<T> as any
   }
 
   /**
@@ -109,9 +117,3 @@ export class OtcClient {
 function isError(res: any): res is ErrorResponse {
   return "error" in res && res.error
 }
-
-const otcClient = new OtcClient('OTC_API_URL')
-
-const response = await otcClient.getOrders({
-  status: "pending",
-})

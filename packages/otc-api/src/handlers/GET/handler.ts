@@ -24,7 +24,7 @@ export async function GET({
 
   if (!success) {
     return errorResponse({
-      message: `Invalid request: ${error.format()}`,
+      message: `Invalid request: ${JSON.stringify(error.format())}`,
       headers: responseHeaders,
     })
   }

@@ -94,8 +94,8 @@ describe("OTC API Handler", () => {
     it("handles CORS preflight requests", async () => {
       const event = createMockEvent("OPTIONS")
       const response = await handler(event)
-      assert.equal(response.statusCode, 200)
-      assert.equal(
+      assert.strictEqual(response.statusCode, 200)
+      assert.strictEqual(
         response.headers?.["Access-Control-Allow-Origin"],
         event.headers.origin
       )
@@ -106,11 +106,12 @@ describe("OTC API Handler", () => {
     it("lists orders", async () => {
       const event = createMockEvent("GET")
       const response = await handler(event)
-      assert.equal(response.statusCode, 200)
+      assert.strictEqual(response.statusCode, 200)
       const body = JSON.parse(response.body || "")
       const parsed = GetManyResponse().parse(body)
-      assert.equal(parsed.orders.length, 3)
-      assert.equal(parsed.hasMore, false)
+      assert(parsed.success)
+      assert.strictEqual(parsed.orders.length, 3)
+      assert.strictEqual(parsed.hasMore, false)
     })
 
     it("lists filtered orders", async () => {
@@ -120,11 +121,12 @@ describe("OTC API Handler", () => {
         },
       })
       const response = await handler(event)
-      assert.equal(response.statusCode, 200)
+      assert.strictEqual(response.statusCode, 200)
       const body = JSON.parse(response.body || "")
-      const parsedResponse = GetManyResponse().parse(body)
+      const parsed = GetManyResponse().parse(body)
+      assert(parsed.success)
       // Only 2 orders with the given trader
-      assert.equal(parsedResponse.orders.length, 2)
+      assert.strictEqual(parsed.orders.length, 2)
     })
 
     it("gets one order by key", async () => {
@@ -134,9 +136,10 @@ describe("OTC API Handler", () => {
         },
       })
       const response = await handler(event)
-      assert.equal(response.statusCode, 200)
+      assert.strictEqual(response.statusCode, 200)
       const body = JSON.parse(response.body || "")
       const parsed = GetOneResponse().parse(body)
+      assert(parsed.success)
       assert.deepEqual(parsed.data, mockOrder)
     })
 
@@ -147,7 +150,7 @@ describe("OTC API Handler", () => {
         },
       })
       const response = await handler(event)
-      assert.equal(response.statusCode, 404)
+      assert.strictEqual(response.statusCode, 404)
     })
   })
 
@@ -155,7 +158,7 @@ describe("OTC API Handler", () => {
     it("returns 409 if order already exists", async () => {
       const event = createMockEvent("POST", { body: mockOrder })
       const response = await handler(event)
-      assert.equal(response.statusCode, 409)
+      assert.strictEqual(response.statusCode, 409)
     })
 
     it("saves new signed orders as 'pending'", async () => {
@@ -165,10 +168,11 @@ describe("OTC API Handler", () => {
       }
       const event = createMockEvent("POST", { body: newOrder })
       const response = await handler(event)
-      assert.equal(response.statusCode, 201)
+      assert.strictEqual(response.statusCode, 201)
       const body = JSON.parse(response.body || "")
       const parsed = PostResponse.parse(body)
-      assert.equal(parsed.key, createOrderKey("pending", newOrder))
+      assert(parsed.success)
+      assert.strictEqual(parsed.key, createOrderKey("pending", newOrder))
       assert.deepEqual(parsed.data, newOrder)
     })
 
@@ -181,7 +185,8 @@ describe("OTC API Handler", () => {
       const res = await handler(response)
       const body = JSON.parse(res.body || "")
       const parsed = PostResponse.parse(body)
-      assert.equal(
+      assert(parsed.success)
+      assert.strictEqual(
         parsed.key,
         createOrderKey("awaiting_signature", unsignedOrder)
       )
@@ -196,7 +201,8 @@ describe("OTC API Handler", () => {
       const res = await handler(req)
       const body = JSON.parse(res.body || "")
       const parsed = PostResponse.parse(body)
-      assert.equal(parsed.key, createOrderKey("matched", signedOrder))
+      assert(parsed.success)
+      assert.strictEqual(parsed.key, createOrderKey("matched", signedOrder))
     })
 
     it("returns 400 if a `matchKey` is provided for an unsigned order", async () => {
@@ -210,7 +216,7 @@ describe("OTC API Handler", () => {
         body: invalidOrder as OrderData<"awaiting_signature">,
       })
       const response = await handler(event)
-      assert.equal(response.statusCode, 400)
+      assert.strictEqual(response.statusCode, 400)
     })
   })
 
@@ -222,7 +228,7 @@ describe("OTC API Handler", () => {
         },
       })
       const response = await handler(event)
-      assert.equal(response.statusCode, 404)
+      assert.strictEqual(response.statusCode, 404)
     })
 
     it("updates an existing order", async () => {
@@ -233,10 +239,11 @@ describe("OTC API Handler", () => {
         },
       })
       const response = await handler(event)
-      assert.equal(response.statusCode, 200)
+      assert.strictEqual(response.statusCode, 200)
       const body = JSON.parse(response.body || "")
       const parsed = PutResponse.parse(body)
-      assert.equal(parsed.data.amount, mockOrder.amount + 1n)
+      assert(parsed.success)
+      assert.strictEqual(parsed.data.amount, mockOrder.amount + 1n)
     })
   })
 
@@ -244,7 +251,7 @@ describe("OTC API Handler", () => {
     it("returns 404 for non-existent order", async (t) => {
       const event = createMockEvent("DELETE", { body: { key: "pending/" } })
       const response = await handler(event)
-      assert.equal(response.statusCode, 404)
+      assert.strictEqual(response.statusCode, 404)
     })
 
     it("cancels an existing order", async () => {
@@ -254,11 +261,12 @@ describe("OTC API Handler", () => {
         },
       })
       const response = await handler(event)
-      assert.equal(response.statusCode, 200)
+      assert.strictEqual(response.statusCode, 200)
       const body = JSON.parse(response.body || "")
       const parsed = DeleteResponse.parse(body)
-      assert.equal(parsed.status, "canceled")
-      assert.equal(
+      assert(parsed.success)
+      assert.strictEqual(parsed.status, "canceled")
+      assert.strictEqual(
         parsed.key,
         updateOrderKey(mockOrderKey, { status: "canceled" })
       )

@@ -22,7 +22,7 @@ export async function POST({
   if (!success) {
     return errorResponse({
       headers: responseHeaders,
-      message: `Invalid request: ${error.format()}`,
+      message: `Invalid request: ${JSON.stringify(error.format())}`,
     })
   }
 
