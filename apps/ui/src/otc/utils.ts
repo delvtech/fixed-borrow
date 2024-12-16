@@ -2,6 +2,8 @@ import { fixed, FixedPoint } from "@delvtech/fixed-point-wasm"
 import { Order, OrderIntent } from "otc-api"
 import { Address, bytesToHex, WalletClient } from "viem"
 
+export const OTC_API_URL = import.meta.env.VITE_OTC_API_URL
+
 export const HYPERDRIVE_MATCHING_ENGINE_ADDRESS: Address =
   "0x6662B6e771FACD61E33cCAfDc23BE16B4eAd0666"
 

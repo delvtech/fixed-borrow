@@ -1,6 +1,7 @@
 import { ArrowLeft, HelpCircle } from "lucide-react"
 
 import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
+import { useQuery } from "@tanstack/react-query"
 import Spinner from "components/animations/Spinner"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
@@ -19,12 +20,12 @@ import { BigNumberInput } from "components/core/BigNumberInput"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { useApproval } from "hooks/base/useApproval"
 import { useSignOrder } from "hooks/otc/useSignOrder"
-import { OtcClient } from "otc-api"
+import { OrderKey, OtcClient, parseOrderKey } from "otc-api"
 import { useState } from "react"
 import { Market } from "src/types"
 import { OTC_API_URL } from "utils/constants"
 import { maxUint256 } from "viem"
-import { Link } from "wouter"
+import { Link, useParams } from "wouter"
 import {
   computeDepositAmount,
   HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
@@ -58,16 +59,38 @@ const market: Market = {
 }
 const decimals = market.loanToken.decimals
 
+function useOrder(orderKey: OrderKey) {
+  return useQuery({
+    queryKey: ["order", orderKey],
+    throwOnError: true,
+    queryFn: async () => {
+      const client = new OtcClient(OTC_API_URL)
+      const response = await client.getOrder((orderKey + ".json") as OrderKey)
+
+      if (response.success) {
+        return response
+      } else {
+        throw new Error(response.error)
+      }
+    },
+  })
+}
+
 export function FillOrder() {
+  const params = useParams()
+
+  const orderKey = params.orderKey as OrderKey<"pending">
+  const orderParams = parseOrderKey(decodeURIComponent(orderKey) as OrderKey)
+  /* Inverse the order type from parameters for the match */
+  const orderType = Number(!Boolean(orderParams.orderType))
+
+  const { data: orderData } = useOrder(orderKey)
+  console.log(orderData)
+
   const [amount, setAmount] = useState<bigint>(0n)
   const [expiry, setExpiry] = useState<bigint>(1n) // days
-  const [view, setView] = useState<"long" | "short">("long")
   const [desiredRate, setDesiredRate] = useState<bigint>(0n)
-  const depositAmount = computeDepositAmount(
-    amount,
-    view === "long" ? 0 : 1,
-    desiredRate
-  )
+  const depositAmount = computeDepositAmount(amount, orderType, desiredRate)
   const [step, setStep] = useState<"review" | "sign">("review")
 
   const [unlimitedApproval, setUnlimitedApproval] = useState(true)
@@ -90,16 +113,13 @@ export function FillOrder() {
       amount: amount,
       slippageGuard: depositAmount,
       expiry: expiry * 86400n,
-      orderType: view === "long" ? 0n : 1n,
+      orderType: BigInt(orderType),
     })
 
     const otcClient = new OtcClient(OTC_API_URL)
 
-    const response = await otcClient.addOrder({
-      order: {
-        ...orderIntent,
-        expiry: orderIntent.expiry.toString(),
-      },
+    const response = await otcClient.createOrder({
+      ...orderIntent,
     })
 
     if ("error" in response) {
@@ -140,10 +160,17 @@ export function FillOrder() {
 
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
-              <p className="text-secondary-foreground">Long amount</p>
+              <p className="text-secondary-foreground">
+                {orderParams.orderType === 0 ? "Long Amount" : "Short Amount"}
+              </p>
               <div className="flex items-center gap-1">
                 <img src={market.loanToken.iconUrl} className="size-4" />
-                <span className="font-mono">50,000</span>
+                <span className="font-mono">
+                  {fixed(orderData?.data.amount ?? 0n, decimals).format({
+                    decimals: 2,
+                    trailingZeros: false,
+                  })}
+                </span>
                 <span className="text-sm text-secondary-foreground">
                   {market.loanToken.symbol}
                 </span>
@@ -187,17 +214,15 @@ export function FillOrder() {
         </Card>
         <Card className="border-0 bg-[#0E1320]">
           <CardHeader>
-            {step === "review" && (
-              <CardTitle className="text-xl font-medium text-white">
-                New Fill Order
-              </CardTitle>
-            )}
+            <CardTitle className="text-xl font-medium text-white">
+              New Fill Order
+            </CardTitle>
           </CardHeader>
 
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="amount" className="text-secondary-foreground">
-                {view === "long" ? "Long size" : "Short size"}
+                {orderType === 0 ? "Long size" : "Short size"}
               </Label>
               <div className="flex items-center justify-between rounded-sm bg-[#1A1F2E] font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
                 <BigNumberInput
@@ -227,7 +252,7 @@ export function FillOrder() {
 
             <div className="space-y-2">
               <Label className="text-secondary-foreground" htmlFor="max-rate">
-                {view === "long" ? "Min rate" : "Max rate"}
+                {orderType === 0 ? "Min rate" : "Max rate"}
               </Label>
               <div className="relative">
                 <BigNumberInput

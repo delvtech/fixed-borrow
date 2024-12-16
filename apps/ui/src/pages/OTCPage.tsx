@@ -13,7 +13,7 @@ import {
 import { MarketHeader } from "components/markets/MarketHeader"
 import { SupportedChainId } from "dfb-config"
 import { ArrowRight } from "lucide-react"
-import { OtcClient } from "otc-api"
+import { OrderKey, OtcClient } from "otc-api"
 import {
   computeTargetRate,
   HYPERDRIVE_MATCHING_ENGINE_ABI,
@@ -49,6 +49,8 @@ function Orders() {
   const appConfig = getAppConfig(chainId as SupportedChainId)
   const { data: pendingOrders, isLoading: isPendingOrdersLoading } =
     usePendingOrders()
+
+  console.log(pendingOrders)
 
   const { writeContractAsync } = useWriteContract()
 
@@ -181,15 +183,20 @@ function Orders() {
                               })
 
                               const otcClient = new OtcClient(OTC_API_URL)
-                              await otcClient.cancelOrder(order.key)
+                              await otcClient.cancelOrder(
+                                order.key as OrderKey<"pending">
+                              )
                             }}
                           >
                             Cancel
                           </Button>
                         ) : (
-                          <Button className="ml-auto" onClick={() => {}}>
-                            Fill order
-                          </Button>
+                          <Link
+                            href={`/otc/fill/${encodeURIComponent(order.key.slice(0, -5))}`}
+                            asChild
+                          >
+                            <Button className="ml-auto">Fill order</Button>
+                          </Link>
                         )}
                       </TableCell>
                     </TableRow>

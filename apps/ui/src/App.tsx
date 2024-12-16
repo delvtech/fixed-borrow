@@ -71,7 +71,7 @@ function App() {
                   <Route path="/vpn" component={VpnNotAllowedPage} />
                   <Route path="/otc" component={OTCPage} />
                   <Route path="/otc/new" component={NewOrder} />
-                  <Route path="/otc/fill" component={FillOrder} />
+                  <Route path="/otc/fill/:orderKey" component={FillOrder} />
                   {/* Default route in a switch */}
                   <Route>404: No such page!</Route>
                 </Switch>
