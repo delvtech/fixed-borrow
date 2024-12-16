@@ -64,8 +64,9 @@ function useOrder(orderKey: OrderKey) {
     queryKey: ["order", orderKey],
     throwOnError: true,
     queryFn: async () => {
+      console.log("orderKey", orderKey)
       const client = new OtcClient(OTC_API_URL)
-      const response = await client.getOrder((orderKey + ".json") as OrderKey)
+      const response = await client.getOrder(orderKey as OrderKey)
 
       if (response.success) {
         return response
@@ -79,13 +80,15 @@ function useOrder(orderKey: OrderKey) {
 export function FillOrder() {
   const params = useParams()
 
-  const orderKey = params.orderKey as OrderKey<"pending">
+  const orderKey = decodeURIComponent(
+    params.orderKey as string
+  ) as OrderKey<"pending">
   const orderParams = parseOrderKey(decodeURIComponent(orderKey) as OrderKey)
   /* Inverse the order type from parameters for the match */
-  const orderType = Number(!Boolean(orderParams.orderType))
+  const orderType = Number(!orderParams.orderType)
 
   const { data: orderData } = useOrder(orderKey)
-  console.log(orderData)
+  console.log("orderData", orderData)
 
   const [amount, setAmount] = useState<bigint>(0n)
   const [expiry, setExpiry] = useState<bigint>(1n) // days
