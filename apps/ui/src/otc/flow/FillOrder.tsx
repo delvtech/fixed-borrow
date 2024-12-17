@@ -66,7 +66,7 @@ function useOrder(orderKey: OrderKey) {
     queryFn: async () => {
       console.log("orderKey", orderKey)
       const client = new OtcClient(OTC_API_URL)
-      const response = await client.getOrder(orderKey as OrderKey)
+      const response = await client.getOrder((orderKey + ".json") as OrderKey)
 
       if (response.success) {
         return response
