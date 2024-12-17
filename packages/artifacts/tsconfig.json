@@ -19,6 +19,6 @@
     "skipLibCheck": true,
     "strict": true
   },
-  "include": ["morpho", "base"],
+  "include": ["morpho", "base", "hyperdrive"],
   "exclude": ["node_modules", "dist"]
 }
