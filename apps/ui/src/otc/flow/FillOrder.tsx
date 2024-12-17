@@ -19,7 +19,6 @@ import { RadioGroup, RadioGroupItem } from "components/base/ui/radio-group"
 import { BigNumberInput } from "components/core/BigNumberInput"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { useApproval } from "hooks/base/useApproval"
-import { useSignOrder } from "hooks/otc/useSignOrder"
 import { OrderKey, OtcClient, parseOrderKey } from "otc-api"
 import { useState } from "react"
 import { Market } from "src/types"
@@ -91,10 +90,9 @@ export function FillOrder() {
   console.log("orderData", orderData)
 
   const [amount, setAmount] = useState<bigint>(0n)
-  const [expiry, setExpiry] = useState<bigint>(1n) // days
+  const [, setExpiry] = useState<bigint>(1n) // days
   const [desiredRate, setDesiredRate] = useState<bigint>(0n)
   const depositAmount = computeDepositAmount(amount, orderType, desiredRate)
-  const [step, setStep] = useState<"review" | "sign">("review")
 
   const [unlimitedApproval, setUnlimitedApproval] = useState(true)
 
@@ -105,30 +103,30 @@ export function FillOrder() {
     approvalAmount
   )
 
-  const {
-    mutateAsync: signOrderMutation,
-    isPending: isOrderSigningPending,
-    isSuccess: isOrderIntentSuccess,
-  } = useSignOrder(HYPERDRIVE_MATCHING_ENGINE_ADDRESS)
-  const handleOrderSigning = async () => {
-    const orderIntent = await signOrderMutation({
-      hyperdrive: market.hyperdrive,
-      amount: amount,
-      slippageGuard: depositAmount,
-      expiry: expiry * 86400n,
-      orderType: BigInt(orderType),
-    })
+  //   const {
+  //     mutateAsync: signOrderMutation,
+  //     // isPending: isOrderSigningPending,
+  //     // isSuccess: isOrderIntentSuccess,
+  //   } = useSignOrder(HYPERDRIVE_MATCHING_ENGINE_ADDRESS)
+  //   const handleOrderSigning = async () => {
+  //     const orderIntent = await signOrderMutation({
+  //       hyperdrive: market.hyperdrive,
+  //       amount: amount,
+  //       slippageGuard: depositAmount,
+  //       expiry: expiry * 86400n,
+  //       orderType: BigInt(orderType),
+  //     })
 
-    const otcClient = new OtcClient(OTC_API_URL)
+  //     const otcClient = new OtcClient(OTC_API_URL)
 
-    const response = await otcClient.createOrder({
-      ...orderIntent,
-    })
+  //     const response = await otcClient.createOrder({
+  //       ...orderIntent,
+  //     })
 
-    if ("error" in response) {
-      console.error(response.error)
-    }
-  }
+  //     if ("error" in response) {
+  //       console.error(response.error)
+  //     }
+  //   }
 
   const handleOnExpiryChange = (value: string) => {
     try {
@@ -372,7 +370,7 @@ export function FillOrder() {
               </>
             ) : (
               <Button
-                onClick={() => setStep("sign")}
+                // onClick={() => setStep("sign")}
                 className="w-full font-semibold text-black"
                 disabled={amount === 0n || desiredRate === 0n}
               >
