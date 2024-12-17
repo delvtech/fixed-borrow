@@ -2,7 +2,6 @@ import { ArrowLeft, HelpCircle } from "lucide-react"
 
 import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
 import { useQuery } from "@tanstack/react-query"
-import { HyperdriveMatchingEngineAbi } from "artifacts/hyperdrive/HyperdriveMatchingEngine"
 import Spinner from "components/animations/Spinner"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
@@ -100,38 +99,77 @@ function useSimulateMatch(longOrder?: OrderIntent, shortOrder?: OrderIntent) {
     enabled,
     queryFn: enabled
       ? async () => {
-          const result = await publicClient.simulateContract({
-            address: HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
-            abi: HyperdriveMatchingEngineAbi,
-            functionName: "matchOrders",
-            args: [
-              {
-                ...longOrder,
-                expiry: BigInt(longOrder.expiry),
-              },
-              {
-                ...shortOrder,
-                expiry: BigInt(shortOrder.expiry),
-              },
-              0n,
-              {
-                destination: account,
-                asBase: true,
-                extraData: "0x",
-              },
-              {
-                destination: account,
-                asBase: true,
-                extraData: "0x",
-              },
-              account, // Fee recipient
-              true, // Long first
-            ],
+          console.log("simluating match")
+
+          const r = await publicClient.verifyTypedData({
+            address: account,
+            domain: {
+              name: "HyperdriveMatchingEngine",
+              version: "1",
+              chainId,
+              verifyingContract: HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
+            },
+            types: {
+              Order: [
+                { name: "trader", type: "address" },
+                { name: "hyperdrive", type: "address" },
+                { name: "amount", type: "uint256" },
+                { name: "slippageGuard", type: "uint256" },
+                { name: "minVaultSharePrice", type: "uint256" },
+                { name: "options", type: "Options" },
+                // enum as uint8
+                { name: "orderType", type: "uint8" },
+                { name: "expiry", type: "uint256" },
+                { name: "salt", type: "bytes32" },
+              ],
+              Options: [
+                { name: "destination", type: "address" },
+                { name: "asBase", type: "bool" },
+              ],
+            },
+            message: {
+              ...shortOrder,
+              expiry: BigInt(shortOrder.expiry),
+            },
+            signature: shortOrder.signature,
+            primaryType: "Order",
           })
 
-          console.log(result)
+          return
+          // try {
+          //   const result = await publicClient.simulateContract({
+          //     address: HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
+          //     abi: HyperdriveMatchingEngineAbi,
+          //     functionName: "matchOrders",
+          //     args: [
+          //       {
+          //         ...longOrder,
+          //         expiry: BigInt(longOrder.expiry),
+          //       },
+          //       {
+          //         ...shortOrder,
+          //         expiry: BigInt(shortOrder.expiry),
+          //       },
+          //       0n,
+          //       {
+          //         destination: account,
+          //         asBase: true,
+          //         extraData: "0x",
+          //       },
+          //       {
+          //         destination: account,
+          //         asBase: true,
+          //         extraData: "0x",
+          //       },
+          //       account, // Fee recipient
+          //       true, // Long first
+          //     ],
+          //   })
 
-          return result
+          //   return result
+          // } catch (e) {
+          //   console.error(e)
+          // }
         }
       : undefined,
   })

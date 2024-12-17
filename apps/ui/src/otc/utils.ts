@@ -25,7 +25,7 @@ export async function signOrderIntent(
   order: Order
 ): Promise<OrderIntent> {
   const domain = {
-    name: "Hyperdrive Matching Engine",
+    name: "HyperdriveMatchingEngine",
     version: "1",
     chainId: walletClient.chain!.id,
     verifyingContract: matchingEngineAddress,
@@ -61,6 +61,17 @@ export async function signOrderIntent(
   return {
     signature,
     ...order,
+  }
+}
+
+export function verifyOrderIntent(order: OrderIntent) {
+  const { signature, ...orderData } = order
+
+  const domain = {
+    name: "Hyperdrive Matching Engine",
+    version: "1",
+    chainId: 1,
+    verifyingContract: HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
   }
 }
 
