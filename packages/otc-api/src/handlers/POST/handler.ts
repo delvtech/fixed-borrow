@@ -7,8 +7,6 @@ import { PUT } from "../PUT/handler.js"
 import type { HandlerParams } from "../types.js"
 import { PostRequest, type PostResponse } from "./schema.js"
 
-// TODO: Move the bulk of this to PUT to avoid 409s on update requests.
-
 export async function POST({
   event,
   responseHeaders,
