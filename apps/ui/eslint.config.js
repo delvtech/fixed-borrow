@@ -25,7 +25,7 @@ export default [
     },
   },
   {
-    files: ["src/components/base/*.tsx"],
+    files: ["src/components/base/**/*.tsx"],
     rules: {
       "react/prop-types": "off",
     },

@@ -91,17 +91,6 @@ export async function signOrderIntent(
   }
 }
 
-export function verifyOrderIntent(order: OrderIntent) {
-  const { signature, ...orderData } = order
-
-  const domain = {
-    name: "Hyperdrive Matching Engine",
-    version: "1",
-    chainId: 1,
-    verifyingContract: HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
-  }
-}
-
 /**
  * Computes the deposit amount for a given order type and desired rate
  *
