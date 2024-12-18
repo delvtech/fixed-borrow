@@ -1,9 +1,9 @@
 import type { APIGatewayProxyStructuredResultV2 } from "aws-lambda"
+import { OrderStatus } from "../../lib/schema.js"
 import { createOrderKey } from "../../lib/utils/orderKey.js"
 import { getOrder } from "../../lib/utils/orders.js"
 import { errorResponse, successResponse } from "../../lib/utils/response.js"
 import { PUT } from "../PUT/handler.js"
-import { getNewOrderStatus } from "../PUT/utils.js"
 import type { HandlerParams } from "../types.js"
 import { PostRequest, type PostResponse } from "./schema.js"
 
@@ -29,7 +29,11 @@ export async function POST({
   const { matchKey, signature, ...baseOrderData } = data
 
   // Ensure order doesn't already exist
-  const status = getNewOrderStatus(data)
+  const status: OrderStatus = data.matchKey
+    ? "matched"
+    : data.signature
+      ? "pending"
+      : "awaiting_signature"
   const key = createOrderKey(status, baseOrderData)
   const existingOrder = await getOrder(key, bucketName)
 
