@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { OrderKey, OrderObject, OtcClient } from "otc-api"
+import { OTC_API_URL } from "src/otc/utils"
 import { QueryOptionsWithoutQueryKey } from "src/types"
-import { OTC_API_URL } from "utils/constants"
 
 /**
  * Fetches an order by key from the OTC API.
