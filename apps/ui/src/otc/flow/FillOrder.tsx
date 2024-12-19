@@ -63,9 +63,9 @@ export function FillOrder() {
   )
 
   /* Order parameters */
-  const [amount, setAmount] = useState<bigint>(0n)
-  const [expiry, setExpiry] = useState<bigint>(1n) // days
-  const [desiredRate, setDesiredRate] = useState<bigint>(0n)
+  const [amount, setAmount] = useState(0n)
+  const [expiry, setExpiry] = useState(1n) // days
+  const [desiredRate, setDesiredRate] = useState(0n)
   const depositAmount = computeDepositAmount(amount, orderType, desiredRate)
 
   /* Approval parameters */
@@ -100,17 +100,13 @@ export function FillOrder() {
     if (!orderIntent) return
 
     const otcClient = new OtcClient(OTC_API_URL)
+    const response = await otcClient.createOrder(orderIntent)
 
-    const response = await otcClient.createOrder({
-      ...orderIntent,
-      expiry: orderIntent.expiry,
-    })
-
-    if ("error" in response) {
-      console.error(response.error)
-    } else {
+    if (response.success) {
       setLocalOrderKey(response.key)
       setStep("match")
+    } else {
+      console.error(response.error)
     }
   }
 
@@ -159,7 +155,7 @@ export function FillOrder() {
 
         <div className="flex items-center justify-between">
           <p className="text-secondary-foreground">
-            {orderType === 0 ? "Min" : "Max"} rate
+            {orderType ? "Min" : "Max"} rate
           </p>
 
           <div>
@@ -202,9 +198,8 @@ export function FillOrder() {
 
   const formattedExpiryDate = useMemo(() => {
     if (!orderData) return
-    const expiry = orderData.data.expiry
-    const expiryMs = Number(expiry * 1000)
 
+    const expiryMs = orderData.data.expiry * 1000
     return new Date(expiryMs).toLocaleString()
   }, [orderData])
 
@@ -284,9 +279,7 @@ export function FillOrder() {
             <div className="flex items-center justify-between">
               <p className="text-secondary-foreground">Fixed APR</p>
 
-              <div className="flex items-center gap-1">
-                <span className="font-mono">7%</span>
-              </div>
+              <span className="font-mono">7%</span>
             </div>
           </CardContent>
         </Card>
@@ -350,7 +343,7 @@ export function FillOrder() {
                         const sanitizedAmount = parseFixed(
                           e.currentTarget.value,
                           decimals
-                        ).div(parseFixed(100, 18))
+                        ).div(100, 0)
 
                         setDesiredRate(sanitizedAmount.bigint)
                       } catch {
@@ -365,7 +358,7 @@ export function FillOrder() {
                   <div className="flex items-center gap-2">
                     <img
                       src={market.loanToken.iconUrl}
-                      alt="{market.loanToken.symbol}"
+                      alt={market.loanToken.symbol}
                       width={20}
                       height={20}
                       className="h-5 w-5"
@@ -380,7 +373,7 @@ export function FillOrder() {
                   </div>
                   <div className="flex items-center gap-1">
                     <span>What am I paying for?</span>
-                    <HelpCircle className="h-4 w-4" />
+                    <HelpCircle className="size-4" />
                   </div>
                 </div>
 
@@ -400,11 +393,10 @@ export function FillOrder() {
                 {needsApproval && amount > 0n ? (
                   <>
                     <div className="space-y-4 rounded border p-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium text-white">
-                          Approve {market.loanToken.symbol}
-                        </h3>
-                      </div>
+                      <h3 className="text-lg font-medium text-white">
+                        Approve {market.loanToken.symbol}
+                      </h3>
+
                       <p className="text-sm text-secondary-foreground">
                         Approve this market to spend your{" "}
                         {market.loanToken.symbol}
@@ -518,7 +510,7 @@ export function FillOrder() {
                           const sanitizedAmount = parseFixed(
                             e.currentTarget.value,
                             decimals
-                          ).div(parseFixed(100, 18))
+                          ).div(parseFixed(100, 0))
 
                           setDesiredRate(sanitizedAmount.bigint)
                         } catch {

@@ -66,11 +66,11 @@ function Orders() {
           </p>
         </div>
 
-        <Link href="/otc/new" asChild>
-          <Button>
+        <Button asChild>
+          <Link href="/otc/new">
             New Order <ArrowRight size={14} />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
       <div className="grid gap-4">
         <h2 className="font-chakra text-h4 text-white">Pending Orders</h2>

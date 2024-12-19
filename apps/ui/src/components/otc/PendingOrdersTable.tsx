@@ -30,7 +30,7 @@ export function PendingOrdersTable({
   return (
     <div className="rounded-lg border">
       <Table className="w-full bg-[#0E1320]">
-        <TableHeader className="rounded-tl-lg [&_tr]:border-b-0">
+        <TableHeader className="[&_tr]:border-b-0">
           <TableRow className="bg-[#0E1320] hover:bg-[#0E1320]">
             <TableHead className="font-normal text-secondary-foreground">
               Market
@@ -50,6 +50,7 @@ export function PendingOrdersTable({
             <TableHead></TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
           {pendingOrders.map((order) => {
             const market = appConfig.morphoMarkets.find(
@@ -76,7 +77,7 @@ export function PendingOrdersTable({
                 </TableCell>
 
                 <TableCell>
-                  <span>{order.data.orderType === 0 ? "Long" : "Short"}</span>
+                  {order.data.orderType === 0 ? "Long" : "Short"}
                 </TableCell>
 
                 <TableCell className="font-mono">
@@ -88,9 +89,7 @@ export function PendingOrdersTable({
                 </TableCell>
 
                 <TableCell className="font-mono">
-                  {new Date(
-                    Number(order.data.expiry) * 1000
-                  ).toLocaleDateString()}
+                  {new Date(order.data.expiry * 1000).toLocaleDateString()}
                 </TableCell>
 
                 <TableCell className="font-mono">
@@ -101,7 +100,7 @@ export function PendingOrdersTable({
                   })}
                 </TableCell>
 
-                <TableCell>
+                <TableCell className="text-right">
                   {account === order.data.trader ? (
                     <Button
                       className="ml-auto bg-[#1B1E26] text-red-400 hover:bg-[#1B1E26]/50"
@@ -110,12 +109,13 @@ export function PendingOrdersTable({
                       Cancel
                     </Button>
                   ) : (
-                    <Link
-                      href={`/otc/fill/${encodeURIComponent(order.key.slice(0, -5))}`}
-                      asChild
-                    >
-                      <Button className="ml-auto">Fill order</Button>
-                    </Link>
+                    <Button asChild className="inline-flex">
+                      <Link
+                        href={`/otc/fill/${encodeURIComponent(order.key.replace(/\.\w+$/, ""))}`}
+                      >
+                        Fill order
+                      </Link>
+                    </Button>
                   )}
                 </TableCell>
               </TableRow>
