@@ -25,7 +25,8 @@ export function PendingOrdersTable({ pendingOrders }: PendingOrdersTableProps) {
   const { address: account } = useAccount()
   const appConfig = useAppConfig()
 
-  const { refetch: refetchPendingOrders } = usePendingOrders()
+  const { refetch: refetchPendingOrders, status: pendingOrdersStatus } =
+    usePendingOrders()
 
   const { mutate: cancelOrder, status: cancelOrderStatus } = useCancelOrder()
 
@@ -137,11 +138,22 @@ export function PendingOrdersTable({ pendingOrders }: PendingOrdersTableProps) {
                     <Button
                       className="ml-auto bg-[#1B1E26] text-red-400 hover:bg-[#1B1E26]/50"
                       onClick={() => handleCancelOrder(order)}
+                      disabled={
+                        cancelOrderStatus === "pending" ||
+                        pendingOrdersStatus === "pending"
+                      }
                     >
                       Cancel
                     </Button>
                   ) : (
-                    <Button asChild className="inline-flex">
+                    <Button
+                      asChild
+                      className="inline-flex"
+                      disabled={
+                        cancelOrderStatus === "pending" ||
+                        pendingOrdersStatus === "pending"
+                      }
+                    >
                       <Link
                         href={`/otc/fill/${encodeURIComponent(order.key.replace(/\.\w+$/, ""))}`}
                       >
