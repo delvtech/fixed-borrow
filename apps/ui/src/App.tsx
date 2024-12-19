@@ -18,6 +18,7 @@ import { WagmiProvider } from "wagmi"
 import { Route, Switch, useLocation } from "wouter"
 import { Plausible } from "./analytics/Plausible"
 import { rainbowConfig } from "./client/rainbowClient"
+import { FillOrder } from "./otc/flow/FillOrder"
 import { NewOrder } from "./otc/flow/NewOrder"
 
 const queryClient = new QueryClient({
@@ -70,6 +71,7 @@ function App() {
                   <Route path="/vpn" component={VpnNotAllowedPage} />
                   <Route path="/otc" component={OTCPage} />
                   <Route path="/otc/new" component={NewOrder} />
+                  <Route path="/otc/fill/:orderKey" component={FillOrder} />
                   {/* Default route in a switch */}
                   <Route>404: No such page!</Route>
                 </Switch>

@@ -1,9 +1,38 @@
 import { fixed, FixedPoint } from "@delvtech/fixed-point-wasm"
 import { Order, OrderIntent } from "otc-api"
+import { Market } from "src/types"
 import { Address, bytesToHex, WalletClient } from "viem"
+
+export const OTC_API_URL = import.meta.env.VITE_OTC_API_URL
 
 export const HYPERDRIVE_MATCHING_ENGINE_ADDRESS: Address =
   "0x6662B6e771FACD61E33cCAfDc23BE16B4eAd0666"
+
+export const TARGET_OTC_MARKET: Market = {
+  hyperdrive: "0xd41225855A5c5Ba1C672CcF4d72D1822a5686d30",
+  loanToken: {
+    address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+    symbol: "DAI",
+    name: "Dai Stablecoin",
+    decimals: 18,
+    iconUrl:
+      "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.svg?v=032",
+  },
+  collateralToken: {
+    address: "0x9D39A5DE30e57443BfF2A8307A4256c8797A3497",
+    symbol: "sUSDe",
+    name: "Staked USDe",
+    decimals: 18,
+    iconUrl: "https://cdn.morpho.org/assets/logos/usde.svg",
+  },
+  lltv: 860000000000000000n,
+  duration: 15724800n,
+  metadata: {
+    id: "0x39d11026eae1c6ec02aa4c0910778664089cdd97c3fd23f68f7cd05e2e95af48",
+    oracle: "0x5D916980D5Ae1737a8330Bf24dF812b2911Aae25",
+    irm: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+  },
+}
 
 /**
  * Signs an order intent with the given wallet client and address, using the given matching engine address.
@@ -23,7 +52,7 @@ export async function signOrderIntent(
   order: Order
 ): Promise<OrderIntent> {
   const domain = {
-    name: "Hyperdrive Matching Engine",
+    name: "HyperdriveMatchingEngine",
     version: "1",
     chainId: walletClient.chain!.id,
     verifyingContract: matchingEngineAddress,

@@ -1,5 +1,6 @@
 import { ReadHyperdrive } from "@delvtech/hyperdrive-viem"
 import { useMutation } from "@tanstack/react-query"
+import { OrderIntent } from "otc-api"
 import { getRandomSalt, signOrderIntent } from "src/otc/utils"
 import { Address } from "viem"
 import { useAccount, usePublicClient, useWalletClient } from "wagmi"
@@ -17,8 +18,10 @@ export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
   const { data: walletClient } = useWalletClient()
   const publicClient = usePublicClient()
 
-  return useMutation({
-    mutationFn: async (orderData: OrderData) => {
+  return useMutation<OrderIntent | undefined, Error, OrderData>({
+    mutationFn: async (
+      orderData: OrderData
+    ): Promise<OrderIntent | undefined> => {
       if (!account || !walletClient || !publicClient) {
         throw new Error("Wallet not connected")
       }
@@ -30,7 +33,7 @@ export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
       const currentDate = BigInt(Math.ceil(Date.now() / 1000))
       const expiry = orderData.expiry + currentDate
       const salt = getRandomSalt()
-      const signature = await signOrderIntent(
+      const orderIntent: OrderIntent = await signOrderIntent(
         hyperdriveMatchingAddress,
         walletClient,
         account,
@@ -50,11 +53,10 @@ export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
           salt,
         }
       )
-      return signature
+      return orderIntent
     },
     onError: (error) => {
       console.error("Error signing order:", error)
-      throw new Error("Error signing order")
     },
     onSuccess: (data) => {
       console.log("Order signed successfully:", data)

@@ -1,59 +1,59 @@
-import { fixed } from "@delvtech/fixed-point-wasm"
-import { useQuery } from "@tanstack/react-query"
 import { Button } from "components/base/button"
 import { Skeleton } from "components/base/skeleton"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "components/base/table"
-import { MarketHeader } from "components/markets/MarketHeader"
-import { SupportedChainId } from "dfb-config"
+import { PendingOrdersTable } from "components/otc/PendingOrdersTable"
+import { usePendingOrders } from "hooks/otc/usePendingOrders"
 import { ArrowRight } from "lucide-react"
-import { OtcClient } from "otc-api"
+import { OrderKey, OrderObject, OtcClient } from "otc-api"
 import {
-  computeTargetRate,
   HYPERDRIVE_MATCHING_ENGINE_ABI,
   HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
 } from "src/otc/utils"
 import { OTC_API_URL } from "utils/constants"
-import { getAppConfig } from "utils/getAppConfig"
-import { useAccount, useChainId, useWriteContract } from "wagmi"
+import { useWriteContract } from "wagmi"
 import { Link } from "wouter"
 
-function usePendingOrders() {
-  const chainId = useChainId()
-  return useQuery({
-    queryKey: ["pendingOrders", chainId],
-    queryFn: async () => {
-      const otcClient = new OtcClient(OTC_API_URL)
-      const response = await otcClient.getOrders({
-        status: "pending",
-      })
-
-      if (!response.success) {
-        throw new Error(response.error)
-      } else {
-        return response.orders
-      }
-    },
-  })
-}
-
 function Orders() {
-  const { address: account } = useAccount()
-  const chainId = useChainId()
-  const appConfig = getAppConfig(chainId as SupportedChainId)
-  const { data: pendingOrders, isLoading: isPendingOrdersLoading } =
-    usePendingOrders()
-
   const { writeContractAsync } = useWriteContract()
 
+  const {
+    data: pendingOrders,
+    isLoading: isPendingOrdersLoading,
+    refetch: refetchPendingOrders,
+  } = usePendingOrders()
+
+  const handleCancelOrder = async (order: OrderObject) => {
+    await writeContractAsync({
+      functionName: "cancelOrders",
+      abi: HYPERDRIVE_MATCHING_ENGINE_ABI,
+      address: HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
+      args: [
+        [
+          {
+            trader: order.data.trader,
+            hyperdrive: order.data.hyperdrive,
+            orderType: order.data.orderType,
+            amount: order.data.amount,
+            expiry: BigInt(order.data.expiry),
+            salt: order.data.salt,
+            signature: order.data.signature!,
+            options: order.data.options,
+            minVaultSharePrice: order.data.minVaultSharePrice,
+            slippageGuard: order.data.slippageGuard,
+          },
+        ],
+      ],
+    })
+
+    const otcClient = new OtcClient(OTC_API_URL)
+    await otcClient.cancelOrder(order.key as OrderKey<"pending">)
+
+    await refetchPendingOrders()
+  }
+
+  const loading = isPendingOrdersLoading || !pendingOrders
+
   return (
-    <div className="relative m-auto flex max-w-6xl flex-col gap-8 px-8">
+    <div className="relative m-auto grid max-w-6xl gap-8 px-8">
       <div className="flex items-center justify-between gap-4">
         <div className="max-w-lg space-y-2">
           <h1 className="font-chakra text-h3 font-medium text-primary">
@@ -65,138 +65,24 @@ function Orders() {
             orders for Hyperdrive markets.
           </p>
         </div>
-        <Link href="/otc/new">
-          <Button>
+
+        <Button asChild>
+          <Link href="/otc/new">
             New Order <ArrowRight size={14} />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
       <div className="grid gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-chakra text-h4 text-white">Pending Orders</h2>
-        </div>
-        {isPendingOrdersLoading ? (
+        <h2 className="font-chakra text-h4 text-white">Pending Orders</h2>
+
+        {loading ? (
           <Skeleton className="h-96 w-full animate-fade" />
         ) : (
           <div className="rounded-lg border">
-            <Table className="w-full bg-[#0E1320]">
-              <TableHeader className="rounded-tl-lg [&_tr]:border-b-0">
-                <TableRow className="bg-[#0E1320] hover:bg-[#0E1320]">
-                  <TableHead className="font-normal text-secondary-foreground">
-                    Market
-                  </TableHead>
-                  <TableHead className="font-normal text-secondary-foreground">
-                    Type
-                  </TableHead>
-                  <TableHead className="font-normal text-secondary-foreground">
-                    Amount
-                  </TableHead>
-                  <TableHead className="font-normal text-secondary-foreground">
-                    Active Until
-                  </TableHead>
-                  <TableHead className="font-normal text-secondary-foreground">
-                    Target Rate
-                  </TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pendingOrders?.map((order) => {
-                  const market = appConfig.morphoMarkets.find(
-                    (market) => market.hyperdrive === order.data.hyperdrive
-                  )
-
-                  if (!market) return null
-                  const decimals = market.loanToken.decimals
-                  const symbol = market.loanToken.symbol
-                  const targetRate = computeTargetRate(
-                    order.data.orderType,
-                    order.data.amount,
-                    order.data.slippageGuard
-                  )
-
-                  return (
-                    <TableRow
-                      key={order.data.signature}
-                      className="bg-[#0E1320] hover:bg-[#0E1320]"
-                    >
-                      <TableCell className="p-6 font-mono">
-                        <MarketHeader
-                          market={market}
-                          className="text-h5"
-                          size={16}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <span>
-                          {order.data.orderType === 0 ? "Long" : "Short"}
-                        </span>
-                      </TableCell>
-                      <TableCell className="font-mono">
-                        {fixed(order.data.amount, decimals).format({
-                          decimals: 2,
-                          trailingZeros: false,
-                        })}{" "}
-                        {symbol}
-                      </TableCell>
-                      <TableCell className="font-mono">
-                        {new Date(
-                          Number(order.data.expiry) * 1000
-                        ).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="font-mono">
-                        {fixed(targetRate, decimals).format({
-                          decimals: 2,
-                          percent: true,
-                          trailingZeros: false,
-                        })}
-                      </TableCell>
-
-                      <TableCell>
-                        {account === order.data.trader ? (
-                          <Button
-                            className="ml-auto bg-[#1B1E26] text-red-400 hover:bg-[#1B1E26]/50"
-                            onClick={async () => {
-                              await writeContractAsync({
-                                functionName: "cancelOrders",
-                                abi: HYPERDRIVE_MATCHING_ENGINE_ABI,
-                                address: HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
-                                args: [
-                                  [
-                                    {
-                                      trader: order.data.trader,
-                                      hyperdrive: order.data.hyperdrive,
-                                      orderType: order.data.orderType,
-                                      amount: order.data.amount,
-                                      expiry: BigInt(order.data.expiry),
-                                      salt: order.data.salt,
-                                      signature: order.data.signature!,
-                                      options: order.data.options,
-                                      minVaultSharePrice:
-                                        order.data.minVaultSharePrice,
-                                      slippageGuard: order.data.slippageGuard,
-                                    },
-                                  ],
-                                ],
-                              })
-
-                              const otcClient = new OtcClient(OTC_API_URL)
-                              await otcClient.cancelOrder(order.key)
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                        ) : (
-                          <Button className="ml-auto" onClick={() => {}}>
-                            Fill order
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+            <PendingOrdersTable
+              pendingOrders={pendingOrders}
+              onCancelOrder={handleCancelOrder}
+            />
           </div>
         )}
       </div>

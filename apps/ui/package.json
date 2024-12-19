@@ -16,6 +16,7 @@
     "codegen": "graphql-codegen -c configs/codegen.ts && yarn format"
   },
   "dependencies": {
+    "artifacts": "*",
     "otc-api": "*",
     "@delvtech/fixed-point-wasm": "^0.0.4",
     "@delvtech/hyperdrive-viem": "^2.4.3",

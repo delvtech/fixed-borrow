@@ -1,5 +1,6 @@
 import { FixedPoint } from "@delvtech/fixed-point-wasm"
 import { OpenShort } from "@delvtech/hyperdrive-viem"
+import { UseQueryOptions } from "@tanstack/react-query"
 import { Market as CustomMarket } from "dfb-config"
 import { Address } from "viem"
 
@@ -77,3 +78,8 @@ export interface Position {
 }
 
 export type ArrayElement<A> = A extends readonly (infer T)[] ? T : never
+
+export type QueryOptionsWithoutQueryKey<T> = Omit<
+  UseQueryOptions<T>,
+  "queryKey" | "queryFn"
+>

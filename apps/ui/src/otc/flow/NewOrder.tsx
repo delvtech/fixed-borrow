@@ -1,5 +1,3 @@
-"use client"
-
 import { ArrowLeft, Check, HelpCircle } from "lucide-react"
 
 import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
@@ -88,7 +86,7 @@ export function NewOrder() {
     isSuccess: isOrderIntentSuccess,
   } = useSignOrder(HYPERDRIVE_MATCHING_ENGINE_ADDRESS)
   const handleOrderSigning = async () => {
-    const orderIntent = await signOrderMutation({
+    const signedOrder = await signOrderMutation({
       hyperdrive: market.hyperdrive,
       amount: amount,
       slippageGuard: depositAmount,
@@ -96,11 +94,13 @@ export function NewOrder() {
       orderType: view === "long" ? 0n : 1n,
     })
 
+    if (!signedOrder) return
+
     const otcClient = new OtcClient(OTC_API_URL)
 
     const response = await otcClient.createOrder({
-      ...orderIntent,
-      expiry: orderIntent.expiry,
+      ...signedOrder,
+      expiry: signedOrder.expiry,
     })
 
     if ("error" in response) {
