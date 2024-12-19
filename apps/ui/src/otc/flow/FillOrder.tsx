@@ -24,12 +24,12 @@ import { useSimulateMatch } from "hooks/otc/useSimulateMatch"
 import { OrderIntent, OrderKey, OtcClient, parseOrderKey } from "otc-api"
 import { useMemo, useState } from "react"
 import { match } from "ts-pattern"
-import { OTC_API_URL } from "utils/constants"
 import { maxUint256 } from "viem"
 import { Link, useParams } from "wouter"
 import {
   computeDepositAmount,
   HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
+  OTC_API_URL,
   TARGET_OTC_MARKET,
 } from "../utils"
 

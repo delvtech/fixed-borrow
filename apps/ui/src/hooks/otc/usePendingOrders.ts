@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { OrderObject, OtcClient } from "otc-api"
+import { OTC_API_URL } from "src/otc/utils"
 import { QueryOptionsWithoutQueryKey } from "src/types"
-import { OTC_API_URL } from "utils/constants"
 import { useChainId } from "wagmi"
 
 type UsePendingOrdersReturnType = OrderObject<"pending">[]
@@ -27,7 +27,7 @@ export function usePendingOrders(
       })
 
       if (response.success) {
-        return response.orders
+        return response.orders.sort((a, b) => a.data.expiry - b.data.expiry)
       } else {
         throw new Error(response.error)
       }
