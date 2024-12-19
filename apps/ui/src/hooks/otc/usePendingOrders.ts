@@ -27,7 +27,7 @@ export function usePendingOrders(
       })
 
       if (response.success) {
-        return response.orders
+        return response.orders.sort((a, b) => a.data.expiry - b.data.expiry)
       } else {
         throw new Error(response.error)
       }
