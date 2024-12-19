@@ -1,14 +1,13 @@
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import type { APIGatewayProxyStructuredResultV2 } from "aws-lambda"
 import { s3 } from "../../lib/s3.js"
-import type { OrderData, OrderObject } from "../../lib/schema.js"
+import type { OrderData, OrderIntent, OrderObject } from "../../lib/schema.js"
 import { bigintReplacer } from "../../lib/utils/bigIntReplacer.js"
 import { createOrderKey, updateOrderKey } from "../../lib/utils/orderKey.js"
 import { getOrder } from "../../lib/utils/orders.js"
 import { errorResponse, successResponse } from "../../lib/utils/response.js"
 import type { HandlerParams } from "../types.js"
 import { PutRequest, type NewOrder, type PutResponse } from "./schema.js"
-import { isMatchedOrder, isOrderIntent } from "./utils.js"
 
 export async function PUT({
   event,
@@ -61,7 +60,7 @@ export async function PUT({
   // Create order object
   let newObject: OrderObject
 
-  if (isMatchedOrder(newOrder)) {
+  if (newOrder.matchKey) {
     newObject = {
       status: "matched",
       key: createOrderKey("matched", baseOrderData),
@@ -71,11 +70,11 @@ export async function PUT({
         matchedAt: now,
       },
     }
-  } else if (isOrderIntent(newOrder)) {
+  } else if (newOrder.signature) {
     newObject = {
       status: "pending",
       key: createOrderKey("pending", baseOrderData),
-      data: newOrder,
+      data: newOrder as OrderIntent,
     }
   } else {
     newObject = {
