@@ -88,8 +88,8 @@ export function NewOrder() {
   const handleOrderSigning = async () => {
     const signedOrder = await signOrderMutation({
       hyperdrive: market.hyperdrive,
-      amount: amount,
-      slippageGuard: depositAmount,
+      bondAmount: amount,
+      depositAmount,
       expiry: expiry * 86400n,
       orderType: view === "long" ? 0n : 1n,
     })
