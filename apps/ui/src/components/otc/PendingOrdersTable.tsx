@@ -126,7 +126,7 @@ export function PendingOrdersTable({ pendingOrders }: PendingOrdersTableProps) {
                 </TableCell>
 
                 <TableCell className="font-mono">
-                  {fixed(targetRate, decimals).format({
+                  {targetRate.format({
                     decimals: 2,
                     percent: true,
                     trailingZeros: false,
