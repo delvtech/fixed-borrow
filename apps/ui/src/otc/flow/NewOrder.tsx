@@ -335,7 +335,7 @@ export function NewOrder() {
                   <img src={market.loanToken.iconUrl} className="size-4" />
 
                   <p className="font-mono text-lg">
-                    {fixed(depositAmount).format({
+                    {fixed(amount).format({
                       decimals: 4,
                       trailingZeros: false,
                     })}
