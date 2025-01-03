@@ -91,8 +91,8 @@ export function FillOrder() {
   const handleOrderSigning = async () => {
     const orderIntent = await signOrderMutation({
       hyperdrive: market.hyperdrive,
-      amount: amount,
-      slippageGuard: depositAmount,
+      bondAmount: amount,
+      depositAmount,
       expiry: expiry * 86400n,
       orderType: BigInt(orderType),
     })

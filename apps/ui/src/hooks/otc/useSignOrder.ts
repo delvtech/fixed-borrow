@@ -7,8 +7,8 @@ import { useAccount, usePublicClient, useWalletClient } from "wagmi"
 
 type OrderData = {
   hyperdrive: Address
-  amount: bigint
-  slippageGuard: bigint
+  bondAmount: bigint
+  depositAmount: bigint
   expiry: bigint
   orderType: bigint
 }
@@ -40,8 +40,14 @@ export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
         {
           trader: account,
           hyperdrive: orderData.hyperdrive,
-          amount: orderData.amount,
-          slippageGuard: orderData.slippageGuard,
+          amount:
+            orderData.orderType === 0n
+              ? orderData.depositAmount
+              : orderData.bondAmount,
+          slippageGuard:
+            orderData.orderType === 0n
+              ? orderData.bondAmount
+              : orderData.depositAmount,
           minVaultSharePrice: vaultSharePrice,
           expiry: Number(expiry),
           orderType: Number(orderData.orderType),
