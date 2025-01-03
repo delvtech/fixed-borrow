@@ -93,6 +93,10 @@ export function PendingOrdersTable({ pendingOrders }: PendingOrdersTableProps) {
             if (!market) return null
 
             const decimals = market.loanToken.decimals
+            const amount =
+              order.data.orderType === 0
+                ? fixed(order.data.slippageGuard, decimals)
+                : fixed(order.data.amount, decimals)
             const symbol = market.loanToken.symbol
             const targetRate = computeTargetRate(
               order.data.orderType,
@@ -114,7 +118,7 @@ export function PendingOrdersTable({ pendingOrders }: PendingOrdersTableProps) {
                 </TableCell>
 
                 <TableCell className="font-mono">
-                  {fixed(order.data.amount, decimals).format({
+                  {amount.format({
                     decimals: 2,
                     trailingZeros: false,
                   })}{" "}
@@ -126,7 +130,7 @@ export function PendingOrdersTable({ pendingOrders }: PendingOrdersTableProps) {
                 </TableCell>
 
                 <TableCell className="font-mono">
-                  {fixed(targetRate, decimals).format({
+                  {targetRate.format({
                     decimals: 2,
                     percent: true,
                     trailingZeros: false,

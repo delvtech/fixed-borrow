@@ -131,10 +131,10 @@ export function computeTargetRate(
 ) {
   if (orderType === 0) {
     // long
-    return fixed(amount).sub(fixed(slippageGuard)).div(amount)
+    return fixed(amount).sub(slippageGuard).div(amount)
   } else {
     // short TODO FIX
-    return fixed(slippageGuard).div(fixed(amount))
+    return fixed(slippageGuard).div(amount)
   }
 }
 
