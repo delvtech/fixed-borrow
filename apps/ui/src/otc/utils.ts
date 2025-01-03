@@ -104,15 +104,14 @@ export function computeDepositAmount(
   orderType: number,
   desiredRate: bigint
 ) {
+  const x = FixedPoint.one().add(desiredRate)
+  const longPrice = FixedPoint.one().div(x)
+  const shortPrice = FixedPoint.one().sub(longPrice)
   if (orderType === 0) {
     // long
-    const bondPrice = FixedPoint.one().sub(desiredRate)
-    return fixed(amount).mul(bondPrice).bigint
+    return fixed(amount).mul(longPrice).bigint
   } else {
     // short
-    const x = FixedPoint.one().add(desiredRate)
-    const z = FixedPoint.one().div(x)
-    const shortPrice = FixedPoint.one().sub(z)
     return fixed(amount).mul(shortPrice).bigint
   }
 }
@@ -131,10 +130,10 @@ export function computeTargetRate(
 ) {
   if (orderType === 0) {
     // long
-    return fixed(amount).sub(slippageGuard).div(amount)
+    return fixed(slippageGuard).div(amount).sub(FixedPoint.one())
   } else {
-    // short TODO FIX
-    return fixed(slippageGuard).div(amount)
+    // short
+    return fixed(slippageGuard).div(fixed(amount).sub(slippageGuard))
   }
 }
 
