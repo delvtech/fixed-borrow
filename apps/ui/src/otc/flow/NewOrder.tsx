@@ -20,15 +20,14 @@ import { BigNumberInput } from "components/core/BigNumberInput"
 import { MarketHeader } from "components/markets/MarketHeader"
 import { useApproval } from "hooks/base/useApproval"
 import { useSignOrder } from "hooks/otc/useSignOrder"
-import { OtcClient } from "otc-api"
 import { useState } from "react"
+import { otc } from "src/otc/client"
 import { Market } from "src/types"
 import { maxUint256 } from "viem"
 import { Link } from "wouter"
 import {
   computeDepositAmount,
   HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
-  OTC_API_URL,
 } from "../utils"
 
 // hardcoding the target market for now
@@ -96,9 +95,7 @@ export function NewOrder() {
 
     if (!signedOrder) return
 
-    const otcClient = new OtcClient(OTC_API_URL)
-
-    const response = await otcClient.createOrder({
+    const response = await otc.createOrder({
       ...signedOrder,
       expiry: signedOrder.expiry,
     })
@@ -313,7 +310,7 @@ export function NewOrder() {
               <Button
                 onClick={() => setStep("sign")}
                 className="w-full font-semibold text-black"
-                disabled={amount === 0n || desiredRate === 0n}
+                disabled={amount === 0n}
               >
                 Review Order
               </Button>
