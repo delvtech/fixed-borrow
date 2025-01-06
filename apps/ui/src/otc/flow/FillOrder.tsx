@@ -156,17 +156,9 @@ export function FillOrder() {
             <Separator />
 
             <div className="flex items-center justify-between">
-              {/*  TODO */}
-              <p className="text-secondary-foreground">Liquidity</p>
+              <p className="text-secondary-foreground">Fixed APR</p>
 
-              <div className="flex items-center gap-1">
-                <img src={market.loanToken.iconUrl} className="size-4" />
-
-                <span className="font-mono">50,000</span>
-                <span className="text-sm text-secondary-foreground">
-                  {market.loanToken.symbol}
-                </span>
-              </div>
+              <span className="font-mono">7%</span>
             </div>
 
             <Separator />
@@ -180,14 +172,6 @@ export function FillOrder() {
                   {new Date(pendingOrder.data.expiry * 1000).toLocaleString()}
                 </span>
               </div>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              <p className="text-secondary-foreground">Fixed APR</p>
-
-              <span className="font-mono">7%</span>
             </div>
           </CardContent>
         </Card>
