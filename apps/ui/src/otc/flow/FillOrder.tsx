@@ -16,10 +16,12 @@ import { ArrowLeft, HelpCircle } from "lucide-react"
 import { OrderKey, parseOrderKey } from "otc-api"
 import { useState } from "react"
 import { match } from "ts-pattern"
+import { formatExpiry } from "utils/formatTimeRemaining"
 import { maxUint256 } from "viem"
 import { Link, useParams } from "wouter"
 import {
   computeDepositAmount,
+  computeTargetRate,
   HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
   TARGET_OTC_MARKET,
 } from "../utils"
@@ -131,11 +133,17 @@ export function FillOrder() {
 
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
-              <p className="text-secondary-foreground">
-                {pendingOrderParams.orderType === 0
-                  ? "Long Amount"
-                  : "Short Amount"}
-              </p>
+              <p className="text-secondary-foreground">Order type</p>
+
+              <span className="font-mono">
+                {pendingOrderParams.orderType === 0 ? "Long" : "Short"}
+              </span>
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center justify-between">
+              <p className="text-secondary-foreground">Amount</p>
 
               <div className="flex items-center gap-1">
                 <img src={market.loanToken.iconUrl} className="size-4" />
@@ -156,9 +164,19 @@ export function FillOrder() {
             <Separator />
 
             <div className="flex items-center justify-between">
-              <p className="text-secondary-foreground">Fixed APR</p>
+              <p className="text-secondary-foreground">Target rate</p>
 
-              <span className="font-mono">7%</span>
+              <span className="font-mono">
+                {computeTargetRate(
+                  pendingOrder.data.orderType,
+                  pendingOrder.data.amount,
+                  pendingOrder.data.slippageGuard
+                ).format({
+                  decimals: 2,
+                  percent: true,
+                  trailingZeros: false,
+                })}
+              </span>
             </div>
 
             <Separator />
@@ -167,7 +185,9 @@ export function FillOrder() {
               <p className="text-secondary-foreground">Order expiry</p>
 
               <div className="flex flex-col items-end gap-1">
-                <span className="font-mono">1 week</span>
+                <span className="font-mono">
+                  {formatExpiry(pendingOrder.data.expiry)}
+                </span>
                 <span className="font-mono text-sm text-secondary-foreground">
                   {new Date(pendingOrder.data.expiry * 1000).toLocaleString()}
                 </span>

@@ -1,13 +1,12 @@
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
-const MILLISECONDS_PER_YEAR = MILLISECONDS_PER_DAY * 365
+import { dayInMs, yearInMs } from "utils/constants"
 
 function convertMillisecondsToDays(ms: number): number {
-  const days = Math.floor(ms / MILLISECONDS_PER_DAY)
+  const days = Math.floor(ms / dayInMs)
   return days
 }
 
 function convertMillisecondsToYears(ms: number): number {
-  const days = Math.floor(ms / MILLISECONDS_PER_YEAR)
+  const days = Math.floor(ms / yearInMs)
   return days
 }
 
