@@ -11,11 +11,13 @@ export function formatExpiry(seconds: bigint | number): string {
   }
 
   const years = Math.floor(remainingMs / yearInMs)
-  const weeks = Math.floor(remainingMs / weekInMs)
 
   if (years > 1) {
     return `${years} years`
   }
+
+  const weeks = Math.floor(remainingMs / weekInMs)
+
   if (years === 1) {
     return `1 year, ${pluralize(weeks, "week")}`
   }
