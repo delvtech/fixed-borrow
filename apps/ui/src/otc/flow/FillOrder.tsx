@@ -16,7 +16,7 @@ import { ArrowLeft, HelpCircle } from "lucide-react"
 import { OrderKey, parseOrderKey } from "otc-api"
 import { useState } from "react"
 import { match } from "ts-pattern"
-import { formatExpiry } from "utils/formatTimeRemaining"
+import { formatExpiry } from "utils/formatExpiry"
 import { maxUint256 } from "viem"
 import { Link, useParams } from "wouter"
 import {
