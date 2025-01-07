@@ -310,7 +310,7 @@ export function NewOrder() {
               <Button
                 onClick={() => setStep("sign")}
                 className="w-full font-semibold text-black"
-                disabled={amount === 0n}
+                disabled={amount === 0n || desiredRate === 0n}
               >
                 Review Order
               </Button>
