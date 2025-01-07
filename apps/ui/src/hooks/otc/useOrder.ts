@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
-import { OrderKey, OrderObject, OtcClient } from "otc-api"
-import { OTC_API_URL } from "src/otc/utils"
+import { OrderKey, OrderObject, OrderStatus } from "otc-api"
+import { otc } from "src/otc/client"
 import { QueryOptionsWithoutQueryKey } from "src/types"
 
 /**
@@ -11,13 +11,13 @@ import { QueryOptionsWithoutQueryKey } from "src/types"
  * @returns The order corresponding to the provided key.
  *
  */
-export function useOrder(
-  orderKey?: OrderKey,
-  options?: QueryOptionsWithoutQueryKey<OrderObject>
+export function useOrder<T extends OrderStatus = OrderStatus>(
+  orderKey?: OrderKey<T>,
+  options?: QueryOptionsWithoutQueryKey<OrderObject<T>>
 ) {
   const enabled = !!orderKey
 
-  return useQuery<OrderObject>({
+  return useQuery<OrderObject<T>>({
     ...options,
     queryKey: ["order", orderKey],
     enabled,
@@ -27,13 +27,12 @@ export function useOrder(
             orderKey = orderKey! + ".json"
           }
 
-          const client = new OtcClient(OTC_API_URL)
-          const response = await client.getOrder(orderKey as OrderKey)
+          const { success, error, ...object } = await otc.getOrder(orderKey!)
 
-          if (response.success) {
-            return response
+          if (success) {
+            return object as OrderObject<T>
           } else {
-            throw new Error(response.error)
+            throw new Error(error)
           }
         }
       : undefined,

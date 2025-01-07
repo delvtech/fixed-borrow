@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
-import { OrderObject, OtcClient } from "otc-api"
-import { OTC_API_URL } from "src/otc/utils"
+import { OrderObject } from "otc-api"
+import { otc } from "src/otc/client"
 import { QueryOptionsWithoutQueryKey } from "src/types"
 import { useChainId } from "wagmi"
 
@@ -21,8 +21,7 @@ export function usePendingOrders(
     ...options,
     queryKey: ["pendingOrders", chainId],
     queryFn: async () => {
-      const otcClient = new OtcClient(OTC_API_URL)
-      const response = await otcClient.getOrders({
+      const response = await otc.getOrders({
         status: "pending",
       })
 
