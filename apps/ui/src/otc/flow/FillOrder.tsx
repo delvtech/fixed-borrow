@@ -4,6 +4,7 @@ import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
 import { Card, CardContent, CardHeader, CardTitle } from "components/base/card"
 import { Separator } from "components/base/separator"
+import { Skeleton } from "components/base/skeleton"
 import { Label } from "components/base/ui/label"
 import { RadioGroup, RadioGroupItem } from "components/base/ui/radio-group"
 import { BigNumberInput } from "components/core/BigNumberInput"
@@ -36,7 +37,8 @@ export function FillOrder() {
     params.orderKey as string
   ) as OrderKey<"pending">
   const pendingOrderParams = parseOrderKey(pendingOrderKey)
-  const { data: pendingOrder } = useOrder(pendingOrderKey)
+  const { data: pendingOrder, isLoading: isPendingOrderLoading } =
+    useOrder(pendingOrderKey)
 
   /* Inverse the order type from parameters for the match */
   const orderType = Number(!pendingOrderParams.orderType)
@@ -85,27 +87,6 @@ export function FillOrder() {
       onMined: () => {},
     })
   }
-
-  if (!pendingOrder) {
-    return (
-      <div className="mx-auto max-w-2xl overflow-hidden">
-        <Card className="bg-transparent">
-          <CardHeader>
-            <CardTitle className="text-white">Order not found</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-1 text-secondary-foreground">
-              Unable to find order with key:
-            </p>
-            <code style={{ overflowWrap: "break-word" }}>
-              {pendingOrderKey}
-            </code>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
   const inputsDisabled = isApproveLoading
 
   return (
@@ -120,297 +101,347 @@ export function FillOrder() {
       </Link>
 
       {/* Cards */}
-      <div className="grid grid-cols-2 grid-rows-[96px_1fr] gap-4">
-        <div className="col-span-2 flex items-center justify-center">
-          <MarketHeader market={market} className="ml-auto" />
+      {isPendingOrderLoading ? (
+        <Skeleton className="mx-auto h-52 max-w-2xl rounded-lg bg-secondary text-card-foreground shadow-sm" />
+      ) : !pendingOrder ? (
+        <div className="mx-auto max-w-2xl overflow-hidden">
+          <Card className="bg-transparent">
+            <CardHeader>
+              <CardTitle className="text-white">Order not found</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-1 text-secondary-foreground">
+                Unable to find order with key:
+              </p>
+              <code style={{ overflowWrap: "break-word" }}>
+                {pendingOrderKey}
+              </code>
+            </CardContent>
+          </Card>
         </div>
+      ) : (
+        <div className="grid grid-cols-2 grid-rows-[96px_1fr] gap-4">
+          <div className="col-span-2 flex items-center justify-center">
+            <MarketHeader market={market} className="ml-auto" />
+          </div>
 
-        {/* Pending order (order to fill) */}
-        <Card className="bg-transparent">
-          <CardHeader>
-            <CardTitle className="text-white">Order to Fill</CardTitle>
-          </CardHeader>
+          {/* Pending order (order to fill) */}
+          <Card className="bg-transparent">
+            <CardHeader>
+              <CardTitle className="text-white">Order to Fill</CardTitle>
+            </CardHeader>
 
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <p className="text-secondary-foreground">Order type</p>
-
-              <span className="font-mono">
-                {pendingOrderParams.orderType === 0 ? "Long" : "Short"}
-              </span>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              <p className="text-secondary-foreground">Amount</p>
-
-              <div className="flex items-center gap-1">
-                <img src={market.loanToken.iconUrl} className="size-4" />
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <p className="text-secondary-foreground">Order type</p>
 
                 <span className="font-mono">
-                  {fixed(pendingOrder.data.amount ?? 0n, decimals).format({
+                  {pendingOrderParams.orderType === 0 ? "Long" : "Short"}
+                </span>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <p className="text-secondary-foreground">Amount</p>
+
+                <div className="flex items-center gap-1">
+                  <img src={market.loanToken.iconUrl} className="size-4" />
+
+                  <span className="font-mono">
+                    {fixed(pendingOrder.data.amount ?? 0n, decimals).format({
+                      decimals: 2,
+                      trailingZeros: false,
+                    })}
+                  </span>
+
+                  <span className="text-sm text-secondary-foreground">
+                    {market.loanToken.symbol}
+                  </span>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <p className="text-secondary-foreground">Target rate</p>
+
+                <span className="font-mono">
+                  {computeTargetRate(
+                    pendingOrder.data.orderType,
+                    pendingOrder.data.amount,
+                    pendingOrder.data.slippageGuard
+                  ).format({
                     decimals: 2,
+                    percent: true,
                     trailingZeros: false,
                   })}
                 </span>
-
-                <span className="text-sm text-secondary-foreground">
-                  {market.loanToken.symbol}
-                </span>
               </div>
-            </div>
 
-            <Separator />
+              <Separator />
 
-            <div className="flex items-center justify-between">
-              <p className="text-secondary-foreground">Target rate</p>
+              <div className="flex items-center justify-between">
+                <p className="text-secondary-foreground">Order expiry</p>
 
-              <span className="font-mono">
-                {computeTargetRate(
-                  pendingOrder.data.orderType,
-                  pendingOrder.data.amount,
-                  pendingOrder.data.slippageGuard
-                ).format({
-                  decimals: 2,
-                  percent: true,
-                  trailingZeros: false,
-                })}
-              </span>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              <p className="text-secondary-foreground">Order expiry</p>
-
-              <div className="flex flex-col items-end gap-1">
-                <span className="font-mono">
-                  {formatExpiry(pendingOrder.data.expiry)}
-                </span>
-                <span className="font-mono text-sm text-secondary-foreground">
-                  {new Date(pendingOrder.data.expiry * 1000).toLocaleString()}
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="font-mono">
+                    {formatExpiry(pendingOrder.data.expiry)}
+                  </span>
+                  <span className="font-mono text-sm text-secondary-foreground">
+                    {new Date(pendingOrder.data.expiry * 1000).toLocaleString()}
+                  </span>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* New order (order to create) */}
-        <Card className="bg-[#0E1320]">
-          <CardHeader>
-            <CardTitle className="text-xl font-medium text-white">
-              New Fill Order
-            </CardTitle>
-          </CardHeader>
+          {/* New order (order to create) */}
+          <Card className="bg-[#0E1320]">
+            <CardHeader>
+              <CardTitle className="text-xl font-medium text-white">
+                New Fill Order
+              </CardTitle>
+            </CardHeader>
 
-          {match(step)
-            .with("review", () => (
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="amount" className="text-secondary-foreground">
-                    {orderType === 0 ? "Long size" : "Short size"}
-                  </Label>
+            {match(step)
+              .with("review", () => (
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="amount"
+                      className="text-secondary-foreground"
+                    >
+                      {orderType === 0 ? "Long size" : "Short size"}
+                    </Label>
 
-                  <div className="flex items-center justify-between rounded-sm bg-[#1A1F2E] font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
+                    <div className="flex items-center justify-between rounded-sm bg-[#1A1F2E] font-mono text-[24px] focus-within:outline focus-within:outline-white/20">
+                      <BigNumberInput
+                        disabled={inputsDisabled}
+                        className="bg-[#1A1F2E]"
+                        id="amount"
+                        onChange={(e) => {
+                          try {
+                            // sanitize input
+                            const sanitizedAmount = parseFixed(
+                              e.currentTarget.value,
+                              decimals
+                            )
+                            setAmount(sanitizedAmount.bigint)
+                          } catch {
+                            e.preventDefault()
+                          }
+                        }}
+                      />
+
+                      <Badge className="m-4 flex h-6 items-center justify-center gap-1 border-none bg-[#1A1F2E] p-2 py-4 font-sans font-medium hover:bg-none">
+                        <img
+                          src={market.loanToken.iconUrl}
+                          className="size-4"
+                        />{" "}
+                        {market.loanToken.symbol}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      className="text-secondary-foreground"
+                      htmlFor="max-rate"
+                    >
+                      {orderType === 0 ? "Min rate" : "Max rate"}
+                    </Label>
+
                     <BigNumberInput
-                      disabled={inputsDisabled}
+                      disabled={inputsDisabled || amount === 0n}
                       className="bg-[#1A1F2E]"
-                      id="amount"
+                      id="max-rate"
                       onChange={(e) => {
                         try {
                           // sanitize input
                           const sanitizedAmount = parseFixed(
                             e.currentTarget.value,
                             decimals
-                          )
-                          setAmount(sanitizedAmount.bigint)
+                          ).div(100, 0)
+
+                          setDesiredRate(sanitizedAmount.bigint)
                         } catch {
                           e.preventDefault()
                         }
                       }}
                     />
-
-                    <Badge className="m-4 flex h-6 items-center justify-center gap-1 border-none bg-[#1A1F2E] p-2 py-4 font-sans font-medium hover:bg-none">
-                      <img src={market.loanToken.iconUrl} className="size-4" />{" "}
-                      {market.loanToken.symbol}
-                    </Badge>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label
-                    className="text-secondary-foreground"
-                    htmlFor="max-rate"
-                  >
-                    {orderType === 0 ? "Min rate" : "Max rate"}
-                  </Label>
-
-                  <BigNumberInput
-                    disabled={inputsDisabled || amount === 0n}
-                    className="bg-[#1A1F2E]"
-                    id="max-rate"
-                    onChange={(e) => {
-                      try {
-                        // sanitize input
-                        const sanitizedAmount = parseFixed(
-                          e.currentTarget.value,
-                          decimals
-                        ).div(100, 0)
-
-                        setDesiredRate(sanitizedAmount.bigint)
-                      } catch {
-                        e.preventDefault()
-                      }
-                    }}
-                  />
-                </div>
-
-                <div className="flex flex-col items-center gap-2 border-t border-[#2D313E] pt-4 text-secondary-foreground">
-                  <span>Your Deposit</span>
-                  <div className="flex items-center gap-2">
-                    <img
-                      src={market.loanToken.iconUrl}
-                      alt={market.loanToken.symbol}
-                      width={20}
-                      height={20}
-                      className="h-5 w-5"
-                    />
-                    <span className="text-h5 font-medium text-white">
-                      {fixed(depositAmount).format({
-                        decimals: 4,
-                        trailingZeros: false,
-                      })}{" "}
-                      {market.loanToken.symbol}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>What am I paying for?</span>
-                    <HelpCircle className="size-4" />
-                  </div>
-                </div>
-
-                <Button
-                  onClick={() => setStep("match")}
-                  className="w-full font-semibold text-black"
-                  disabled={amount === 0n || desiredRate === 0n}
-                >
-                  Review Order
-                </Button>
-              </CardContent>
-            ))
-            .with("match", () => (
-              <CardContent className="space-y-10">
-                <div className="grid gap-8">
-                  <div className="flex items-center justify-between">
-                    <p className="text-secondary-foreground">
-                      {orderType === 0 ? "Long" : "Short"} Size
-                    </p>
-
+                  <div className="flex flex-col items-center gap-2 border-t border-[#2D313E] pt-4 text-secondary-foreground">
+                    <span>Your Deposit</span>
                     <div className="flex items-center gap-2">
-                      <img src={market.loanToken.iconUrl} className="size-4" />
-
-                      <p className="font-mono text-lg">
-                        {fixed(amount).format({
+                      <img
+                        src={market.loanToken.iconUrl}
+                        alt={market.loanToken.symbol}
+                        width={20}
+                        height={20}
+                        className="h-5 w-5"
+                      />
+                      <span className="text-h5 font-medium text-white">
+                        {fixed(depositAmount).format({
                           decimals: 4,
                           trailingZeros: false,
-                        })}
+                        })}{" "}
+                        {market.loanToken.symbol}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>What am I paying for?</span>
+                      <HelpCircle className="size-4" />
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => setStep("match")}
+                    className="w-full font-semibold text-black"
+                    disabled={amount === 0n || desiredRate === 0n}
+                  >
+                    Review Order
+                  </Button>
+                </CardContent>
+              ))
+              .with("match", () => (
+                <CardContent className="space-y-10">
+                  <div className="grid gap-8">
+                    <div className="flex items-center justify-between">
+                      <p className="text-secondary-foreground">
+                        {orderType === 0 ? "Long" : "Short"} Size
                       </p>
-                    </div>
-                  </div>
 
-                  <Separator />
-
-                  <div className="flex items-center justify-between">
-                    <p className="text-secondary-foreground">
-                      {orderType ? "Min" : "Max"} rate
-                    </p>
-
-                    <div>
-                      {fixed(desiredRate).format({
-                        decimals: 2,
-                        percent: true,
-                        trailingZeros: false,
-                      })}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex justify-between">
-                    <p className="text-secondary-foreground">Your Deposit</p>
-                    <div className="flex flex-col items-end gap-2">
                       <div className="flex items-center gap-2">
                         <img
                           src={market.loanToken.iconUrl}
                           className="size-4"
                         />
 
-                        <span className="font-mono text-h5">
-                          {fixed(depositAmount).format({
+                        <p className="font-mono text-lg">
+                          {fixed(amount).format({
                             decimals: 4,
                             trailingZeros: false,
                           })}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm text-secondary-foreground">
-                          What am I paying for?
-                        </span>
-
-                        <HelpCircle className="size-4 text-secondary-foreground" />
+                        </p>
                       </div>
                     </div>
-                  </div>
-                </div>
-                {needsApproval && amount > 0n ? (
-                  <>
-                    <div className="space-y-4 rounded border p-4">
-                      <h3 className="text-lg font-medium text-white">
-                        Approve {market.loanToken.symbol}
-                      </h3>
 
-                      <p className="text-sm text-secondary-foreground">
-                        Approve this market to spend your{" "}
-                        {market.loanToken.symbol}
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <p className="text-secondary-foreground">
+                        {orderType ? "Min" : "Max"} rate
                       </p>
-                      <RadioGroup
-                        disabled={inputsDisabled}
-                        defaultValue="unlimited"
-                        onValueChange={(value) =>
-                          setUnlimitedApproval(value === "unlimited")
-                        }
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="unlimited" id="unlimited" />
-                          <Label htmlFor="unlimited">
-                            Unlimited {market.loanToken.symbol}
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="custom" id="custom" />
-                          <Label htmlFor="custom">
+
+                      <div>
+                        {fixed(desiredRate).format({
+                          decimals: 2,
+                          percent: true,
+                          trailingZeros: false,
+                        })}
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex justify-between">
+                      <p className="text-secondary-foreground">Your Deposit</p>
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={market.loanToken.iconUrl}
+                            className="size-4"
+                          />
+
+                          <span className="font-mono text-h5">
                             {fixed(depositAmount).format({
                               decimals: 4,
                               trailingZeros: false,
-                            })}{" "}
-                            <span className="text-secondary-foreground">
-                              {market.loanToken.symbol}
-                            </span>
-                          </Label>
+                            })}
+                          </span>
                         </div>
-                      </RadioGroup>
-                    </div>
 
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm text-secondary-foreground">
+                            What am I paying for?
+                          </span>
+
+                          <HelpCircle className="size-4 text-secondary-foreground" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {needsApproval && amount > 0n ? (
+                    <>
+                      <div className="space-y-4 rounded border p-4">
+                        <h3 className="text-lg font-medium text-white">
+                          Approve {market.loanToken.symbol}
+                        </h3>
+
+                        <p className="text-sm text-secondary-foreground">
+                          Approve this market to spend your{" "}
+                          {market.loanToken.symbol}
+                        </p>
+                        <RadioGroup
+                          disabled={inputsDisabled}
+                          defaultValue="unlimited"
+                          onValueChange={(value) =>
+                            setUnlimitedApproval(value === "unlimited")
+                          }
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="unlimited" id="unlimited" />
+                            <Label htmlFor="unlimited">
+                              Unlimited {market.loanToken.symbol}
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="custom" id="custom" />
+                            <Label htmlFor="custom">
+                              {fixed(depositAmount).format({
+                                decimals: 4,
+                                trailingZeros: false,
+                              })}{" "}
+                              <span className="text-secondary-foreground">
+                                {market.loanToken.symbol}
+                              </span>
+                            </Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+
+                      <Button
+                        disabled={inputsDisabled}
+                        className="w-full font-semibold text-black"
+                        onClick={() => approve()}
+                      >
+                        {isApproveLoading ? "Approving" : "Approve"}{" "}
+                        {market.loanToken.symbol}{" "}
+                        {isApproveLoading && (
+                          <Spinner
+                            firstColor="#000"
+                            secondColor="#000"
+                            size={16}
+                          />
+                        )}
+                      </Button>
+                    </>
+                  ) : (
                     <Button
-                      disabled={inputsDisabled}
+                      onClick={handleSignAndFill}
                       className="w-full font-semibold text-black"
-                      onClick={() => approve()}
+                      disabled={
+                        amount === 0n ||
+                        desiredRate === 0n ||
+                        signOrderStatus === "pending" ||
+                        fillOrderStatus === "pending"
+                      }
                     >
-                      {isApproveLoading ? "Approving" : "Approve"}{" "}
-                      {market.loanToken.symbol}{" "}
-                      {isApproveLoading && (
+                      Sign and fill{" "}
+                      {(signOrderStatus === "pending" ||
+                        fillOrderStatus === "pending") && (
                         <Spinner
                           firstColor="#000"
                           secondColor="#000"
@@ -418,30 +449,13 @@ export function FillOrder() {
                         />
                       )}
                     </Button>
-                  </>
-                ) : (
-                  <Button
-                    onClick={handleSignAndFill}
-                    className="w-full font-semibold text-black"
-                    disabled={
-                      amount === 0n ||
-                      desiredRate === 0n ||
-                      signOrderStatus === "pending" ||
-                      fillOrderStatus === "pending"
-                    }
-                  >
-                    Sign and fill{" "}
-                    {(signOrderStatus === "pending" ||
-                      fillOrderStatus === "pending") && (
-                      <Spinner firstColor="#000" secondColor="#000" size={16} />
-                    )}
-                  </Button>
-                )}
-              </CardContent>
-            ))
-            .exhaustive()}
-        </Card>
-      </div>
+                  )}
+                </CardContent>
+              ))
+              .exhaustive()}
+          </Card>
+        </div>
+      )}
     </div>
   )
 }
