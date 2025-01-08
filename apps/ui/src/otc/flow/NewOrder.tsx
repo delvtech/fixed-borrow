@@ -404,15 +404,15 @@ export function NewOrder() {
                     <Check className="text-aquamarine" size={18} /> Order
                     Submitted
                   </Button>
-                  <Link asChild to="/otc">
-                    <Button
-                      className="ml-auto w-full bg-[#1B1E26] text-white hover:bg-[#1B1E26]/50"
-                      onClick={() => {}}
-                    >
+                  <Button
+                    asChild
+                    className="ml-auto w-full bg-[#1B1E26] text-white hover:bg-[#1B1E26]/50"
+                  >
+                    <Link to="/otc">
                       <ArrowLeft size={18} />
                       All Orders
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                   <Button
                     className="ml-auto w-full bg-[#1B1E26] text-red-400 hover:bg-[#1B1E26]/50"
                     onClick={() => {}}
