@@ -204,7 +204,7 @@ export function NewOrder() {
                       const sanitizedAmount = parseFixed(
                         e.currentTarget.value,
                         decimals
-                      ).div(parseFixed(100, 18))
+                      ).div(100, 0)
 
                       setDesiredRate(sanitizedAmount.bigint)
                     } catch {
