@@ -1,4 +1,5 @@
 import { fixed, parseFixed } from "@delvtech/fixed-point-wasm"
+import { ConnectButton } from "@rainbow-me/rainbowkit"
 import Spinner from "components/animations/Spinner"
 import { Badge } from "components/base/badge"
 import { Button } from "components/base/button"
@@ -19,6 +20,7 @@ import { useState } from "react"
 import { match } from "ts-pattern"
 import { formatExpiry } from "utils/formatExpiry"
 import { maxUint256 } from "viem"
+import { useAccount } from "wagmi"
 import { Link, useParams } from "wouter"
 import {
   computeDepositAmount,
@@ -50,6 +52,8 @@ export function FillOrder() {
   const [amount, setAmount] = useState(0n)
   const [desiredRate, setDesiredRate] = useState(0n)
   const depositAmount = computeDepositAmount(amount, orderType, desiredRate)
+
+  const { isConnected } = useAccount()
 
   /* Approval parameters */
   const [unlimitedApproval, setUnlimitedApproval] = useState(true)
@@ -373,7 +377,20 @@ export function FillOrder() {
                       </div>
                     </div>
                   </div>
-                  {needsApproval && amount > 0n ? (
+                  {!isConnected ? (
+                    <ConnectButton.Custom>
+                      {({ openConnectModal }) => {
+                        return (
+                          <Button
+                            onClick={openConnectModal}
+                            className="w-full font-semibold text-black"
+                          >
+                            Connect Wallet
+                          </Button>
+                        )
+                      }}
+                    </ConnectButton.Custom>
+                  ) : needsApproval && amount > 0n ? (
                     <>
                       <div className="space-y-4 rounded border p-4">
                         <h3 className="text-lg font-medium text-white">
