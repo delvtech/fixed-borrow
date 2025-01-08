@@ -26,7 +26,20 @@ export function usePendingOrders(
       })
 
       if (response.success) {
-        return response.orders.sort((a, b) => a.data.expiry - b.data.expiry)
+        return (
+          response.orders
+            // Cancel and remove expired orders
+            // TODO: Should this be done in the API or client class instead?
+            .filter((order) => {
+              if (order.data.expiry < Date.now() / 1000) {
+                otc.cancelOrder(order.key)
+                return false
+              }
+              return true
+            })
+            // Sort by expiry
+            .sort((a, b) => a.data.expiry - b.data.expiry)
+        )
       } else {
         throw new Error(response.error)
       }
