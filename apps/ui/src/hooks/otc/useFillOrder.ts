@@ -43,6 +43,7 @@ export function useFillOrder(options?: TypedMutationOptions) {
         address: matchingEngine,
         abi: HyperdriveMatchingEngineAbi,
         functionName: "matchOrders",
+        account: walletClient.account,
         args: [
           {
             ...longOrder,

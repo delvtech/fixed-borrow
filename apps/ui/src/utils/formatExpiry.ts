@@ -1,59 +1,51 @@
 import { dayInMs, hourInMs, weekInMs, yearInMs } from "utils/constants"
 import { pluralize } from "utils/pluralize"
 
-export function formatExpiry(seconds: bigint | number): string {
-  const ms = Number(seconds) * 1000
-  const nowMs = Date.now()
-  const remainingMs = ms - nowMs
+export function formatExpiry(timeInSeconds: number): string {
+  const remainingMs = timeInSeconds * 1000 - Date.now()
 
-  if (remainingMs < 0) {
+  if (remainingMs <= 0) {
     return "Expired"
   }
 
   const years = Math.floor(remainingMs / yearInMs)
+  const weeks = Math.floor((remainingMs % yearInMs) / weekInMs)
+  const yearsFormatted = `${years} ${pluralize(years, "year")}`
+  const weeksFormatted = `${weeks} ${pluralize(weeks, "week")}`
 
-  if (years > 1) {
-    return `${years} years`
+  if (years > 0) {
+    return weeks > 0 ? `${yearsFormatted}, ${weeksFormatted}` : yearsFormatted
   }
 
-  const weeks = Math.floor(remainingMs / weekInMs)
+  const days = Math.floor((remainingMs % weekInMs) / dayInMs)
+  const daysFormatted = `${days} ${pluralize(days, "day")}`
 
-  if (years === 1) {
-    return `1 year, ${pluralize(weeks, "week")}`
-  }
-  if (weeks > 1) {
-    return `${weeks} weeks`
+  if (weeks > 0) {
+    return days > 0 ? `${weeksFormatted}, ${daysFormatted}` : weeksFormatted
   }
 
-  const days = Math.floor(remainingMs / dayInMs)
+  const hours = Math.floor((remainingMs % dayInMs) / hourInMs)
+  const hoursFormatted = `${hours} ${pluralize(hours, "hour")}`
 
-  if (weeks === 1) {
-    return `1 week, ${pluralize(days, "day")}`
-  }
-  if (days > 1) {
-    return `${days} days`
+  if (days > 0) {
+    return hours > 0 ? `${daysFormatted}, ${hoursFormatted}` : daysFormatted
   }
 
-  const hours = Math.floor(remainingMs / hourInMs)
+  const minutes = Math.floor((remainingMs % hourInMs) / 60_000)
+  const minutesFormatted = `${minutes} ${pluralize(minutes, "minute")}`
 
-  if (days === 1) {
-    return `1 day, ${pluralize(hours, "hour")}`
-  }
-  if (hours > 1) {
-    return `${hours} hours`
-  }
-
-  const minutes = Math.floor(remainingMs / (60 * 1000))
-
-  if (hours === 1) {
-    return `1 hour, ${pluralize(minutes, "minute")}`
-  }
-  if (minutes > 1) {
-    return `${minutes} minutes`
-  }
-  if (minutes === 1) {
-    return `1 minute, ${pluralize(Number(seconds), "second")}`
+  if (hours > 0) {
+    return minutes > 0
+      ? `${hoursFormatted}, ${minutesFormatted}`
+      : hoursFormatted
   }
 
-  return pluralize(Number(seconds), "second")
+  const seconds = Math.floor((remainingMs % 60_000) / 1000)
+  const secondsFormatted = `${seconds} ${pluralize(seconds, "second")}`
+
+  if (minutes > 0) {
+    return `${minutesFormatted}, ${secondsFormatted}`
+  }
+
+  return secondsFormatted
 }

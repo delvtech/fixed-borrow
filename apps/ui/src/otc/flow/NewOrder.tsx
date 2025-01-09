@@ -23,6 +23,8 @@ import { useSignOrder } from "hooks/otc/useSignOrder"
 import { useState } from "react"
 import { otc } from "src/otc/client"
 import { Market } from "src/types"
+import { dayInMs } from "utils/constants"
+import { formatExpiry } from "utils/formatExpiry"
 import { maxUint256 } from "viem"
 import { Link } from "wouter"
 import {
@@ -59,25 +61,34 @@ const market: Market = {
 const decimals = market.loanToken.decimals
 
 export function NewOrder() {
-  const [amount, setAmount] = useState<bigint>(0n)
-  const [expiry, setExpiry] = useState<bigint>(1n) // days
   const [view, setView] = useState<"long" | "short">("long")
+  const [step, setStep] = useState<"review" | "sign">("review")
+
+  const [amount, setAmount] = useState(0n)
+  const [expiryDays, setExpiryDays] = useState(1)
   const [desiredRate, setDesiredRate] = useState<bigint>(0n)
   const depositAmount = computeDepositAmount(
     amount,
     view === "long" ? 0 : 1,
     desiredRate
   )
-  const [step, setStep] = useState<"review" | "sign">("review")
 
   const [unlimitedApproval, setUnlimitedApproval] = useState(true)
-
   const approvalAmount = unlimitedApproval ? maxUint256 : depositAmount
   const { approve, needsApproval, isLoading } = useApproval(
     market.collateralToken.address,
     HYPERDRIVE_MATCHING_ENGINE_ADDRESS,
     approvalAmount
   )
+
+  // The actual expiry timestamp (in seconds) used for the order which is
+  // updated when the preview is loaded
+  const [expiry, setExpiry] = useState(0)
+  function handleReviewOrder() {
+    const expiryMs = Date.now() + expiryDays * dayInMs
+    setExpiry(Math.ceil(expiryMs / 1000))
+    setStep("sign")
+  }
 
   const {
     mutateAsync: signOrderMutation,
@@ -89,28 +100,13 @@ export function NewOrder() {
       hyperdrive: market.hyperdrive,
       bondAmount: amount,
       depositAmount,
-      expiry: expiry * 86400n,
-      orderType: view === "long" ? 0n : 1n,
+      expiry,
+      orderType: view === "long" ? 0 : 1,
     })
-
     if (!signedOrder) return
-
-    const response = await otc.createOrder({
-      ...signedOrder,
-      expiry: signedOrder.expiry,
-    })
-
+    const response = await otc.createOrder(signedOrder)
     if ("error" in response) {
       console.error(response.error)
-    }
-  }
-
-  const handleOnExpiryChange = (value: string) => {
-    try {
-      const valueNum = BigInt(value)
-      setExpiry(valueNum * 86400n)
-    } catch (error) {
-      console.error(error)
     }
   }
 
@@ -136,6 +132,7 @@ export function NewOrder() {
         </CardHeader>
 
         {step === "review" ? (
+          // Form
           <CardContent className="space-y-6">
             <Tabs
               className="w-full"
@@ -168,6 +165,14 @@ export function NewOrder() {
                   disabled={inputsDisabled}
                   className="bg-[#1A1F2E]"
                   id="amount"
+                  defaultValue={
+                    amount > 0n
+                      ? fixed(amount, decimals).format({
+                          trailingZeros: false,
+                          group: false,
+                        })
+                      : ""
+                  }
                   onChange={(e) => {
                     try {
                       // sanitize input
@@ -198,13 +203,21 @@ export function NewOrder() {
                   disabled={inputsDisabled || amount === 0n}
                   className="bg-[#1A1F2E]"
                   id="max-rate"
+                  defaultValue={
+                    desiredRate > 0n
+                      ? fixed(desiredRate, decimals).mul(100, 0).format({
+                          trailingZeros: false,
+                          group: false,
+                        })
+                      : ""
+                  }
                   onChange={(e) => {
                     try {
                       // sanitize input
                       const sanitizedAmount = parseFixed(
                         e.currentTarget.value,
                         decimals
-                      ).div(parseFixed(100, 18))
+                      ).div(100, 0)
 
                       setDesiredRate(sanitizedAmount.bigint)
                     } catch {
@@ -222,7 +235,10 @@ export function NewOrder() {
               >
                 Order Expiry
               </Label>
-              <Select defaultValue="1" onValueChange={handleOnExpiryChange}>
+              <Select
+                defaultValue={expiryDays.toString()}
+                onValueChange={(val) => setExpiryDays(Number(val))}
+              >
                 <SelectTrigger id="order-expiry" className="bg-[#1A1F2E]">
                   <SelectValue placeholder="Select expiry" />
                 </SelectTrigger>
@@ -308,15 +324,16 @@ export function NewOrder() {
               </>
             ) : (
               <Button
-                onClick={() => setStep("sign")}
+                onClick={handleReviewOrder}
                 className="w-full font-semibold text-black"
-                disabled={amount === 0n || desiredRate === 0n}
+                disabled={amount === 0n}
               >
                 Review Order
               </Button>
             )}
           </CardContent>
         ) : (
+          // Preview
           <CardContent className="space-y-6">
             <div className="m-auto w-fit text-center">
               <MarketHeader className="text-h5 font-medium" market={market} />
@@ -350,9 +367,9 @@ export function NewOrder() {
                 <p className="text-secondary-foreground">Order Expiry</p>
 
                 <div className="space-y-2 text-right font-mono">
-                  <p className="text-lg">1 week </p>
+                  <p className="text-lg">{formatExpiry(expiry)}</p>
                   <p className="text-secondary-foreground">
-                    12/02/2024 1:44 PM{" "}
+                    {new Date(expiry * 1000).toLocaleString()}{" "}
                   </p>
                 </div>
               </div>
@@ -404,15 +421,15 @@ export function NewOrder() {
                     <Check className="text-aquamarine" size={18} /> Order
                     Submitted
                   </Button>
-                  <Link asChild to="/otc">
-                    <Button
-                      className="ml-auto w-full bg-[#1B1E26] text-white hover:bg-[#1B1E26]/50"
-                      onClick={() => {}}
-                    >
+                  <Button
+                    asChild
+                    className="ml-auto w-full bg-[#1B1E26] text-white hover:bg-[#1B1E26]/50"
+                  >
+                    <Link to="/otc">
                       <ArrowLeft size={18} />
                       All Orders
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                   <Button
                     className="ml-auto w-full bg-[#1B1E26] text-red-400 hover:bg-[#1B1E26]/50"
                     onClick={() => {}}
@@ -421,14 +438,23 @@ export function NewOrder() {
                   </Button>
                 </div>
               ) : (
-                <Button
-                  disabled={isOrderSigningPending}
-                  className="mt-8"
-                  size="lg"
-                  onClick={handleOrderSigning}
-                >
-                  Sign & Submit
-                </Button>
+                <div className="mt-8 grid grid-cols-2 gap-2">
+                  <Button
+                    className="ml-auto w-full bg-[#1B1E26] text-white hover:bg-[#1B1E26]/50"
+                    size="lg"
+                    onClick={() => setStep("review")}
+                  >
+                    <ArrowLeft size={18} />
+                    Edit
+                  </Button>
+                  <Button
+                    disabled={isOrderSigningPending}
+                    size="lg"
+                    onClick={handleOrderSigning}
+                  >
+                    Sign & Submit
+                  </Button>
+                </div>
               )}
             </div>
           </CardContent>
