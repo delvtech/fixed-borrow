@@ -4,7 +4,7 @@ import { pluralize } from "utils/pluralize"
 export function formatExpiry(timeInSeconds: number): string {
   const remainingMs = timeInSeconds * 1000 - Date.now()
 
-  if (remainingMs < 0) {
+  if (remainingMs <= 0) {
     return "Expired"
   }
 
