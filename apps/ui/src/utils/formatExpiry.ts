@@ -1,9 +1,8 @@
 import { dayInMs, hourInMs, weekInMs, yearInMs } from "utils/constants"
 import { pluralize } from "utils/pluralize"
 
-export function formatExpiry(timeInSeconds: bigint | number): string {
-  const timeInMs = Number(timeInSeconds) * 1000
-  const remainingMs = timeInMs - Date.now()
+export function formatExpiry(timeInSeconds: number): string {
+  const remainingMs = timeInSeconds * 1000 - Date.now()
 
   if (remainingMs < 0) {
     return "Expired"

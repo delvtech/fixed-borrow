@@ -78,8 +78,8 @@ export function FillOrder() {
       hyperdrive: market.hyperdrive,
       bondAmount: amount,
       depositAmount,
-      expiry: BigInt(pendingOrder.data.expiry),
-      orderType: BigInt(orderType),
+      expiry: pendingOrder.data.expiry,
+      orderType,
     })
 
     if (!newOrder) return

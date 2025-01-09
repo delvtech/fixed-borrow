@@ -9,8 +9,8 @@ type OrderData = {
   hyperdrive: Address
   bondAmount: bigint
   depositAmount: bigint
-  expiry: bigint
-  orderType: bigint
+  expiry: number
+  orderType: number
 }
 
 export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
@@ -30,8 +30,6 @@ export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
         publicClient,
       })
       const { vaultSharePrice } = await readHyperdrive.getPoolInfo()
-      const currentDate = BigInt(Math.ceil(Date.now() / 1000))
-      const expiry = orderData.expiry + currentDate
       const salt = getRandomSalt()
       const orderIntent: OrderIntent = await signOrderIntent(
         hyperdriveMatchingAddress,
@@ -41,16 +39,16 @@ export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
           trader: account,
           hyperdrive: orderData.hyperdrive,
           amount:
-            orderData.orderType === 0n
+            orderData.orderType === 0
               ? orderData.depositAmount
               : orderData.bondAmount,
           slippageGuard:
-            orderData.orderType === 0n
+            orderData.orderType === 0
               ? orderData.bondAmount
               : orderData.depositAmount,
           minVaultSharePrice: vaultSharePrice,
-          expiry: Number(expiry),
-          orderType: Number(orderData.orderType),
+          expiry: orderData.expiry,
+          orderType: orderData.orderType,
           options: {
             destination: account,
             asBase: true,
