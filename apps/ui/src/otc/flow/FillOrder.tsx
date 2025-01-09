@@ -33,6 +33,8 @@ const decimals = TARGET_OTC_MARKET.loanToken.decimals
 const market = TARGET_OTC_MARKET
 
 export function FillOrder() {
+  const [step, setStep] = useState<"review" | "match">("review")
+
   /* Fetch order from the URL */
   const params = useParams()
   const pendingOrderKey = decodeURIComponent(
@@ -44,9 +46,6 @@ export function FillOrder() {
 
   /* Inverse the order type from parameters for the match */
   const orderType = Number(!pendingOrderParams.orderType)
-
-  /* Step in the fill order flow */
-  const [step, setStep] = useState<"review" | "match">("review")
 
   /* Order parameters */
   const [amount, setAmount] = useState(0n)
@@ -224,6 +223,14 @@ export function FillOrder() {
                         disabled={inputsDisabled}
                         className="bg-[#1A1F2E]"
                         id="amount"
+                        defaultValue={
+                          amount > 0n
+                            ? fixed(amount, decimals).format({
+                                trailingZeros: false,
+                                group: false,
+                              })
+                            : ""
+                        }
                         onChange={(e) => {
                           try {
                             // sanitize input
@@ -260,6 +267,14 @@ export function FillOrder() {
                       disabled={inputsDisabled || amount === 0n}
                       className="bg-[#1A1F2E]"
                       id="max-rate"
+                      defaultValue={
+                        desiredRate > 0n
+                          ? fixed(desiredRate, decimals).mul(100, 0).format({
+                              trailingZeros: false,
+                              group: false,
+                            })
+                          : ""
+                      }
                       onChange={(e) => {
                         try {
                           // sanitize input
@@ -446,26 +461,36 @@ export function FillOrder() {
                       </Button>
                     </>
                   ) : (
-                    <Button
-                      onClick={handleSignAndFill}
-                      className="w-full font-semibold text-black"
-                      disabled={
-                        amount === 0n ||
-                        desiredRate === 0n ||
-                        signOrderStatus === "pending" ||
-                        fillOrderStatus === "pending"
-                      }
-                    >
-                      Sign and fill{" "}
-                      {(signOrderStatus === "pending" ||
-                        fillOrderStatus === "pending") && (
-                        <Spinner
-                          firstColor="#000"
-                          secondColor="#000"
-                          size={16}
-                        />
-                      )}
-                    </Button>
+                    <div className="mt-8 grid grid-cols-2 gap-2">
+                      <Button
+                        className="ml-auto w-full bg-[#1B1E26] text-white hover:bg-[#1B1E26]/50"
+                        size="lg"
+                        onClick={() => setStep("review")}
+                      >
+                        <ArrowLeft size={18} />
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={handleSignAndFill}
+                        className="w-full font-semibold text-black"
+                        disabled={
+                          amount === 0n ||
+                          desiredRate === 0n ||
+                          signOrderStatus === "pending" ||
+                          fillOrderStatus === "pending"
+                        }
+                      >
+                        Sign and fill{" "}
+                        {(signOrderStatus === "pending" ||
+                          fillOrderStatus === "pending") && (
+                          <Spinner
+                            firstColor="#000"
+                            secondColor="#000"
+                            size={16}
+                          />
+                        )}
+                      </Button>
+                    </div>
                   )}
                 </CardContent>
               ))
