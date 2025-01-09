@@ -132,6 +132,7 @@ export function NewOrder() {
         </CardHeader>
 
         {step === "review" ? (
+          // Form
           <CardContent className="space-y-6">
             <Tabs
               className="w-full"
@@ -164,6 +165,14 @@ export function NewOrder() {
                   disabled={inputsDisabled}
                   className="bg-[#1A1F2E]"
                   id="amount"
+                  defaultValue={
+                    amount > 0n
+                      ? fixed(amount, decimals).format({
+                          trailingZeros: false,
+                          group: false,
+                        })
+                      : ""
+                  }
                   onChange={(e) => {
                     try {
                       // sanitize input
@@ -194,6 +203,14 @@ export function NewOrder() {
                   disabled={inputsDisabled || amount === 0n}
                   className="bg-[#1A1F2E]"
                   id="max-rate"
+                  defaultValue={
+                    desiredRate > 0n
+                      ? fixed(desiredRate, decimals).mul(100, 0).format({
+                          trailingZeros: false,
+                          group: false,
+                        })
+                      : ""
+                  }
                   onChange={(e) => {
                     try {
                       // sanitize input
@@ -219,7 +236,7 @@ export function NewOrder() {
                 Order Expiry
               </Label>
               <Select
-                defaultValue="1"
+                defaultValue={expiryDays.toString()}
                 onValueChange={(val) => setExpiryDays(Number(val))}
               >
                 <SelectTrigger id="order-expiry" className="bg-[#1A1F2E]">
@@ -309,13 +326,14 @@ export function NewOrder() {
               <Button
                 onClick={handleReviewOrder}
                 className="w-full font-semibold text-black"
-                disabled={amount === 0n || desiredRate === 0n}
+                disabled={amount === 0n}
               >
                 Review Order
               </Button>
             )}
           </CardContent>
         ) : (
+          // Preview
           <CardContent className="space-y-6">
             <div className="m-auto w-fit text-center">
               <MarketHeader className="text-h5 font-medium" market={market} />
@@ -420,14 +438,23 @@ export function NewOrder() {
                   </Button>
                 </div>
               ) : (
-                <Button
-                  disabled={isOrderSigningPending}
-                  className="mt-8"
-                  size="lg"
-                  onClick={handleOrderSigning}
-                >
-                  Sign & Submit
-                </Button>
+                <div className="mt-8 grid grid-cols-2 gap-2">
+                  <Button
+                    className="ml-auto w-full bg-[#1B1E26] text-white hover:bg-[#1B1E26]/50"
+                    size="lg"
+                    onClick={() => setStep("review")}
+                  >
+                    <ArrowLeft size={18} />
+                    Edit
+                  </Button>
+                  <Button
+                    disabled={isOrderSigningPending}
+                    size="lg"
+                    onClick={handleOrderSigning}
+                  >
+                    Sign & Submit
+                  </Button>
+                </div>
               )}
             </div>
           </CardContent>
