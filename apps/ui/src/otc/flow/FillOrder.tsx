@@ -152,7 +152,12 @@ export function FillOrder() {
                   <img src={market.loanToken.iconUrl} className="size-4" />
 
                   <span className="font-mono">
-                    {fixed(pendingOrder.data.amount ?? 0n, decimals).format({
+                    {fixed(
+                      (pendingOrder.data.orderType === 0
+                        ? pendingOrder.data.slippageGuard
+                        : pendingOrder.data.amount) ?? 0n,
+                      decimals
+                    ).format({
                       decimals: 2,
                       trailingZeros: false,
                     })}
