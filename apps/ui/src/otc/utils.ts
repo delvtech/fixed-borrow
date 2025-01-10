@@ -1,7 +1,8 @@
 import { fixed, FixedPoint } from "@delvtech/fixed-point-wasm"
+import { HyperdriveMatchingEngineAbi } from "artifacts/hyperdrive/HyperdriveMatchingEngine"
 import { Order, OrderIntent } from "otc-api"
 import { Market } from "src/types"
-import { Address, bytesToHex, WalletClient } from "viem"
+import { Address, bytesToHex, PublicClient, WalletClient } from "viem"
 
 export const OTC_API_URL = import.meta.env.VITE_OTC_API_URL
 
@@ -47,13 +48,26 @@ export const TARGET_OTC_MARKET: Market = {
  */
 export async function signOrderIntent(
   matchingEngineAddress: Address,
+  publicClient: PublicClient,
   walletClient: WalletClient,
   address: Address,
   order: Order
 ): Promise<OrderIntent> {
+  const [name, version] = await Promise.all([
+    publicClient.readContract({
+      abi: HyperdriveMatchingEngineAbi,
+      address: matchingEngineAddress,
+      functionName: "name",
+    }),
+    publicClient.readContract({
+      abi: HyperdriveMatchingEngineAbi,
+      address: matchingEngineAddress,
+      functionName: "version",
+    }),
+  ])
   const domain = {
-    name: "HyperdriveMatchingEngine",
-    version: "1",
+    name,
+    version,
     chainId: walletClient.chain!.id,
     verifyingContract: matchingEngineAddress,
   }
