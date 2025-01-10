@@ -40,19 +40,19 @@ export async function DELETE({
   }
 
   // Create order object
-  let newObject: OrderObject<"canceled"> = {
-    status: "canceled",
-    key: createOrderKey("canceled", existingOrder),
+  let newObject: OrderObject<"cancelled"> = {
+    status: "cancelled",
+    key: createOrderKey("cancelled", existingOrder),
     data: {
       ...existingOrder,
-      canceledAt: Date.now(),
+      cancelledAt: Date.now(),
     },
   }
 
-  // Save cancelled order if not previously canceled
-  const existingCanceledOrder = await getOrder(newObject.key, bucketName)
+  // Save cancelled order if not previously cancelled
+  const existingCancelledOrder = await getOrder(newObject.key, bucketName)
 
-  if (!existingCanceledOrder) {
+  if (!existingCancelledOrder) {
     await s3.send(
       new PutObjectCommand({
         Bucket: bucketName,

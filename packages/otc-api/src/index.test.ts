@@ -265,12 +265,12 @@ describe("OTC API Handler", () => {
       const body = JSON.parse(response.body || "")
       const parsed = DeleteResponse.parse(body)
       assert(parsed.success)
-      assert.strictEqual(parsed.status, "canceled")
+      assert.strictEqual(parsed.status, "cancelled")
       assert.strictEqual(
         parsed.key,
-        updateOrderKey(mockOrderKey, { status: "canceled" })
+        updateOrderKey(mockOrderKey, { status: "cancelled" })
       )
-      assert(typeof parsed.data.canceledAt === "number")
+      assert(typeof parsed.data.cancelledAt === "number")
     })
   })
 })

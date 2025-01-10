@@ -14,6 +14,6 @@ export type DeleteRequest = z.infer<typeof DeleteRequest>
 export const DeleteResponse = ErrorResponse.or(
   SuccessResponse.extend({
     message: z.string(),
-  }).merge(OrderObject("canceled"))
+  }).merge(OrderObject("cancelled"))
 )
 export type DeleteResponse = z.infer<typeof DeleteResponse>
