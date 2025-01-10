@@ -33,6 +33,7 @@ export const useSignOrder = (hyperdriveMatchingAddress: Address) => {
       const salt = getRandomSalt()
       const orderIntent: OrderIntent = await signOrderIntent(
         hyperdriveMatchingAddress,
+        publicClient,
         walletClient,
         account,
         {
