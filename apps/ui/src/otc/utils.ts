@@ -61,7 +61,7 @@ export async function signOrderIntent(
     account: address,
     domain,
     types: {
-      Order: [
+      OrderIntent: [
         { name: "trader", type: "address" },
         { name: "hyperdrive", type: "address" },
         { name: "amount", type: "uint256" },
@@ -78,7 +78,7 @@ export async function signOrderIntent(
         { name: "asBase", type: "bool" },
       ],
     },
-    primaryType: "Order",
+    primaryType: "OrderIntent",
     message: {
       ...order,
       expiry: BigInt(order.expiry),
