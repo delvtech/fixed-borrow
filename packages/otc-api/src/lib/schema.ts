@@ -40,7 +40,7 @@ export type OrderIntent = z.infer<typeof OrderIntent>
 
 export const OrderStatus = z.enum([
   "awaiting_signature",
-  "canceled",
+  "cancelled",
   "pending",
   "matched",
 ])
@@ -79,8 +79,8 @@ const OrderDataByStatus = {
   awaiting_signature: BaseOrder.extend({
     signature: z.undefined().optional(),
   }),
-  canceled: Order.extend({
-    canceledAt: z.number(),
+  cancelled: Order.extend({
+    cancelledAt: z.number(),
   }),
   pending: OrderIntent,
   matched: OrderIntent.extend({
