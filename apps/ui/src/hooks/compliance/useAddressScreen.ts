@@ -30,8 +30,8 @@ export function useAddressScreen(): AddressScreenResult {
 
   const isBlocked = result?.data === false
 
-  if (isBlocked && location !== "/vpn") {
-    navigate("/vpn")
+  if (isBlocked && location !== "/ineligible") {
+    navigate("/ineligible")
   } else if (result?.error && location !== "/error") {
     if (import.meta.env.DEV) {
       console.error(result?.error)
