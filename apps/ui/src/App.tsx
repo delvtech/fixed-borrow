@@ -6,13 +6,13 @@ import AppFooter from "components/core/AppFooter"
 import { Navbar } from "components/core/Navigation"
 import { useAddressScreen } from "hooks/compliance/useAddressScreen"
 import { RegionInfoProvider } from "hooks/compliance/useRegionInfo"
-import { useVpnScreen } from "hooks/compliance/useVpnScreen"
 import { BorrowPage } from "pages/BorrowPage"
 import DevPage from "pages/DevPage"
+import { ErrorPage } from "pages/ErrorPage"
 import { HomePage } from "pages/HomePage"
+import { IneligibleWalletPage } from "pages/IneligibleWalletPage"
 import { OTCPage } from "pages/OTCPage"
 import { RestrictedCountriesPage } from "pages/RestrictedCountriesPage"
-import { VpnNotAllowedPage } from "pages/VpnNotAllowedPage"
 import { PropsWithChildren, useEffect } from "react"
 import { WagmiProvider } from "wagmi"
 import { Route, Switch, useLocation } from "wouter"
@@ -30,7 +30,6 @@ const queryClient = new QueryClient({
 })
 
 function Container(props: PropsWithChildren) {
-  useVpnScreen()
   useAddressScreen()
 
   // Scroll to top for every location change.
@@ -68,10 +67,11 @@ function App() {
                     path="/restricted_countries"
                     component={RestrictedCountriesPage}
                   />
-                  <Route path="/vpn" component={VpnNotAllowedPage} />
+                  <Route path="/ineligible" component={IneligibleWalletPage} />
                   <Route path="/otc" component={OTCPage} />
                   <Route path="/otc/new" component={NewOrder} />
                   <Route path="/otc/fill/:orderKey" component={FillOrder} />
+                  <Route path="/error" component={ErrorPage} />
                   {/* Default route in a switch */}
                   <Route>404: No such page!</Route>
                 </Switch>
