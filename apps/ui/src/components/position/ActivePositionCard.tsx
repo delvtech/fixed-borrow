@@ -223,7 +223,7 @@ export function ActivePositionCard(props: ActivePositionCardProps) {
                               setCloseCoverageModalOpen(true)
                             }}
                           >
-                            Revert to Variable
+                            Close Coverage
                           </Button>
                         )}
                       </TableCell>

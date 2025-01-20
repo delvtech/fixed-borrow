@@ -132,8 +132,8 @@ export function HomePage() {
             </Badge>
 
             <Badge className="hidden bg-secondary text-xs font-light sm:flex sm:text-sm">
-              <Check size={16} className="mr-1 stroke-aquamarine" /> Revert to
-              variable at any time
+              <Check size={16} className="mr-1 stroke-aquamarine" /> Close
+              coverage at any time
             </Badge>
 
             <Badge className="hidden bg-secondary text-xs font-light sm:flex sm:text-sm">

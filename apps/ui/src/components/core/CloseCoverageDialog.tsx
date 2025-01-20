@@ -277,7 +277,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
               className="animate-fade"
             >
               <DialogTitle>
-                {isMatured ? "Close Position" : "Revert to Variable"}
+                {isMatured ? "Close Position" : "Close Coverage"}
               </DialogTitle>
 
               <div className="grid gap-6">
@@ -487,7 +487,7 @@ export function CloseCoverageDialog(props: CloseCoverageDialogProps) {
                         ? "Sign Transaction..."
                         : isMatured
                           ? "Close Position"
-                          : "Revert to Variable"}
+                          : "Close Coverage"}
                     </Button>
                   )}
 
